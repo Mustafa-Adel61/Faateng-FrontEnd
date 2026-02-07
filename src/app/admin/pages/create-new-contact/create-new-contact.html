@@ -1,0 +1,91 @@
+<div class="cnv-backdrop">
+  <div class="cnv-modal report-modal">
+      <button class="cnv-close" (click)="doClose()">✕</button>
+      
+      <h2>Create Contract</h2>
+
+      <div class="report-form-grid">
+      
+     
+      <label class="full-width">Client <span class="required">*</span>
+        <select [(ngModel)]="selectedClientId" name="Client"
+        [ngClass]="{'input-error': submitted && !selectedClientId}"
+        >
+          <option [ngValue]="null" disabled selected>Select Client</option>
+          <option *ngFor="let c of clients" [ngValue]="c.id">{{ c.name }}</option>
+        </select>
+      </label>
+      
+      <label>Type <span class="required">*</span>
+          <select [(ngModel)]="form.Type" name="Type"
+          [ngClass]="{'input-error': submitted && !form.Type}"
+          >
+          <option *ngFor="let t of Types" [value]="t">{{t}}</option>
+          </select>
+      </label>
+
+      <label>Linked Project <span class="required">*</span>
+          <input type="text" [(ngModel)]="form.LinkedProject" name="LinkedProject"
+          [ngClass]="{'input-error': submitted && !form.LinkedProject}"
+          />
+      </label>
+
+        <label>Start <span class="required">*</span>
+            <input type="date" 
+               [(ngModel)]="form.Start" 
+               name="Start" 
+               (click)="forceDatePicker($event)" 
+               class="styled-date-input"
+               [ngClass]="{'input-error': submitted && !form.Start}"
+               /> 
+      </label>
+
+        <label>End <span class="required">*</span>
+            <input type="date" 
+               [(ngModel)]="form.End" 
+               name="End" 
+               (click)="forceDatePicker($event)" 
+               class="styled-date-input"
+               [ngClass]="{'input-error': submitted && !form.End}"
+               /> 
+      </label>
+
+      <label>Billing Cycles <span class="required">*</span>
+          <select [(ngModel)]="form.BillingCycle" name="BillingCycle"
+          [ngClass]="{'input-error': submitted && !form.BillingCycle}"
+          >
+          <option *ngFor="let t of BillingCycles" [value]="t">{{t}}</option>
+          </select>
+      </label>
+
+      <label>Amount per Cycle
+          <input type="number" [(ngModel)]="form.AmountperCycle" name="AmountperCycle"/>
+      </label>
+
+      <label class="full-width">Contract Photos & Files
+        <div class="custom-file-upload" (click)="openFilePicker()">
+          <i class="pin-icon">
+              <img src="/assets/images/imgIcon.png" alt="">
+          </i>
+          <span class="upload-text">Upload File</span>
+        </div>
+      </label>
+      <div class="selected-files">
+        <div class="thumbnail-item" *ngFor="let img of form.Photos; let i = index">
+          <img [src]="img" alt="contract photo" (click)="openUrl(img)">
+          <button type="button" class="delete-icon" (click)="removePhoto(i)">✕</button>
+        </div>
+      </div>
+      <div class="selected-files" *ngIf="form.Files.length">
+        <div class="thumbnail-item" *ngFor="let f of form.Files; let i = index">
+          <button type="button" (click)="openUrl(f.url, f.name)">{{ f.name }}</button>
+          <button type="button" class="delete-icon" (click)="removeFile(i)">✕</button>
+        </div>
+      </div>
+
+    </div>
+    <div class="cnv-actions report-actions">
+    <button type="button" class="cancel-button" (click)="doClose()">Cancel</button>
+    <button type="button" class="save-button-large yellow-bg" (click)="doSave()">Save</button>
+    </div>
+</div>

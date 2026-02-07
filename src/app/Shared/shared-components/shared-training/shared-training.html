@@ -1,0 +1,62 @@
+<app-shared-page-header
+[showCreateVisitButton]="false" 
+    [showDropdown]="false"
+>
+  <span breadcrumb>LIBRARY &gt; Training</span>
+
+</app-shared-page-header>
+<h3>More from MEPSOL Training Library</h3>
+<p>We know the best things for You. </p>
+<p>Top picks for You</p>
+<div class="tabs">
+  <button 
+    *ngFor="let tab of ['Lifts', 'Escalators', 'HVAC']"
+    [class.active]="activeTab === tab"
+    (click)="changeTab(tab)">
+    {{ tab }}
+  </button>
+</div>
+
+<div *ngIf="activeTab === 'Lifts'" >
+    <div class="training-page">
+
+  <div class="player-container" *ngIf="selectedVideo">
+    <iframe
+      width="100%"
+      height="480"
+      [src]="selectedVideo.link | safeUrl"
+      frameborder="0"
+      allowfullscreen>
+    </iframe>
+    <h3>{{ selectedVideo.title }}</h3>
+   
+    <p>{{ selectedVideo.description }}</p>
+  </div>
+
+  <div class="video-grid">
+    <div class="video-card" *ngFor="let video of videos" (click)="playVideo(video)">
+      <iframe
+        [src]="video.link | safeUrl"
+        frameborder="0"
+        allowfullscreen>
+      </iframe>
+      <div class="video-info">
+        <h4>{{ video.title }}</h4>
+
+   <div class="instructor-info">
+  <img src="assets/images/videoIcon.png" alt="">
+  <h6>Instructor engineer</h6>
+</div>
+
+        <p>{{ video.description }}</p>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+
+</div>
+
+<div *ngIf="activeTab === 'Escalators'"><p>Escalators content</p></div>
+<div *ngIf="activeTab === 'HVAC'"><p>HVAC content</p></div>

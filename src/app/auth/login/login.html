@@ -1,0 +1,38 @@
+<!-- ال selctor عشان يفتح ال navbar login component -->
+<app-navbar-login></app-navbar-login>
+
+<div class="login-container">
+  <div class="login-box">
+    <!-- <img src="assets/images/MEPSOL.png" alt="Logo" class="logo" /> -->
+    <div class="logo-wrapper">
+      <img class="image" src="/assets/images/MEPSOL.png" alt="Logo">
+      <img class="pointImage" src="/assets/images/Ellipse 33.png" alt="Dot">
+    </div>
+    <h2>Faateng Client Portal</h2>
+    <p class="subtitle">
+      Contact your project handler, info@faeteng.com or one of
+      our reps at +963113311515 to get your login information
+    </p>
+
+    <form [formGroup]="form" (ngSubmit)="login()">
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" formControlName="email" placeholder="Enter your email" />
+        <span class="checkmark" *ngIf="form.get('email')?.valid">✔</span>
+      </div>
+
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" formControlName="password" placeholder="Enter password" />
+        <div class="error-message" *ngIf="error">{{ error }}</div>
+      </div>
+
+      <button type="submit" class="login-btn">LOG IN</button>
+    </form>
+
+    <!-- <p class="register-link">
+      Don’t have an account?
+      <a (click)="goToRegister()">Register</a>
+    </p> -->
+  </div>
+</div>

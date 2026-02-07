@@ -1,0 +1,105 @@
+<app-shared-page-header>
+  <span breadcrumb>CRM &gt; Inventory</span>
+</app-shared-page-header>
+
+<div class="inventory-container">
+  <!-- Table Header -->
+  <div class="table-header">
+    <div class="th-cell checkbox-cell">
+      <input type="checkbox" [(ngModel)]="allSelected" (change)="toggleAll()">
+    </div>
+    <div class="th-cell">SKU / Serial</div>
+    <div class="th-cell">Name / Model</div>
+    <div class="th-cell">Category</div>
+    <div class="th-cell">Price</div>
+    <div class="th-cell">Quantity</div>
+    <div class="th-cell">Min Qty</div>
+    <div class="th-cell">Status</div>
+  </div>
+
+  <!-- Table Rows -->
+  <div class="table-row" *ngFor="let item of pagedItems" (click)="openDetails(item)">
+    <div class="td-cell checkbox-cell" (click)="$event.stopPropagation()">
+      <input type="checkbox">
+    </div>
+    <div class="td-cell"><strong>{{ item.sku }}</strong></div>
+    <div class="td-cell">{{ item.name }}</div>
+    <div class="td-cell">{{ item.category }}</div>
+    <div class="td-cell">{{ item.price | currency }}</div>
+    <div class="td-cell">{{ item.qtyOnHand }}</div>
+    <div class="td-cell">{{ item.minQty }}</div>
+    <div class="td-cell">
+      <span class="status-badge" [ngClass]="{
+        'critical': item.qtyOnHand <= 0,
+        'low': item.qtyOnHand > 0 && item.qtyOnHand <= item.minQty,
+        'ok': item.qtyOnHand > item.minQty
+      }">
+        {{ item.qtyOnHand <= 0 ? 'Out of Stock' : (item.qtyOnHand <= item.minQty ? 'Low Stock' : 'In Stock') }}
+      </span>
+    </div>
+  </div>
+
+  <!-- Pagination -->
+  <div class="pagination">
+    <button class="page-btn" [disabled]="page === 1" (click)="setPage(page - 1)">&lt;</button>
+    
+    <button *ngFor="let p of visiblePages" class="page-btn" [class.active]="p === page" (click)="setPage(p)">
+      {{ p }}
+    </button>
+    
+    <button class="page-btn" [disabled]="page === totalPages" (click)="setPage(page + 1)">&gt;</button>
+  </div>
+</div>
+
+<!-- Edit/Details Popup -->
+<div class="cnv-backdrop" *ngIf="showEditModal && selectedItem">
+  <div class="cnv-modal">
+    <button class="cnv-close" (click)="closeDetails()">✕</button>
+    <h2>Inventory Details</h2>
+    
+    <div class="report-form-grid">
+      <div class="full-width">
+        <label>SKU / Serial</label>
+        <input *ngIf="role === 'admin' || role === 'manager'" [(ngModel)]="selectedItem.sku">
+        <span *ngIf="role !== 'admin' && role !== 'manager'" class="read-only-val">{{ selectedItem.sku }}</span>
+      </div>
+      
+      <div class="full-width">
+        <label>Name / Model</label>
+        <input *ngIf="role === 'admin' || role === 'manager'" [(ngModel)]="selectedItem.name">
+        <span *ngIf="role !== 'admin' && role !== 'manager'" class="read-only-val">{{ selectedItem.name }}</span>
+      </div>
+
+      <div class="full-width">
+        <label>Category</label>
+        <select *ngIf="role === 'admin' || role === 'manager'" [(ngModel)]="selectedItem.category">
+             <option value="Lifts">Lifts</option>
+             <option value="Escalators">Escalators</option>
+             <option value="HVAC">HVAC</option>
+             <option value="Accessories">Accessories</option>
+        </select>
+        <span *ngIf="role !== 'admin' && role !== 'manager'" class="read-only-val">{{ selectedItem.category }}</span>
+      </div>
+
+      <div>
+        <label>Price</label>
+        <input type="number" *ngIf="role === 'admin' || role === 'manager'" [(ngModel)]="selectedItem.price">
+        <span *ngIf="role !== 'admin' && role !== 'manager'" class="read-only-val">{{ selectedItem.price | currency }}</span>
+      </div>
+
+      <div>
+        <label>Quantity</label>
+        <input type="number" *ngIf="role === 'admin' || role === 'manager'" [(ngModel)]="selectedItem.qtyOnHand">
+        <span *ngIf="role !== 'admin' && role !== 'manager'" class="read-only-val">{{ selectedItem.qtyOnHand }}</span>
+      </div>
+
+      <div>
+        <label>Min Quantity</label>
+        <input type="number" *ngIf="role === 'admin' || role === 'manager'" [(ngModel)]="selectedItem.minQty">
+        <span *ngIf="role !== 'admin' && role !== 'manager'" class="read-only-val">{{ selectedItem.minQty }}</span>
+      </div>
+    </div>
+
+    <button *ngIf="role === 'admin' || role === 'manager'" class="save-button-large" (click)="saveDetails()">Save Changes</button>
+  </div>
+</div>

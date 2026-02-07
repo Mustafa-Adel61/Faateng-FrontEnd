@@ -1,0 +1,272 @@
+/* الخلفية */
+.cnv-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  z-index: 1000;
+  padding-top: 150px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  margin-top: 10px;
+  overflow-y: auto;
+  padding-bottom: 50px;
+}
+
+/* صندوق المودال */
+.cnv-modal {
+  background: #fff;
+  border-radius: 10px;
+  width: 500px;
+  max-width: 95%;
+  padding: 15px 20px;
+  position: relative;
+  box-shadow: 0px 8px 20px rgba(0,0,0,0.15);
+  margin-bottom: 50px;
+}
+
+/* زر الإغلاق */
+.cnv-close {
+  position: absolute;
+  right: 15px;
+  top: 15px;
+  border: none;
+  background: none;
+  font-size: 20px;
+  cursor: pointer;
+  color: #444;
+}
+
+.cnv-modal h2 {
+  margin-bottom: 20px;
+  font-size: 1.3em;
+  font-weight: bold;
+  color: #333;
+}
+
+/* شبكة الحقول */
+.report-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px 8px;
+  margin-bottom: 15px;
+}
+
+/* الحقول */
+.cnv-modal label {
+  /* display: block;
+  font-size: 0.85em;
+  color: #1C1C1C;
+  font-weight: 600;
+  margin-bottom: 4px; */
+  
+  color: #1C1C1C;
+  /* font-family: Poppins; */
+font-weight: 600;
+font-style: SemiBold;
+font-size: 14px;
+line-height: 15px;
+letter-spacing: 0%;
+}
+.cnv-modal input,
+.cnv-modal select,
+.cnv-modal textarea,
+.fake-upload {
+  width: 100%;
+  padding: 6px 8px;
+  margin-top: 6px;
+  box-sizing: border-box;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+
+  /* ✅ خلي الخلفية شفافة */
+  background-color: transparent;
+
+  /* ✅ نفس الخط */
+  /* font-family: Poppins; */
+  font-weight: 400;
+  font-size: 12px;
+  line-height: 20px;
+  letter-spacing: 0;
+  color: #1C1C1C33; /* اللون الأساسي للنص */
+
+  /* ✅ عشان يدي نفس الإحساس اللي في الصورة */
+  outline: none;
+  transition: border-color 0.2s ease-in-out;
+}
+
+.cnv-modal input:focus,
+.cnv-modal select:focus,
+.cnv-modal textarea:focus {
+  border-color: #f8c400; /* أصفر أثناء الكتابة */
+  outline: none;
+}
+
+.cnv-modal textarea {
+  min-height: 60px;
+  /* resize: none; */
+}
+
+/* الحقل اللي ياخد العرض كامل */
+.full-width {
+  grid-column: 1 / -1;
+  margin-top: 6px;
+}
+
+/* الأزرار */
+.report-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 15px;
+  
+}
+
+.cancel-button {
+  background: none;
+  border: none;
+  color: #1B1616;
+  padding: 10px 14px;
+  cursor: pointer;
+  font-size: 15px;
+}
+
+.save-button-large {
+  width: 150px;
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  font-size: 1em;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s;
+    font-size: 15px;
+
+}
+
+.yellow-bg {
+  background-color: #F5D11C;
+  color: #333;
+}
+
+.save-button-large:hover {
+  opacity: 0.9;
+}
+
+/* البادچ */
+.badge {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 12px;
+  font-size: 0.8em;
+  font-weight: 600;
+  color: #fff;
+  margin-top: 6px;
+}
+
+.badge.scheduled {
+  background: #7b61ff; /* بنفسجي */
+}
+
+.badge.maintenance {
+  background: #4db5ff; /* أزرق فاتح */
+}
+
+
+
+/* شكل الزر اللي شبه input */
+.custom-file-upload {
+  display: flex;
+  align-items: center;
+  gap: 8px; /* مسافة بسيطة بين الأيقونة والنص */
+  width: 100%;
+  background: #f9f9f9;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 5px 5px;
+  cursor: pointer;
+  /* transition: background 0.2s ease; */
+  box-sizing: border-box;
+  margin-top: 6px;
+   /* ✅ خلي الخلفية شفافة */
+  background-color: transparent;
+}
+
+.custom-file-upload:hover {
+  background-color: #f0f0f0;
+}
+
+/* الأيقونة */
+.pin-icon {
+  font-size: 1.2em;
+  color: #555;
+  transform: rotate(25deg);
+  padding-left: 10px;
+  padding-right: 5px;
+}
+
+/* النص */
+.upload-text {
+  /* color: #555;
+  font-size: 0.9em;
+  user-select: none; */
+  
+font-family: Poppins;
+font-weight: 400;
+font-style: Regular;
+font-size: 12px;
+/* leading-trim: NONE; */
+line-height: 20px;
+letter-spacing: 0%;
+color: #1C1C1C33;
+}
+
+/* الصور المختارة */
+.selected-files {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.selected-files img {
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+
+.inline3input{
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+.one{
+  flex: 3;
+}
+.two{
+  flex: 1;
+}
+.three{
+  flex: 2;
+}
+.relativelable{
+ margin-top: 13px;
+}
+
+hr {
+  /* width: 80%; */
+  border: none;
+  border-top: 1px solid rgba(139, 139, 139, 0.2); /* خط رمادي شفاف */
+  margin-left: 10px ; 
+  margin-right: 10px ;
+}
+.required {
+  color: red;
+}
+
+.input-error {
+  border: 1px solid red !important;
+}

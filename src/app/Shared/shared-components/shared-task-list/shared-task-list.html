@@ -1,0 +1,209 @@
+
+<app-shared-page-header (createVisit)="openCreate()"
+>
+<span breadcrumb>DISPATCHING &gt; {{ activeTab === 'list' ? 'TaskList' : 'Map' }}</span>
+
+</app-shared-page-header>
+<app-create-new-visit
+  *ngIf="showCreate"
+  (close)="closeCreate()"
+  (save)="addTask($event)">
+</app-create-new-visit>
+
+<div class="task-list">
+  <div class="page-tabs">
+    <button class="tab-btn" [class.active]="activeTab === 'list'" (click)="activeTab = 'list'">Task List</button>
+    <button class="tab-btn" [class.active]="activeTab === 'map'" (click)="activeTab = 'map'">Map</button>
+  </div>
+
+  <div class="tab-content">
+    <!-- List tab -->
+    <ng-container *ngIf="activeTab === 'list'">
+      <div class="task-toolbar">
+        <div class="toolbar-left">
+          <button class="icon-btn">+</button>
+          <button class="icon-btn" (click)="toggleFilterBuilder()">
+            <img src="/assets/images/Vector3.png" alt="">
+          </button>
+          <button class="icon-btn">⇅</button>
+        </div>
+
+        <div class="toolbar-right">
+          <div class="search-input">
+            <button><img class="search-icon" src="/assets/images/search.png" alt=""></button>
+            <input type="text"
+             class="forSearch"
+             [(ngModel)]="searchText" 
+             placeholder="Search" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Filter Builder -->
+      <div class="filter-builder" *ngIf="showFilterBuilder">
+        <h4>Add filter</h4>
+        <div class="filter-row">
+          <select [(ngModel)]="newFilter.field">
+            <option value="">Select Field</option>
+            <option value="status">Status</option>
+            <option value="name">Project</option>
+            <option value="team">Team</option>
+            <option value="priority">Priority</option>
+            <option value="visitType">Visit Type</option>
+            <option value="address">Address</option>
+            <option value="slaStatus">SLA Status</option>
+          </select>
+
+          <select [(ngModel)]="newFilter.value" *ngIf="getFilterValues(newFilter.field).length">
+            <option *ngFor="let v of getFilterValues(newFilter.field)" [value]="v">{{ v }}</option>
+          </select>
+
+          <button class="add-btn" (click)="applyFilter()">Apply</button>
+          <button class="add-btn" (click)="showFilterBuilder=false" style="background:#ccc;color:#000">Close</button>
+        </div>
+      </div>
+
+      <!-- Active filters -->
+      <div class="active-filters" *ngIf="activeFilters.length">
+        <span class="filter-chip" *ngFor="let f of activeFilters; let i = index">
+          {{ f.field }}: <strong>{{ f.value }}</strong>
+          <button (click)="removeFilter(i)">×</button>
+        </span>
+        <button class="clear-btn" (click)="clearAllFilters()">Clear All</button>
+      </div>
+<!-- selected count -->
+<div class="selected-count" *ngIf="selectedCount > 0">
+  {{ selectedCount }} row(s) selected
+</div>
+      <!-- table -->
+      <table>
+        <thead>
+          <tr>
+            <th>
+            <input 
+               type="checkbox" 
+               [checked]="allSelected" 
+               (change)="allSelected = $event.target.checked; toggleAll()" 
+               (click)="$event.stopPropagation()"/>
+            </th>
+            <th class="faded">STATUS</th>
+            <th class="faded">PROJECT / SITE</th>
+            <th class="faded">UNITS</th>
+            <th class="faded">ASSIGNEE</th>
+            <th class="faded">TEAM</th>
+            <th class="faded">PRIORITY</th>
+            <th class="faded">ADDRESS</th>
+            <th class="faded">DUE</th>
+            <th class="faded">SLA DUE</th>
+            <th class="faded">SLA</th>
+            <th class="faded">OBJECTIVE</th>
+            <th class="faded">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let task of pagedTasks" (click)="openDetails(task)">
+            <td>
+              <!-- <input type="checkbox" [(ngModel)]="task.selected" (change)="updateAllSelected()" /> -->
+              <input 
+      type="checkbox" 
+      [(ngModel)]="task.selected" 
+      (change)="updateAllSelected()" 
+      (click)="$event.stopPropagation()"
+    />
+            </td>
+            <td class="faded">
+              <span [ngClass]="{
+                'status-Scheduled': task.status === 'Scheduled',
+                'status-Dispatched': task.status === 'Dispatched',
+                'status-On-Site': task.status === 'On-Site',
+                'status-Waiting-Parts': task.status === 'Waiting-Parts',
+                'status-QA-Review': task.status === 'QA/Review',
+                'status-Backlog': task.status === 'Backlog'|| task.status === 'Done'|| task.status === 'Closed',
+              }">{{ task.status }}</span>
+            </td>
+            <td class="faded">{{ task.name }}</td>
+            <td class="faded">{{ task.units }}</td>
+            <td class="faded">{{ task.assignee }}</td>
+            <td class="faded">{{ task.team }}</td>
+
+            <td class="faded">
+              <span [ngClass]="{
+                'priority-high': task.priority === 'High',
+                'sla-overdue': task.priority === 'Urgent',
+                'priority-low': task.priority === 'Low'
+              }">{{ task.priority }}</span>
+            </td>
+
+            <td class="faded">{{ task.address }}</td>
+            <td class="faded">{{ task.due }}</td>
+            <td class="faded">{{ task.slaDue }}</td>
+            <td class="faded">
+              <span [ngClass]="{
+                'sla-ok': task.slaStatus === 'OK',
+                'sla-overdue': task.slaStatus === 'Overdue',
+                'sla-pending': task.slaStatus === 'Pending'
+              }">{{ task.slaStatus }}</span>
+            </td>
+            <td class="faded ">{{ task.objective }}</td>
+<!-- (click)="$event.stopPropagation()" بيمنع ال click انه ياخد ال action الي فوقيه عشان كدا لو دوست عليها مش هيفتح ال details  -->
+            <td (click)="$event.stopPropagation()">
+                <select class="action-row" (change)="onSelectChange(task, $event)">
+                <option value="">Actions</option>
+                <option value="view">View Details</option>
+                <option value="createSuggestedRepair" *ngIf="role === 'technician'">Create Suggested Repair</option>
+                <option value="createInvoice" *ngIf="role === 'finance' && (task.status === 'Done' || task.status === 'Completed' || task.status === 'Closed')">Create Invoice</option>
+                <!-- <option value="edit">Edit</option> -->
+                <option value="delete" *ngIf="role === 'admin'">Delete</option>
+                </select>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- pagination -->
+      <div class="pagination" *ngIf="totalPages > 1">
+        <button class="page-btn" [disabled]="page === 1" (click)="setPage(page-1)">&lt;</button>
+        <ng-container *ngFor="let p of visiblePages">
+          <button class="page-btn" [class.active]="p === page" (click)="setPage(p)">{{ p }}</button>
+        </ng-container>
+        <button class="page-btn" [disabled]="page === totalPages" (click)="setPage(page+1)">&gt;</button>
+      </div>
+    </ng-container>
+
+    <!-- Map tab -->
+    <ng-container *ngIf="activeTab === 'map'">
+      <app-map></app-map>
+    </ng-container>
+  </div>
+</div>
+<app-shared-task-details
+  *ngIf="showDetails"
+  [visible]="showDetails"
+  [task]="selectedTask"
+  [statuses]="statuses"
+  (close)="closeDetails()"
+  (changeStatus)="updateTaskStatus(selectedTask!)"
+></app-shared-task-details>
+
+<!-- Create Suggested Repair Modal -->
+<div class="details-overlay" *ngIf="showCreateSuggestedRepairModal" style="z-index: 1001;">
+  <div class="details-panel" style="width: 80%; max-width: 800px;">
+     <app-create-new-suggested-repair 
+       (close)="closeCreateSuggestedRepair()" 
+       (save)="onSuggestedRepairCreated($event)"
+       [initialData]="selectedTaskForSuggestedRepair">
+     </app-create-new-suggested-repair>
+  </div>
+</div>
+
+<!-- Create Invoice Modal -->
+<div class="details-overlay" *ngIf="showCreateInvoiceModal" style="z-index: 1001;">
+  <div class="details-panel" style="width: 80%; max-width: 600px;">
+     <app-create-new-invoice 
+       (close)="closeCreateInvoice()" 
+       (save)="onInvoiceCreated($event)"
+       [workOrder]="selectedTaskForInvoice">
+     </app-create-new-invoice>
+  </div>
+</div>
+

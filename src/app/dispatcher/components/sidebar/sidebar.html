@@ -1,0 +1,29 @@
+
+<!-- لاحظ كله بيروح لحاجات في ال admin  لما اعمل ال component بتاعت ال client اخليهه تروح ليه   -->
+<nav class="sidebar">
+  <ul class="menu">
+    <li class="section-title">Dispatching</li>
+    <li><a routerLink="/dispatcher/task-list" routerLinkActive="active"(click)="scrollToTop()">Task List</a></li>
+    <li><a routerLink="/dispatcher/calendar" routerLinkActive="active"(click)="scrollToTop()">Calender</a></li>
+    <li><a routerLink="/dispatcher/dispatcher-view" routerLinkActive="active"(click)="scrollToTop()">Dispatcher View</a></li>
+    <li class="divider"></li>
+    <li class="section-title">Records</li>
+    <li><a routerLink="/dispatcher/projects" routerLinkActive="active"(click)="scrollToTop()">Projects</a></li>
+    <li><a routerLink="/dispatcher/units" routerLinkActive="active"(click)="scrollToTop()">Units</a></li>
+    <li><a routerLink="/dispatcher/archive" routerLinkActive="active"(click)="scrollToTop()">Archive</a></li>
+    <li class="divider"></li>
+    <li class="section-title">Library</li>
+    <li><a routerLink="/dispatcher/inventory" routerLinkActive="active"(click)="scrollToTop()">Inventory</a></li>
+    <li><a routerLink="/dispatcher/fault-codes" routerLinkActive="active"(click)="scrollToTop()">Fault codes</a></li>
+    <li><a routerLink="/dispatcher/unit-manuals" routerLinkActive="active"(click)="scrollToTop()">Unit manuals</a></li>
+    <li><a routerLink="/dispatcher/training" routerLinkActive="active"(click)="scrollToTop()">Training</a></li>
+    <li><a routerLink="/dispatcher/checklists" routerLinkActive="active"(click)="scrollToTop()">Checklists</a></li>
+
+    <li class="section-title">Logout</li>
+    <li><a (click)="logout()">Log Out</a></li>
+    <li class="divider"></li>
+    <li><a routerLink="/client/inventory" routerLinkActive="active"(click)="scrollToTop()">
+      <img src="assets/images/setting.png" alt="">
+    </a></li>
+  </ul>
+</nav>

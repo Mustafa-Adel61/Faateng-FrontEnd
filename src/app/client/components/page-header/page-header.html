@@ -1,0 +1,21 @@
+<div class="page-header">
+  <div class="breadcrumb">
+    <ng-content select="[breadcrumb]"></ng-content>
+  </div>
+  <div class="header-actions">
+    <div *ngIf="showSerchBox"  class="search-input">
+      <button class="search-btn">
+        <img class="search-icon" src="/assets/images/search2.png" alt="">
+      </button>
+      <input type="text" class="forSearch" placeholder="Search Tasks" />
+    </div>
+
+    <select *ngIf="showDropdown" class="filter-dropdown">
+      <option>All Building</option>
+    </select>
+
+    <button *ngIf="showCreateVisitButton" class="create-btn" (click)="onCreateClick()">
+      {{ createButtonLabel }}
+    </button>
+  </div>
+</div>

@@ -1,0 +1,76 @@
+<div class="cnv-backdrop">
+  <div class="cnv-modal report-modal">
+      <button class="cnv-close" (click)="doClose()">✕</button>
+      
+      <h2>MR - 001</h2>
+
+      <div class="report-form-grid">
+      
+      <!-- <label>System ID <span class="required">*</span>
+          <input type="text" [(ngModel)]="form.systemId"
+           name="systemId" required #systemId="ngModel"/>
+      </label> -->
+      <label>Project Name <span class="required">*</span>
+        <input type="text"
+         name="ProjectName"
+         [(ngModel)]="form.ProjectName"
+         [ngClass]="{'input-error': submitted && !form.ProjectName}">
+</label>
+      <label>Technical Name <span class="required">*</span>
+          <input type="text" [(ngModel)]="form.TechnicalName" name="TechnicalName"
+             [ngClass]="{'input-error': submitted && !form.TechnicalName}"/>
+      </label>
+
+      <label>Unit Type <span class="required">*</span>
+          <input type="text" [(ngModel)]="form.UnitType" name="UnitType"
+             [ngClass]="{'input-error': submitted && !form.UnitType}"/>
+      </label>
+
+      <label>Location <span class="required">*</span>
+          <input type="text" [(ngModel)]="form.Location" name="Location"
+             [ngClass]="{'input-error': submitted && !form.Location}"/>
+      </label>
+      <label class="full-width">Issue Description <span class="required">*</span>
+          <textarea [(ngModel)]="form.IssueDescription" name="IssueDescription" rows="2"
+             [ngClass]="{'input-error': submitted && !form.IssueDescription}"></textarea>
+      </label>
+      <label class="full-width">SuggestedRepair<span class="required">*</span>
+          <textarea [(ngModel)]="form.SuggestedRepair" name="SuggestedRepair" rows="2"
+             [ngClass]="{'input-error': submitted && !form.SuggestedRepair}"></textarea>
+      </label>
+
+       <label>Priority <span class="required">*</span>
+          <select [(ngModel)]="form.Priority" name="Priority"   
+           [ngClass]="{'input-error': submitted && !form.Priority}">
+          <option *ngFor="let t of Priority" [value]="t">{{t}}</option>
+          </select>
+      </label>
+       <label>Status <span class="required">*</span>
+          <select [(ngModel)]="form.Status" name="Status"   
+           [ngClass]="{'input-error': submitted && !form.Status}">
+          <option *ngFor="let t of Status" [value]="t">{{t}}</option>
+          </select>
+      </label>
+       <label>Score <span class="required">*</span>
+          <input type="number" [(ngModel)]="form.Score" name="Score"
+             [ngClass]="{'input-error': submitted && !form.Score}"/>
+      </label>
+      <!-- ✅ الزر الجديد لرفع الصور -->
+      <label>Photos
+        <div class="custom-file-upload" (click)="openFilePicker()">
+          <i class="pin-icon">
+              <img src="/assets/images/imgIcon.png" alt="">
+          </i>
+          <span class="upload-text">Upload File</span>
+        </div>
+      <!-- عرض الصور المختاره ممكن اسيبها واعمل ال scrol يكون علي الصفحه كلها عشان تظبط -->
+      <!-- <div class="selected-files" *ngIf="form.photos.length">
+        <img *ngFor="let p of form.photos" [src]="p" alt="photo" />
+      </div> -->
+      </label>
+    </div>
+    <div class="cnv-actions report-actions">
+    <button type="button" class="cancel-button" (click)="doClose()">Cancel</button>
+    <button type="button" class="save-button-large yellow-bg" (click)="doSave()">Save</button>
+    </div>
+</div>

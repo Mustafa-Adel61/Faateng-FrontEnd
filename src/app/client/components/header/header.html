@@ -1,0 +1,42 @@
+<!-- <header class="app-header">
+  <div class="header-left">
+    <button class="menu-btn">☰</button>
+      <button class="sidebar-toggle" (click)="sidebarToggle.emit()">
+    &#9776;
+  </button>
+ 
+     <img class="image" src="/assets/images/MEPSOL.png" alt="">
+  </div>
+
+  <div class="header-right">
+    <span class="icon headset">🎧</span>
+    <span class="icon bell">🔔</span> 
+    <img src="assets/images/humanIcon.jpg" alt="User" class="user-img">
+  </div>
+</header> -->
+
+
+<header class="app-header">
+  <div class="header-left">
+<button class="sidebar-toggle" (click)="sidebarToggleClick()">&#9776;</button>
+    <img class="menu-btn" src="/assets/images/Icon.png" alt="">
+    <!-- <img class="image" src="/assets/images/MEPSOL.png" alt="Logo">
+    <img class="pointImage" src="/assets/images/Ellipse 33.png" alt="Logo"> -->
+  <div class="logo-wrapper">
+  <img class="image" src="/assets/images/MEPSOL.png" alt="Logo">
+  <img class="pointImage" src="/assets/images/Ellipse 33.png" alt="Dot">
+</div>
+
+</div>
+
+<div class="header-right">
+  <!-- <span class="icon headset">🎧</span>
+  <span class="icon bell">🔔</span> -->
+  <img class="icon headset" src="/assets/images/Icon2.png" alt="Dot">
+  <img class="icon bell" src="/assets/images/Icon1.png" alt="Dot">
+  <a routerLink="/client/profile-details" routerLinkActive="active">
+    <img src="assets/images/Ellipse 34.png" alt="User" class="user-img">
+  </a>
+  
+  </div>
+</header>

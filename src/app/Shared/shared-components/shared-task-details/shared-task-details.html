@@ -1,0 +1,51 @@
+<div class="details-overlay" *ngIf="visible">
+  <div class="details-panel">
+    <button class="close-btn" (click)="onClose()">×</button>
+    <h3>{{ task?.name }}</h3>
+
+    <div class="chips-row" *ngIf="task">
+      <span class="chip"
+        [ngClass]="{
+          'status-Scheduled': task.status === 'Scheduled',
+          'status-Dispatched': task.status === 'Dispatched',
+          'status-On-Site': task.status === 'On-Site',
+          'status-Waiting-Parts': task.status === 'Waiting-Parts',
+          'status-QA-Review': task.status === 'QA/Review',
+          'status-Backlog': task.status === 'Backlog' || task.status === 'Done' || task.status === 'Closed'
+        }"
+      >{{ task.status }}</span>
+
+      <span class="chip"
+        [ngClass]="{
+          'sla-ok': task.slaStatus === 'OK',
+          'sla-overdue': task.slaStatus === 'Overdue',
+          'sla-pending': task.slaStatus === 'Pending'
+        }"
+      >{{ task.slaStatus }}</span>
+
+      <span class="chip"
+        [ngClass]="{
+          'priority-high': task.priority === 'High',
+          'priority-low': task.priority === 'Low'
+        }"
+      >{{ task.priority || 'Normal' }}</span>
+    </div>
+
+    <div *ngIf="task">
+      <strong>Status </strong>
+      <div class="status-select">
+        <select [(ngModel)]="task.status" (change)="onStatusChange()">
+          <option *ngFor="let s of statuses" [value]="s">
+            {{ s }}
+          </option>
+        </select>
+      </div>
+    <p><strong>Assignee:</strong> {{ task?.assignee }}</p>
+    <p><strong>Team:</strong> {{ task?.team }}</p>
+    <p><strong>Units:</strong> {{ task?.units }}</p>
+    <p><strong>Address:</strong> {{ task?.address }}</p>
+    <p><strong>Due:</strong> {{ task?.due }}</p>
+    <p><strong>SLA Due:</strong> {{ task?.slaDue }}</p>
+    <p><strong>Objective:</strong> {{ task?.objective }}</p>
+  </div>
+  </div>

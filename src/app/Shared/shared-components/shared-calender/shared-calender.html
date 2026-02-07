@@ -1,0 +1,106 @@
+<app-shared-page-header>
+  <span breadcrumb>DISPATCHING &gt; Calendar</span>
+</app-shared-page-header>
+
+<app-create-new-visit
+  *ngIf="showCreateForm"
+  (close)="closeCreate()"
+  (save)="saveNewVisit($event)">
+</app-create-new-visit>
+
+<div class="calendar-header">
+  <button class="todayButton" (click)="today()">Today</button>
+
+  <div class="calendar-navigation">
+    <button class="ChangeDay" (click)="prev()">
+      <img src="/assets/images/goLift.png" />
+    </button>
+
+    <span class="calendar-range">
+      {{ weekDays[0] | date:'MMM d' }} - {{ weekDays[6] | date:'MMM d, yyyy' }}
+    </span>
+
+    <button class="ChangeDay" (click)="next()">
+      <img src="/assets/images/goRight.png" />
+    </button>
+  </div>
+
+  <div class="view-switch">
+    <button disabled>Year</button>
+    <button disabled>Month</button>
+    <button class="active">Week</button>
+    <button disabled>Day</button>
+  </div>
+</div>
+
+<div class="calendar-table">
+
+  <!-- Header -->
+  <div class="calendar-row calendar-header-row">
+    <div class="calendar-cell time-cell">
+      <img src="/assets/images/timeIcon.png" />
+    </div>
+
+    <div class="calendar-cell" *ngFor="let day of displayDays">
+      <div class="calendar-day-label">
+        {{ day | date:'EEEE d' }}
+      </div>
+    </div>
+  </div>
+
+  <!-- Body -->
+  <div class="calendar-row" *ngFor="let hour of hours">
+    <div class="calendar-cell time-cell">
+      {{ hour }}:00
+    </div>
+
+    <div class="calendar-cell" *ngFor="let day of displayDays">
+
+      <ng-container *ngFor="let task of tasksByDay[getDayKey(day)] || []">
+        <div
+          *ngIf="task.time.startsWith(hourPrefix(hour))"
+          class="calendar-task"
+          [style.background]="task.color"
+          tabindex="0"
+          role="button"
+
+          (click)="openTaskDetails(task)"
+        >
+          <div class="task-top">
+            <div class="task-left">
+              <div class="label">Project</div>
+              <div class="value">{{ task.project }}</div>
+
+              <div class="label">Due Date</div>
+              <div class="time-tags">
+                <span class="time-tag" [ngStyle]="getTagStyles(task.color)">
+                  {{ task.time }}
+                </span>
+                <span class="time-tag" [ngStyle]="getTagStyles(task.color)">
+                  {{ task.timeEnd }}
+                </span>
+              </div>
+            </div>
+
+            <div class="task-right">
+              <div class="label">Assignee</div>
+              <div class="value">{{ task.assignee }}</div>
+            </div>
+          </div>
+        </div>
+      </ng-container>
+
+    </div>
+  </div>
+</div>
+
+<button class="add-task-btn" (click)="openCreateForm()">+</button>
+
+<app-shared-task-details
+  *ngIf="selectedTask"
+  [visible]="!!selectedTask"
+  [task]="selectedTaskView"
+  [statuses]="statuses"
+  (close)="closeTaskDetails()"
+  (changeStatus)="updateSelectedTaskStatus($event)">
+</app-shared-task-details>

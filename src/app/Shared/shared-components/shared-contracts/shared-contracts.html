@@ -1,0 +1,171 @@
+<app-shared-page-header
+ [createButtonLabel]="'CREATE CONTRACT'" 
+ [showCreateVisitButton]="role === 'admin' || role === 'manager'"
+ (createVisit)="openCreate()"
+>
+  <span breadcrumb>CRM &gt; Contracts</span>
+</app-shared-page-header>
+
+<!-- modal create -->
+<app-create-new-contact
+  *ngIf="showCreate"
+  (close)="closeCreate()"
+  (save)="addTask($event)">
+</app-create-new-contact>
+
+
+<div class="task-list">
+ 
+
+  <div class="tab-content">
+    <div class="status-summary" *ngIf="contracts.length">
+  <div class="summary-card">
+    <span class="label">Total</span>
+    <span class="count">{{ totalCount }}</span>
+  </div>
+  <div class="summary-card">
+    <span class="label">Approved</span>
+    <span class="count">{{ approvedCount }}</span>
+  </div>
+  <div class="summary-card">
+    <span class="label">Rejected</span>
+    <span class="count">{{ rejectedCount }}</span>
+  </div>
+  <div class="summary-card">
+    <span class="label">Active</span>
+    <span class="count">{{ activeCount }}</span>
+  </div>
+  <div class="summary-card">
+    <span class="label">Total Value</span>
+    <span class="count">{{ totalValue | currency }}</span>
+  </div>
+</div>
+    <ng-container *ngIf="activeTab === 'list'">
+      <div class="task-toolbar">
+        <div class="toolbar-left">
+          <button class="icon-btn">+</button>
+          <button class="icon-btn" (click)="toggleFilterBuilder()">
+            <img src="/assets/images/Vector3.png" alt="">
+          </button>
+          <button class="icon-btn">⇅</button>
+        </div>
+
+        <div class="toolbar-right">
+          <div class="search-input">
+            <button><img class="search-icon" src="/assets/images/search.png" alt=""></button>
+            <input type="text" class="forSearch" [(ngModel)]="searchText" placeholder="Search Contracts" />
+          </div>
+        </div>
+      </div>
+      <div class="filter-builder" *ngIf="showFilterBuilder">
+        <h4>Add filter</h4>
+        <div class="filter-row">
+          <select [(ngModel)]="newFilter.field">
+            <option value="">Select Field</option>
+            <option value="Title">Title</option>
+            <option value="Client">Client</option>
+            <option value="Type">Type</option>
+            <option value="Status">Status</option>
+          </select>
+          <select [(ngModel)]="newFilter.value" *ngIf="getFilterValues(newFilter.field).length">
+            <option *ngFor="let v of getFilterValues(newFilter.field)" [value]="v">{{ v }}</option>
+          </select>
+          <button class="add-btn" (click)="applyFilter()">Apply</button>
+          <button class="add-btn" (click)="showFilterBuilder=false" style="background:#ccc;color:#000">Close</button>
+        </div>
+      </div>
+      <div class="active-filters" *ngIf="activeFilters.length">
+        <span class="filter-chip" *ngFor="let f of activeFilters; let i = index">
+          {{ f.field }}: <strong>{{ f.value }}</strong>
+          <button (click)="removeFilter(i)">×</button>
+        </span>
+        <button class="clear-btn" (click)="clearAllFilters()">Clear All</button>
+      </div>
+      <div class="selected-count" *ngIf="selectedCount > 0">
+        {{ selectedCount }} row(s) selected
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+             <th>
+               <input 
+               type="checkbox" 
+               [checked]="allSelected" 
+               (change)="allSelected = $event.target.checked; toggleAll()" 
+               (click)="$event.stopPropagation()"/>
+               </th>
+            <th class="faded">Title</th>
+            <th class="faded">Client</th>
+            <th class="faded">Type</th>
+            <th class="faded">Status</th>
+            <th class="faded">Value</th>
+            <th class="faded">Start Date</th>
+            <th class="faded">End Date</th>
+            <th class="faded">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let contract of pagedContracts" (click)="openDetails(contract)">
+            <td data-label="Select">
+                <input 
+                type="checkbox" 
+                [(ngModel)]="contract.selected" 
+                (change)="updateAllSelected()" 
+                (click)="$event.stopPropagation()"
+                 />
+            </td>
+            <td class="faded" data-label="Title">{{contract.Title}}</td>
+            <td class="faded" data-label="Client">{{contract.Client}}</td>
+            <td class="faded" data-label="Type">{{contract.Type}}</td>
+            <td class="faded" data-label="Status">
+                <span [ngClass]="{'approved-status': contract.Status === 'Approved', 'rejected-status': contract.Status === 'Rejected', 'pending-status': contract.Status !== 'Approved' && contract.Status !== 'Rejected'}">
+                    {{contract.Status}}
+                </span>
+            </td>
+            <td class="faded" data-label="Value">{{contract.Value | currency}}</td>
+            <td class="faded" data-label="Start Date">{{contract.StartDate}}</td>
+            <td class="faded" data-label="End Date">{{contract.EndDate}}</td>
+            <td (click)="$event.stopPropagation()">
+                <select class="action-row" (change)="onSelectChange(contract, $event)">
+                <option value="">Actions</option>
+                <option value="view">View Details</option>
+                <option value="delete" *ngIf="role === 'admin'">Delete</option>
+                <option value="approve" *ngIf="(role === 'admin' || role === 'manager') && contract.Status !== 'Approved'">Approve</option>
+                <option value="reject" *ngIf="(role === 'admin' || role === 'manager') && contract.Status !== 'Rejected'">Reject</option>
+                </select>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="pagination" *ngIf="totalPages > 1">
+        <button class="page-btn" [disabled]="page === 1" (click)="setPage(page-1)">&lt;</button>
+        <ng-container *ngFor="let p of visiblePages">
+          <button class="page-btn" [class.active]="p === page" (click)="setPage(p)">{{ p }}</button>
+        </ng-container>
+        <button class="page-btn" [disabled]="page === totalPages" (click)="setPage(page+1)">&gt;</button>
+      </div>
+    </ng-container>
+  </div>
+</div>
+
+<div class="details-overlay" *ngIf="showDetails">
+  <div class="details-panel">
+    <button class="close-btn" (click)="closeDetails()">✕</button>
+    <h2>Contract Details</h2>
+     <p><strong>Title:</strong> {{ selected?.Title }}</p>
+     <p><strong>Client:</strong> {{ selected?.Client }}</p>
+     <p><strong>Type:</strong> {{ selected?.Type }}</p>
+     <p><strong>Status:</strong> {{ selected?.Status }}</p>
+     <p><strong>Value:</strong> {{ selected?.Value || 0 }}</p>
+     <p><strong>Start Date:</strong> {{selected?.StartDate }}</p>
+     <p><strong>End Date:</strong> {{ selected?.EndDate }}</p>
+     <p><strong>Terms:</strong> {{ selected?.Terms }}</p>  
+     <div *ngIf="detailsPhotos?.length" style="margin-top:12px;">
+       <h3>Contract Photos</h3>
+       <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px;">
+         <img *ngFor="let img of detailsPhotos" [src]="img" alt="contract photo" (click)="openInNewTab(img)" style="width:100%;height:100px;object-fit:cover;border-radius:6px;border:1px solid #eee;"/>
+       </div>
+     </div>
+    </div>
+  </div>

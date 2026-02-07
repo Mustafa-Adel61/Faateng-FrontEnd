@@ -1,0 +1,39 @@
+<div class="cnv-backdrop">
+  <div class="cnv-modal report-modal">
+      <button class="cnv-close" (click)="doClose()">✕</button>
+      
+      <h2>New Billing</h2>
+
+      <div class="report-form-grid">
+
+      <label>Project Name
+          <input type="text" [(ngModel)]="form.projectName" name="projectName"/>
+      </label>
+
+      <label>Invoice Number
+          <input type="number" [(ngModel)]="form.invoiceNumber" name="invoiceNumber"/>
+      </label>
+
+     
+       <label>Due Date
+                <input type="date" 
+               [(ngModel)]="form.dueDate" 
+               name="dueDate" 
+               (click)="forceDatePicker($event)" 
+               class="styled-date-input"/> 
+      </label>
+     
+       <label>Billin Date
+                <input type="date" 
+               [(ngModel)]="form.billingDate" 
+               name="billingDate" 
+               (click)="forceDatePicker($event)" 
+               class="styled-date-input"/> 
+      </label>
+    
+    </div>
+    <div class="cnv-actions report-actions">
+    <button type="button" class="cancel-button" (click)="doClose()">Cancel</button>
+    <button type="button" class="save-button-large yellow-bg" (click)="doSave()">Save</button>
+    </div>
+</div>

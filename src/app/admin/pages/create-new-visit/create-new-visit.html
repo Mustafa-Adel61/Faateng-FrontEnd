@@ -1,0 +1,145 @@
+<div class="cnv-backdrop">
+  <div class="cnv-modal">
+    <button class="cnv-close" (click)="doClose()">✕</button>
+        <div *ngIf="step === 3" class="review-actions">
+      <!--                 <button class="action-icon" (click)="editVisit()">
+  <img src="assets/images/edit.png" alt="">
+</button>
+                <button class="action-icon" (click)="clearVisit()">
+  
+  <img src="assets/images/delete.png" alt="">
+  </button> -->
+      <button class="action-icon" (click)="editVisit()">
+        <img src="assets/images/edit.png" alt="Edit">
+      </button>
+      <button class="action-icon" (click)="clearVisit()">
+        <img src="assets/images/delete.png" alt="Delete">
+      </button>
+         
+    </div>
+
+    <!-- STEP 1 (Form 1) -->
+    <div *ngIf="step === 1" class="cnv-step">
+      <!-- <h3>Create New Visit</h3> -->
+
+      <label>Project <span class="required">*</span>
+        <select [(ngModel)]="form.project" name="project" (ngModelChange)="onProjectChange($event)"
+          [ngClass]="{'input-error': submitted && !form.project}">
+          <option value="" disabled selected>Select Project</option>
+          <option value="" selected>Not Project</option>
+          <option *ngFor="let p of projects" [value]="p.id">{{p?.name}}</option>
+        </select>
+      </label>
+
+      <label>Units
+        <select [(ngModel)]="form.units" name="units" (ngModelChange)="onUnitChange($event)">
+          <option value="" disabled selected>Select Unit</option>
+          <option *ngFor="let u of units" [value]="u.id">{{u.model}} ({{u.serial}})</option>
+
+        </select>
+      </label>
+      <ng-container *ngIf="useGoogle; else nominatimTpl">
+        <label>Address <span class="required">*</span>
+          <input id="gmap-autocomplete" type="text" [(ngModel)]="form.address" name="address"
+            placeholder="Type address" />
+        </label>
+      </ng-container>
+      <ng-template #nominatimTpl>
+        <label>Address <span class="required">*</span>
+          <input type="text" [(ngModel)]="form.address" name="address"
+            (input)="onAddressInput()"
+            placeholder="Type address" />
+        </label>
+        <div *ngIf="showAddressDropdown && addressSuggestions.length > 0" class="suggestions">
+          <div class="suggestion-item" *ngFor="let s of addressSuggestions" (click)="selectSuggestion(s)">
+            {{ s.display_name }}
+          </div>
+        </div>
+      </ng-template>
+
+
+
+      <label>Visit Objective
+        <input [(ngModel)]="form.objective" name="objective" />
+      </label>
+      <!-- <label>Address
+        <input type="text" [(ngModel)]="form.address" name="address" />
+      </label> -->
+      <label>Latitude
+        <input type="number" [(ngModel)]="form.lat" name="lat" step="0.000001" />
+      </label>
+      <label>Longitude
+        <input type="number" [(ngModel)]="form.lng" name="lng" step="0.000001" />
+      </label>
+      <!-- <div id="cnv-map" style="width:100%;height:240px;border-radius:8px;margin-top:8px;"></div> -->
+
+      <!-- بدل ما يكون input عادي، خليه زرار يفتح step2 -->
+      <label>Due Date</label>
+      <div class="fake-input" (click)="openDateForm()">
+        {{ form.due && form.time ? (form.due + ' ' + form.time) : 'Select Date & Time' }}
+      </div>
+
+      <div class="cnv-actions single-button-action">
+        <!-- <button type="button" (click)="doClose()">Cancel</button>
+        <button type="button" (click)="openReview()">Save</button> -->
+        <button type="button" class="save-button-large yellow-bg" (click)="openReview()">Save</button>
+      </div>
+    </div>
+
+
+    <div *ngIf="step === 2" class="cnv-step">
+      <!--       <h3>Select Date & Technician</h3> -->
+
+      <label>Date
+        <input type="date" [(ngModel)]="form.due" name="due" (click)="forceDatePicker($event)"
+          class="styled-date-input" />
+      </label>
+      <label>Time
+        <input type="time" [(ngModel)]="form.time" name="time" (click)="forceDatePicker($event)"
+          class="styled-time-input" />
+      </label>
+      <label>Technician
+        <select [(ngModel)]="selectedTechnicianId" name="technician_select" (change)="addTechnician()">
+          <option value="" disabled selected>Select Technician(s)</option>
+          <option *ngFor="let t of technicians" [value]="t.id" [disabled]="isTechSelected(t.id)">{{t.name}}
+          </option>
+        </select>
+        <div class="field-hint" *ngIf="selectedTechnicianId">
+          Selected: {{ selectedTechnicianDisplay }}
+        </div>
+      </label>
+      <div class="selected-technicians-container" *ngIf="form.technicians.length > 0">
+        <div *ngFor="let t of form.technicians" class="technician-chip">
+          <span>{{ t.name || t.id }}</span>
+          <button type="button" class="remove-chip-btn" (click)="removeTechnician(t)">✕</button>
+        </div>
+      </div>
+
+      <div class="cnv-actions ">
+        <!--         <button type="button" (click)="saveDateForm()">OK</button> -->
+        <button type="button" class="save-button-large yellow-bg" (click)="saveDateForm()">OK</button>
+
+      </div>
+
+    </div>
+
+    <!-- STEP 3 (Review) -->
+    <div *ngIf="step === 3" class="cnv-step review-view">
+      <h3>Visit Company 1 for the weekly check</h3>
+      <div class="review-row"><strong>Project:</strong> {{form.project}}</div>
+      <div class="review-row"><strong>Units:</strong> {{form.units}}</div>
+      <div class="review-row"><strong>Address:</strong> {{form.address}}</div>
+      <div class="review-row"><strong>Due:</strong> {{form.due}}</div>
+      <div class="review-row"><strong>Time:</strong> {{form.time}}</div>
+      <div class="review-row"><strong>Objective:</strong> {{form.objective}}</div>
+      <div class="review-row"><strong>Priority:</strong> {{form.priority}}</div>
+      <div class="review-row"><strong>Technicians:</strong> {{ getTechniciansLabel() }}</div>
+
+      <div class="cnv-actions single-button-action">
+        <!-- <button type="button" (click)="step=1">Back</button>
+        <button type="button" (click)="doSaveFinal()">Save</button> -->
+        <button type="button" class="save-button-large yellow-bg" (click)="doSaveFinal($event)">Save</button>
+      </div>
+    </div>
+  </div>
+</div>

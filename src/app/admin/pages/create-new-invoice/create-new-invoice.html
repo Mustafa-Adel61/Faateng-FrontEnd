@@ -1,0 +1,63 @@
+<div class="cnv-backdrop">
+  <div class="cnv-modal report-modal">
+      <button class="cnv-close" (click)="doClose()">✕</button>
+      
+      <h2>Create Invoice</h2>
+
+      <div class="report-form-grid">
+
+
+        
+      <label class="full-width">Client <span class="required">*</span>
+        <select [(ngModel)]="selectedClientId" name="Client"
+          [ngClass]="{'input-error': submitted && !selectedClientId}"
+        >
+          <option [ngValue]="null" disabled selected>Select Client</option>
+          <option *ngFor="let c of clients" [ngValue]="c.id">{{ c.name }}</option>
+        </select>
+      </label>
+      <label class="full-width">Project <span class="required">*</span>
+          <select [(ngModel)]="selectedProjectId" name="Project"
+            [ngClass]="{'input-error': submitted && !selectedProjectId}"
+          >
+             <option [ngValue]="null">Select Project</option>
+             <option *ngFor="let p of projects" [ngValue]="p.id">{{ p.name }}</option>
+          </select>
+      </label>
+
+       <label>Date <span class="required">*</span>
+        <input type="date" 
+               [(ngModel)]="form.Date" 
+               name="Date" 
+               (click)="forceDatePicker($event)" 
+               class="styled-date-input"
+               [ngClass]="{'input-error': submitted && !form.Date}"
+
+               /> 
+      </label>
+
+       <label>Due <span class="required">*</span>
+        <input type="date" 
+               [(ngModel)]="form.Due" 
+               name="Due" 
+               (click)="forceDatePicker($event)" 
+               class="styled-date-input"
+               [ngClass]="{'input-error': submitted && !form.Due}"
+
+               /> 
+      </label>
+
+      <label class="full-width">Work Order ID
+        <input type="text" [(ngModel)]="form.WorkOrderId" name="WorkOrderId" placeholder="WO-..." />
+      </label>
+
+      <label class="full-width">Amount ($) <span class="required">*</span>
+        <input type="number" [(ngModel)]="form.Amount" name="Amount" 
+               [ngClass]="{'input-error': submitted && !form.Amount}" />
+      </label>
+    </div>
+    <div class="cnv-actions report-actions">
+    <button type="button" class="cancel-button" (click)="doClose()">Cancel</button>
+    <button type="button" class="save-button-large yellow-bg" (click)="doSave()">Save</button>
+    </div>
+</div>

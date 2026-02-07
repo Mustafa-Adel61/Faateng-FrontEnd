@@ -1,0 +1,202 @@
+
+<app-shared-page-header
+ (createVisit)="openCreate()"
+ [createButtonLabel]="'CREATE PROJECT'" 
+  [showCreateVisitButton]="true"
+>
+  <span breadcrumb>CRM &gt; Projects</span>
+</app-shared-page-header>
+<!-- modal create -->
+<app-create-new-project
+  *ngIf="showCreate"
+  (close)="closeCreate()"
+  (save)="addProject($event)">
+</app-create-new-project>
+
+<div class="task-list">
+  <div class="page-tabs">
+    <button class="tab-btn" [class.active]="activeTab === 'list'" (click)="activeTab = 'list'">Task List</button>
+    <button class="tab-btn" [class.active]="activeTab === 'map'" (click)="activeTab = 'map'">Map</button>
+  </div>
+
+  <div class="tab-content">
+    <!-- قائمة المهام -->
+    <ng-container *ngIf="activeTab === 'list'">
+      <!-- task-toolbar -->
+      <div class="task-toolbar">
+  <!-- Left side: actions -->
+  <div class="toolbar-left">
+
+    <button class="icon-btn">+</button>
+    <button class="icon-btn" (click)="toggleFilterBuilder()">
+      <img src="/assets/images/Vector3.png" alt="">
+    </button> <!-- هنا تحط أيقونة الفلتر -->
+    <button class="icon-btn">⇅</button> <!-- هنا أيقونة sort -->
+  </div>
+
+  <!-- Right side: search -->
+  <div class="toolbar-right">
+     <div class="search-input">
+            <button><img class="search-icon" src="/assets/images/search.png" alt=""></button>
+            <input type="text"
+             class="forSearch"
+             [(ngModel)]="searchText" 
+             placeholder="Search" />
+          </div>
+  </div>
+</div>
+
+  <!-- Filter Builder -->
+      <div class="filter-builder" *ngIf="showFilterBuilder">
+        <h4>Add filter</h4>
+        <div class="filter-row">
+          <select [(ngModel)]="newFilter.field">
+            <option value="">Select Field</option>
+            <option value="Project">Project</option>
+            <option value="Client">Client</option>
+            <option value="City">City</option>
+            <option value="Scopes">Scopes</option>
+            <option value="Units">Units</option>
+            <option value="OpenTasks">Open Tasks</option>
+            <option value="BookedValue">Booked Value</option>
+          </select>
+
+          <select [(ngModel)]="newFilter.value" *ngIf="getFilterValues(newFilter.field).length">
+            <option *ngFor="let v of getFilterValues(newFilter.field)" [value]="v">{{ v }}</option>
+          </select>
+
+          <button class="add-btn" (click)="applyFilter()">Apply</button>
+          <button class="add-btn" (click)="showFilterBuilder=false" style="background:#ccc;color:#000">Close</button>
+        </div>
+      </div>
+
+      <!-- Active filters -->
+      <div class="active-filters" *ngIf="activeFilters.length">
+        <span class="filter-chip" *ngFor="let f of activeFilters; let i = index">
+          {{ f.field }}: <strong>{{ f.value }}</strong>
+          <button (click)="removeFilter(i)">×</button>
+        </span>
+        <button class="clear-btn" (click)="clearAllFilters()">Clear All</button>
+      </div>
+<!-- selected count -->
+<div class="selected-count" *ngIf="selectedCount > 0">
+  {{ selectedCount }} row(s) selected
+</div>
+      <table>
+        <thead>
+          <tr>
+             <th>
+               <input 
+               type="checkbox" 
+               [checked]="allSelected" 
+               (change)="allSelected = $event.target.checked; toggleAll()" 
+               (click)="$event.stopPropagation()"/>
+               </th>
+            <th class="faded">Project </th>
+            <th class="faded">Client</th>
+            <th class="faded">City</th>
+            <th class="faded">Scopes</th>
+            <th class="faded">Units</th>
+            <th class="faded">Open Tasks</th>
+            <th class="faded">Booked Value</th>
+            <th class="faded">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- <tr *ngFor="let task of pagedTasks">
+             <td>
+        <input type="checkbox" [(ngModel)]="task.selected" (change)="updateAllSelected()"/>
+      </td>
+            <td class="faded">{{task.clientOrCompanyName}}</td>
+            <td class="faded">{{task.projectName}}</td>
+            <td class="faded">{{task.ProjectType}}</td>
+            <td class="faded">{{task.PrimeContactName}}</td>
+            <td class="faded">{{task.jopTitle}}</td>
+            <td class="faded">{{task.phoneNumber}}</td>
+            <td ><a class="update-link" href="#">
+              <img src="/assets/images/P1.png" alt="">
+              <img src="/assets/images/PP2.png" alt="">
+              <img src="/assets/images/PP3.png" alt="">
+              <img src="/assets/images/P4.png" alt="">
+
+            </a></td>
+          </tr> -->
+
+
+
+          <tr *ngFor="let task of pagedTasks"(click)="openDetails(task)">
+      <td data-label="Select">
+      <input 
+      type="checkbox" 
+      [(ngModel)]="task.selected" 
+      (change)="updateAllSelected()" 
+      (click)="$event.stopPropagation()"
+       />
+      </td>
+      <td class="faded" data-label="Project">{{task.Project}}</td>
+      <td class="faded" data-label="Client">{{task.Client}}</td>
+      <td class="faded" data-label="siteAddress">{{task.siteAddress}}</td>
+      <td class="faded" data-label="Scopes">{{task.Scopes}}</td>
+      <td class="faded" data-label="Units">{{task.Units}}</td>
+      <td class="faded" data-label="OpenTasks">{{task.OpenTasks}}</td>
+      <td class="faded" data-label="BookedValue">{{task.BookedValue}}</td>
+      <!-- <td data-label="Action">
+        <a class="update-link" href="#">
+          <img src="/assets/images/P1.png" alt="">
+          <img src="/assets/images/PP2.png" alt="">
+          <img src="/assets/images/PP3.png" alt="">
+          <img src="/assets/images/P4.png" alt="">
+        </a>
+      </td> -->
+       <td (click)="$event.stopPropagation()">
+                <select class="action-row" (change)="onSelectChange(task, $event)">
+                <option value="">Actions</option>
+                <option value="view">View Details</option>
+                <!-- <option value="edit">Edit</option> -->
+                <option value="delete" *ngIf="role === 'admin'">Delete</option>
+                <option value="approve" *ngIf="(role === 'admin' || role === 'manager') && task.Status !== 'Approved'">Approve</option>
+                <option value="reject" *ngIf="(role === 'admin' || role === 'manager') && task.Status !== 'Rejected'">Reject</option>
+                </select>
+            </td>
+    </tr>
+        </tbody>
+      </table>
+
+      <!-- Pagination -->
+      <div class="pagination" *ngIf="totalPages > 1">
+        <button class="page-btn" [disabled]="page === 1" (click)="setPage(page-1)">&lt;</button>
+
+        <ng-container *ngFor="let p of visiblePages">
+          <button class="page-btn" [class.active]="p === page" (click)="setPage(p)">{{p}}</button>
+        </ng-container>
+
+        <button class="page-btn" [disabled]="page === totalPages" (click)="setPage(page+1)">&gt;</button>
+      </div>
+    </ng-container>
+
+    <!-- الخريطة -->
+    <ng-container *ngIf="activeTab === 'map'">
+      <div class="map-container">
+        <iframe
+          width="100%"
+          height="500"
+          frameborder="0"
+          style="border:0"
+          [src]="mapUrl"
+          allowfullscreen>
+        </iframe>
+        <div class="map-caption">
+          Damascus Boulevard<br />
+          Address: Building A1 - UNIT#HW • Oil & Grease
+        </div>
+      </div>
+    </ng-container>
+  </div>
+</div>
+
+
+<app-project-details
+  [taskss]="selectedTask"
+   *ngIf="showDetails"
+   (close)="closeDetails()"
+></app-project-details>

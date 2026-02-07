@@ -1,0 +1,77 @@
+<div class="register-container">
+  <div class="header">
+    <div class="logo-wrapper">
+      <img class="image" src="/assets/images/MEPSOL.png" alt="Logo" />
+      <img class="pointImage" src="/assets/images/Ellipse 33.png" alt="Dot" />
+    </div>
+  </div>
+
+  <div class="register-box">
+    <h2>Welcome to the Client’s Portal!</h2>
+    <p class="subtitle">
+      We just need you to verify the information in the form, and enter any
+      missing data before proceeding.
+    </p>
+
+    <form [formGroup]="form" (ngSubmit)="register()">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Full Name</label>
+          <input formControlName="fullName" placeholder="My Name" required />
+        </div>
+        <div class="form-group">
+          <label>Phone Number</label>
+          <input formControlName="phone" type="tel" placeholder="+9633333333" required />
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Project Name</label>
+          <input formControlName="projectName" placeholder="4 Seasons Boulevard" />
+        </div>
+        <div class="form-group">
+          <label>Email</label>
+          <input formControlName="email" type="email" placeholder="myemail@mycompany.com" />
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Position</label>
+          <div class="select-wrapper">
+            <select formControlName="role" class="modern-select">
+              <option value="" disabled selected>Select role</option>
+              <option value="admin">Admin</option>
+              <option value="manager">Manager</option>
+              <option value="dispatcher">Dispatcher</option>
+              <option value="technician">Technician</option>
+              <option value="finance">Finance</option>
+              <option value="client">Client</option>
+            </select>
+            <span class="arrow"></span>
+          </div>
+        </div>
+
+        <!-- <div class="form-group">
+          <label>Role</label>
+          <select formControlName="role">
+            <option value="admin">Admin</option>
+            <option value="manager">Manager</option>
+            <option value="dispatcher">Dispatcher</option>
+            <option value="technician">Technician</option>
+            <option value="finance">Finance</option>
+            <option value="client">Client</option>
+          </select>
+        </div> -->
+        <div class="form-group">
+          <label>Password</label>
+          <input formControlName="password" type="password" placeholder="Enter password" />
+        </div>
+      </div>
+
+      <p class="msg" *ngIf="error">{{ error }}</p>
+      <button type="submit" class="btn-register">ALL GOOD!</button>
+    </form>
+  </div>
+</div>

@@ -1,0 +1,257 @@
+
+
+
+/* details overlay */
+.details-overlay {margin-top: 40px; position:fixed; inset:0; display:flex; align-items:flex-start; justify-content:center; background:rgba(0,0,0,0.4); z-index:1000; padding-top: 150px; overflow-y: auto; padding-bottom: 50px; }
+.details-panel {margin-top: 0px; background:#fff; padding:20px; border-radius:10px; max-width:800px; width:90%; box-shadow:0 6px 20px rgba(0,0,0,0.2); position:relative; margin-bottom: 50px; }
+.close-btn { position:absolute; top:8px; right:10px; border:none; background:#eee; width:30px; height:30px; border-radius:6px; cursor:pointer; }
+
+/* التغيير في ال deatials */
+.details-panel select {
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+  margin-left: 8px;
+  background: #f9f9f9;
+  cursor: pointer;
+}
+.details-span{
+  margin-left: 10px;
+}
+
+.details-panel select:focus {
+  outline: none;
+  border-color: #000;
+}
+.details-panel p strong {
+  font-family: poppins;
+  /* color: #8a8b8b; */
+  opacity: 0.5;
+  font-size: 15px;
+}
+/* Details */
+
+.details-page-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  /* justify-content: center; */
+  gap: .5rem;
+  margin-bottom: 1.5rem;
+}
+.details-tab-btn {
+  background-color: #d8d5d5;
+  border-radius: 40%;       /* يخليها دايرة كاملة */
+  border: none;
+  font-size: .8rem;
+  font-weight: 300;
+  color: black;
+  padding: 0.5rem 1.5rem;
+  border-radius: 10px 10px 10px 10px;
+  cursor: pointer;
+  /* transition: background 0.2s, color 0.2s, border-bottom 0.2s; */
+}
+
+/* الحالة العادية والهفر */
+.details-tab-btn:hover {
+  /* transform: translateY(-5px); */
+  background-color: #9c9a9a;;
+}
+
+/* الحالة المختارة */
+.details-tab-btn.active {
+  background-color: #000;               
+  color:white;                     /* لون النص */
+  border-bottom: 3px solid #000;   /* خط أسود */
+  box-shadow: none;                /* شيل الظل */
+}
+/* الحالة المختارة Overview */
+
+
+/* ✅ الحاوية العامة */
+.status-summary {
+  display: flex;
+  gap: 1rem;
+  margin: 20px 0;
+  flex-wrap: wrap;
+}
+
+/* ✅ الكروت */
+.summary-card {
+  flex: 1;
+  min-width: 115px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 14px 18px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  transition: all 0.2s ease-in-out;
+}
+
+.summary-card:hover {
+  box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+}
+
+/* ✅ النصوص */
+.summary-card .label {
+  color: #666;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.summary-card .count {
+  font-size: 22px;
+  font-weight: 600;
+  color: #222;
+  margin-top: 4px;
+}
+/* الاخيارات Scopes / Contracts*/
+
+.table-container {
+  width: 100%;
+  overflow-x: auto; /* يخلي الجدول قابل للتمرير لو الشاشه صغيره */
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  padding: 10px;
+  box-sizing: border-box;
+}
+
+/* ✅ تنسيق الجدول */
+.responsive-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 700px;
+}
+
+.responsive-table thead {
+  background-color: #f8f8f8;
+}
+
+.responsive-table th, 
+.responsive-table td {
+  padding: 12px 16px;
+  text-align: left;
+  font-size: 14px;
+  color: #333;
+  border-bottom: 1px solid #eee;
+}
+
+.responsive-table th {
+  font-weight: 600;
+  color: #666;
+  text-transform: uppercase;
+  font-size: 13px;
+  letter-spacing: 0.5px;
+}
+
+.responsive-table tbody tr:hover {
+  background-color: #f9f9f9;
+  transition: 0.2s;
+}
+
+/* ✅ ألوان الحالة */
+.status {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  color: white;
+}
+
+.statusActive { background:oklch(91.225% 0.06554 158.546); color:oklch(52.7% 0.154 150.069); padding:4px 8px; border-radius:12px; font-weight:500; }
+.status-Scheduled{ background:oklch(92.238% 0.01692 271.239); color:oklch(48.8% 0.243 264.376);; padding:4px 8px; border-radius:12px; font-weight:500; }
+
+.status.pending {
+  background-color: #f5d11c; /* أصفر */
+  color: #333;
+}
+
+.status.failed {
+  background-color: #e74c3c; /* أحمر */
+}
+
+/* لو الاختيار هو File */
+.file-tab{
+  /* display: flex;
+  flex-direction: column;
+  gap: 1rem;*/
+  gap: 1rem;
+  padding: 1rem; 
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  border-radius: 10px;
+  background: #fff;
+
+}
+.upload-btn {
+  background-color: #fff;              /* خلفية بيضاء */
+  border: 1px solid #dcdcdc;          /* حدود رمادية خفيفة */
+  color: #1C1C1C;                     /* لون النص */
+  padding: 10px 18px;                  /* مسافة داخلية مريحة */
+  margin-top: 15px;
+  margin-right: 5px;
+  border-radius: 10px;                /* حواف دائرية */
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+
+}
+
+.upload-btn:hover {
+  border-color: #bfbfbf;              /* لون حدود أغمق بسيط عند الـ hover */
+  background-color: #f9f9f9;          /* تغير بسيط في الخلفية */
+}
+
+.upload-btn:active {
+  background-color: #f1f1f1;          /* عند الضغط */
+  transform: scale(0.98);
+}
+
+@media (max-width: 1200px) {
+  .details-panel{
+    max-width: 500px;
+  }
+}
+@media (max-width: 1000px) {
+  .details-panel{
+    max-width: 400px;
+  }
+}
+/* ✅ استجابة للموبايل */
+@media (max-width: 768px) {
+  .responsive-table thead {
+    display: none; /* نخفي العناوين */
+  }
+
+  .responsive-table tr {
+    display: block;
+    margin-bottom: 12px;
+    border: 1px solid #eee;
+    border-radius: 10px;
+    padding: 10px;
+  }
+
+  .responsive-table td {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 10px;
+    border: none;
+    border-bottom: 1px dashed #ddd;
+  }
+
+  .responsive-table td:last-child {
+    border-bottom: none;
+  }
+
+  .responsive-table td::before {
+    content: attr(data-label);
+    font-weight: 600;
+    color: #555;
+  }
+}

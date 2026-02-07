@@ -1,0 +1,21 @@
+
+<!-- لاحظ كله بيروح لحاجات في ال admin  لما اعمل ال component بتاعت ال client اخليهه تروح ليه   -->
+<nav class="sidebar">
+  <ul class="menu">
+    <li class="section-title">Records</li>
+    <li><a routerLink="/finance/projects" routerLinkActive="active"(click)="scrollToTop()">Projects</a></li>
+    <li><a routerLink="/finance/units" routerLinkActive="active"(click)="scrollToTop()">Units</a></li>
+    <li><a routerLink="/finance/archive" routerLinkActive="active"(click)="scrollToTop()">Archive</a></li>
+    <li class="divider"></li>
+    <li class="section-title">Billing</li>
+    <li><a routerLink="/finance/contracts" routerLinkActive="active"(click)="scrollToTop()">Contracts</a></li>
+    <li><a routerLink="/finance/invoice" routerLinkActive="active"(click)="scrollToTop()">Invoice</a></li>
+    <li class="divider"></li>
+    <li class="section-title">Logout</li>
+    <li><a (click)="logout()">Log Out</a></li>
+    <li class="divider"></li>
+    <li><a routerLink="/client/inventory" routerLinkActive="active"(click)="scrollToTop()">
+      <img src="assets/images/setting.png" alt="">
+    </a></li>
+  </ul>
+</nav>

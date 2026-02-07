@@ -1,0 +1,89 @@
+<app-shared-page-header
+[showCreateVisitButton]="false" 
+[showDropdown]="false"
+>
+<span breadcrumb>DISPATCHING &gt; Proposal Generator</span>
+
+</app-shared-page-header>
+<div class="tabs">
+  <button 
+    *ngFor="let tab of ['Lifts', 'Escalators', 'HVAC']"
+    [class.active]="activeTab === tab"
+    (click)="changeTab(tab)">
+    {{ tab }}
+  </button>
+</div>
+
+<div *ngIf="activeTab === 'Lifts'" >
+
+    <div class="proposal-container">
+  <h2>New Proposal</h2>
+
+  <form class="proposal-form">
+    <div class="form-row">
+      <div class="form-group">
+        <label>Client/Project Selection</label>
+        <select>
+          <option>New Client</option>
+          <option>Existing Client</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Capacity</label>
+        <input type="text"  />
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>System Type</label>
+        <select>
+          <option>VRF, Chiller, Split Units</option>
+        </select>
+      </div>
+
+      <!-- <div class="form-group">
+        <label>Delivery Date</label>
+        <input type="date" />
+      </div> -->
+       <div class="form-group">
+          <label>Delivery Date</label>
+        <input type="date"
+        (click)="forceDatePicker($event)" 
+         class="styled-date-input"/> 
+    </div>
+    </div>
+
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Total Cost</label>
+        <input type="text"  />
+      </div>
+
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" />
+      </div>
+    </div>
+
+    <div class="form-row single">
+      <div class="form-group full-width">
+        <label>Terms & Conditions</label>
+        <textarea rows="3"></textarea>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button type="button" class="btn-outline">Preview PDF</button>
+      <button type="submit" class="btn-primary">Send</button>
+    </div>
+  </form>
+</div>
+
+</div>
+
+<div *ngIf="activeTab === 'Escalators'"><p>Escalators content</p></div>
+<div *ngIf="activeTab === 'HVAC'"><p>HVAC content</p></div>
+

@@ -1,0 +1,38 @@
+
+<!-- لاحظ كله بيروح لحاجات في ال admin  لما اعمل ال component بتاعت ال client اخليهه تروح ليه   -->
+<nav class="sidebar">
+  <ul class="menu">
+    <li class="section-title">Dispatching</li>
+    <li><a routerLink="/manager/task-list" routerLinkActive="active"(click)="scrollToTop()">Task list</a></li>
+    <li><a routerLink="/manager/calendar" routerLinkActive="active"(click)="scrollToTop()">Calendar</a></li>
+    <li><a routerLink="/manager/dispatcher-view" routerLinkActive="active"(click)="scrollToTop()">Dispatcher view</a></li>
+    <li class="divider"></li>
+    <li class="section-title">Clients(CRM)</li>
+    <li><a routerLink="/manager/dashboard" routerLinkActive="active"(click)="scrollToTop()">Dashboard</a></li>
+    <li><a routerLink="/manager/clients-contacts" routerLinkActive="active"(click)="scrollToTop()">Clients contacts</a></li>
+    <li><a routerLink="/manager/suggested-repairs-review" routerLinkActive="active"(click)="scrollToTop()">Suggested repairs review</a></li>
+    <li><a routerLink="/manager/proposal-generator" routerLinkActive="active"(click)="scrollToTop()">Proposal generator</a></li>
+    <li class="divider"></li>
+    <li class="section-title">Records</li>
+    <li><a routerLink="/manager/projects" routerLinkActive="active"(click)="scrollToTop()">Projects</a></li>
+    <li><a routerLink="/manager/units" routerLinkActive="active"(click)="scrollToTop()">Units</a></li>
+    <li><a routerLink="/manager/archive" routerLinkActive="active"(click)="scrollToTop()">Archive</a></li>
+    <li class="divider"></li>
+    <li class="section-title">Billing</li>
+    <li><a routerLink="/manager/invoices" routerLinkActive="active"(click)="scrollToTop()">invoices</a></li>
+    <li class="divider"></li>
+    <li class="section-title">Library</li>
+    <li><a routerLink="/manager/inventory" routerLinkActive="active"(click)="scrollToTop()">Inventory</a></li>
+    <li><a routerLink="/manager/fault-codes" routerLinkActive="active"(click)="scrollToTop()">Fault codes</a></li>
+    <li><a routerLink="/manager/unit-manuals" routerLinkActive="active"(click)="scrollToTop()">Unit manuals</a></li>
+    <li><a routerLink="/manager/training" routerLinkActive="active"(click)="scrollToTop()">Training</a></li>
+    <li><a routerLink="/manager/checklists" routerLinkActive="active"(click)="scrollToTop()">Checklists</a></li>
+    <li class="divider"></li>
+    <li class="section-title">Logout</li>
+    <li><a (click)="logout()">Log Out</a></li>
+    <li class="divider"></li>
+    <li><a routerLink="/client/inventory" routerLinkActive="active"(click)="scrollToTop()">
+      <img src="assets/images/setting.png" alt="">
+    </a></li>
+  </ul>
+</nav>

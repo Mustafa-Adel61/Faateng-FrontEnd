@@ -1,0 +1,88 @@
+<nav class="sidebar">
+  <ul class="menu">
+    <li class="section-title">DISPATCHING</li>
+
+    <!-- Task List (link and dropdown) -->
+    <li class="has-children" (click)="toggle('tasks')" [class.open]="tasksOpen">
+      <span class="label">
+        <a routerLink="/admin/tasks" routerLinkActive="active" (click)="$event.stopPropagation();scrollToTop()">Task List</a>
+      </span>
+      <span class="arrow"><img src="/assets/images/Vector.png" alt=""></span>
+    </li>
+    <ul class="submenu" *ngIf="tasksOpen">
+<li>
+  <a [routerLink]="['/admin/tasks']" [queryParams]="{ tab: 'map' }" routerLinkActive="active"(click)="scrollToTop()">
+    Map
+  </a>
+</li>
+    </ul>
+
+    <li><a routerLink="/admin/dispatcher" routerLinkActive="active"(click)="scrollToTop()">Dispatcher</a></li>
+    <li><a routerLink="/admin/technician" routerLinkActive="active"(click)="scrollToTop()">Technician</a></li>
+    <li><a routerLink="/admin/proposal-generator" routerLinkActive="active"(click)="scrollToTop()">Proposal Generator</a></li>
+    <!-- <li><a routerLink="/admin/calendar" routerLinkActive="active"(click)="scrollToTop()">Calendar</a></li> -->
+       <li class="has-children" (click)="toggle('calendar')" [class.open]="calendarOpen">
+      <span class="label">  
+        <a routerLink="/admin/calendar" routerLinkActive="active" (click)="$event.stopPropagation()">Calendar</a>
+      </span>
+      <span class="arrow"><img src="/assets/images/Vector.png" alt=""></span>
+    </li>
+    <ul class="submenu" *ngIf="calendarOpen">
+      <li><a routerLink="/admin/calendar/pending" routerLinkActive="active"(click)="scrollToTop()">Day</a></li>
+    </ul>
+
+    <!-- Suggested Repairs with submenu -->
+    <li class="has-children" (click)="toggle('repairs')" [class.open]="repairsOpen">
+      <span class="label">
+        <a routerLink="/admin/suggested-repairs" routerLinkActive="active" (click)="$event.stopPropagation()">Suggested Repairs</a>
+      </span>
+      <span class="arrow"><img src="/assets/images/Vector.png" alt=""></span>
+    </li>
+    <ul class="submenu" *ngIf="repairsOpen">
+      <li><a routerLink="/admin/suggested-repairs/pending" routerLinkActive="active"(click)="scrollToTop()">Pending Repairs</a></li>
+      <li><a routerLink="/admin/suggested-repairs/completed" routerLinkActive="active"(click)="scrollToTop()">Completed Repairs</a></li>
+    </ul>
+
+    <li class="divider"></li>
+
+    <li class="section-title">REPORTS</li>
+    <li><a routerLink="/admin/archive" routerLinkActive="active"(click)="scrollToTop()">Archive</a></li>
+
+
+<!-- دا لو هعملها تحت ال archive مش لوحدها كدا  -->
+       <!-- <li class="has-children"(click)="toggle('report')" [class.open]="reportOpen">
+      <span class="label">  
+        <a routerLink="/admin/archive" routerLinkActive="active" (click)="$event.stopPropagation();scrollToTop()" >Archive</a>
+      </span>
+      <span class="arrow"><img src="/assets/images/Vector.png" alt=""></span>
+    </li>
+    <ul class="submenu" *ngIf="reportOpen">
+      <li><a routerLink="/admin/reports-review-queue" routerLinkActive="active"(click)="scrollToTop()">Reports Review Queue</a></li>
+    </ul> -->
+
+    <li><a routerLink="/admin/reports-review-queue" routerLinkActive="active"(click)="scrollToTop()">Reports Review Queue</a></li>
+    <li class="divider"></li>
+
+    <li class="section-title">CRM</li>
+    <li><a routerLink="/register" routerLinkActive="active"(click)="scrollToTop()">Register User</a></li>
+    <li><a routerLink="/admin/projects" routerLinkActive="active"(click)="scrollToTop()">Projects</a></li>
+    <li><a routerLink="/admin/units" routerLinkActive="active"(click)="scrollToTop()">Units</a></li>
+    <li><a routerLink="/admin/contacts" routerLinkActive="active"(click)="scrollToTop()">Contacts</a></li>
+
+    <li class="divider"></li>
+
+    <li class="section-title">FINANCIAL</li>
+    <li><a routerLink="/admin/billing" routerLinkActive="active"(click)="scrollToTop()">Billing</a></li>
+    <li><a routerLink="/admin/invoices" routerLinkActive="active"(click)="scrollToTop()">Invoices</a></li>
+
+    <li class="divider"></li>
+
+    <li class="section-title">LIBRARY</li>
+    <li><a routerLink="/admin/inventory" routerLinkActive="active"(click)="scrollToTop()">Inventory</a></li>
+    <li><a routerLink="/admin/fault-code" routerLinkActive="active"(click)="scrollToTop()">Fault Code</a></li>
+    <li><a routerLink="/admin/manual" routerLinkActive="active"(click)="scrollToTop()">Unit Manual</a></li>
+    <li><a routerLink="/admin/training" routerLinkActive="active"(click)="scrollToTop()">Training</a></li>
+    <li class="section-title">Logout</li>
+    <li><a (click)="logout()">Log Out</a></li>
+  </ul>
+</nav>

@@ -1,0 +1,75 @@
+<div class="modal-backdrop" (click)="close.emit()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>Create Service Request</h2>
+      <button class="close-btn" (click)="close.emit()">×</button>
+    </div>
+
+  <div class="modal-body">
+      <div class="unit-info" *ngIf="unit">
+        <strong>Unit:</strong> {{ unit.unitName }} ({{ unit.Building }})
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Project (Optional)</label>
+          <select [(ngModel)]="selectedProjectId" (change)="onProjectChange()">
+            <option [ngValue]="null">All Projects</option>
+            <option *ngFor="let p of availableProjects" [ngValue]="p.id">{{ p.Name }}</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Unit (Optional)</label>
+          <select [(ngModel)]="selectedUnitId" (change)="onUnitChange()">
+            <option [ngValue]="null">No Unit</option>
+            <option *ngFor="let u of availableUnits" [ngValue]="u.id">
+              {{ u.Serial }} - {{ u.Model }}
+            </option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Service Type <span class="required">*</span></label>
+        <select [(ngModel)]="form.serviceType" [class.error]="submitted && !form.serviceType">
+          <option value="" disabled>Select Type</option>
+          <option *ngFor="let type of serviceTypes" [value]="type">{{ type }}</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Fault Code (Optional)</label>
+        <select [(ngModel)]="form.faultCode">
+          <option value="">None</option>
+          <option *ngFor="let code of faultCodes" [value]="code">{{ code }}</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Description <span class="required">*</span></label>
+        <textarea [(ngModel)]="form.description" rows="4" [class.error]="submitted && !form.description"></textarea>
+      </div>
+
+      <div class="form-group">
+        <label>Preferred Time (Optional)</label>
+        <input type="datetime-local" [(ngModel)]="form.preferredTime">
+      </div>
+
+      <div class="form-group">
+        <label>Images</label>
+        <input type="file" (change)="onFileSelected($event)" accept="image/*" multiple>
+        <div class="image-preview">
+          <div *ngFor="let img of form.images; let i = index" class="thumb">
+            <img [src]="img">
+            <span class="remove" (click)="removeImage(i)">×</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-cancel" (click)="close.emit()">Cancel</button>
+      <button class="btn-save" (click)="doSave()">Submit Request</button>
+    </div>
+  </div>
+</div>

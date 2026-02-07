@@ -1,0 +1,121 @@
+ <app-shared-page-header 
+    [showCreateVisitButton]="false" 
+    [showDropdown]="false"
+    [showSerchBox]="false"
+    >
+  <span breadcrumb>User Profile</span>
+</app-shared-page-header> 
+<div class="tabs">
+  
+  <button 
+    *ngFor="let tab of ['Profile Details', 'Contracts']"
+    [class.active]="activeTab === tab"
+    (click)="changeTab(tab)">
+    {{ tab }}
+  </button>
+</div>
+<div *ngIf="activeTab === 'Profile Details'" class="units-grid">
+<div class="profile-container">
+  <div class="profile-header">
+    <div class="avatar">
+      {{ user.fullName?.split(' ')[0][0] }}{{ user.fullName?.split(' ')[1]?.[0] || '' }}
+    </div>
+    <div class="user-info">
+      <h2>{{ user.fullName }}</h2>
+      <p>Project Manager @ Boulevard 4 Seasons</p>
+    </div>
+  </div>
+
+  <div class="profile-content">
+    <div class="left-section">
+      <div class="form-group">
+        <label>Full Name</label>
+        <input [(ngModel)]="user.fullName" />
+      </div>
+
+      <div class="form-group">
+        <label>Project Name</label>
+        <input [(ngModel)]="user.projectName"  />
+      </div>
+
+      <div class="form-group">
+        <label>Position</label>
+        <input [(ngModel)]="user.position" />
+      </div>
+    </div>
+
+    <div class="right-section">
+      <div class="form-group">
+        <label>Phone Number</label>
+        <div class="input-with-edit">
+          <input
+            [(ngModel)]="user.phone"
+            [readonly]="!editableFields.phone"
+          />
+          <span class="edit" (click)="enableEdit('phone')">edit</span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Email</label>
+        <div class="input-with-edit">
+          <input
+            [(ngModel)]="user.email"
+            [readonly]="!editableFields.email"
+          />
+          <span class="edit" (click)="enableEdit('email')">edit</span>
+        </div>
+      </div>
+
+      <button class="save-btn" (click)="saveChanges()">SAVE CHANGES</button>
+    </div>
+  </div>
+
+  <div class="team-section">
+    <div class="Request">
+      <h3>My Team</h3>
+      <div class="request-member">
+       <span class="plus">+</span> Request missing team member
+      </div>
+    </div>
+    <div class="team-grid">
+      <div class="team-member" *ngFor="let member of [
+        { initials: 'JD', name: 'Jane Doe', desc: 'Position @ Boulevard 4 Seasons' },
+        { initials: 'DS', name: 'David Smith', desc: 'Position @ Boulevard 4 Seasons' },
+        { initials: 'MM', name: 'Mathew Morris', desc: 'Position @ Boulevard 4 Seasons' }
+      ]">
+        <div class="avatar small">{{ member.initials }}</div>
+        <div class="member-info">
+          <h2 class="name">{{ member.name }}</h2>
+          <p class="desc">{{ member.desc }}</p>
+        </div>
+      </div>
+    </div>
+
+   
+  </div>
+
+<div class="floating-buttons">
+  <div class="icon-btn chat">
+    <div class="chat-icons">
+      <img src="assets/images/Path 57.png" alt="" class="icon-back">
+      <img src="assets/images/Path 59.png" alt="" class="icon-front">
+    </div>
+  </div>
+
+  <div class="icon-btn bell">
+    <span class="dot red"></span>
+    <img src="assets/images/Path 60.png" alt=""class="icon-Alarm">
+    <span class="dot black"></span>
+  </div>
+</div>
+
+
+
+</div>
+</div>
+
+<div *ngIf="activeTab === 'Contracts'"><p>Contracts content</p></div>
+
+
+ <!-- <h2>Profile</h2> -->

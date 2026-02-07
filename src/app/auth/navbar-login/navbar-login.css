@@ -1,0 +1,164 @@
+.navbar {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 30px;
+  padding-bottom: 30px;
+  background-color: white;
+  font-family: 'Poppins', sans-serif;
+  position: relative;
+  z-index: 100;
+}
+
+.logo {
+  height: 25px;
+  margin-left: 50px;
+  object-fit: contain;
+}
+
+.navbar-links {
+  display: flex;
+  list-style: none;
+  gap: 30px;
+  margin: 0;
+  padding: 0;
+  font-family: Roboto, sans-serif;
+  font-weight: 700;
+  font-size: 20px;
+}
+
+.navbar-links a {
+  text-decoration: none;
+  color: #000;
+  font-weight: 500;
+  font-size: 13px;
+  letter-spacing: 0.5px;
+  transition: color 0.2s ease;
+}
+
+.navbar-links a:hover {
+  color: #7AC143;
+}
+
+.navbar-right {
+  display: flex;
+  align-items: center;
+  gap: 50px;
+}
+
+.client-btn {
+  background-color: #7AC143;
+  border: none;
+  color: white;
+  padding: 8px 18px;
+  border-radius: 3px;
+  font-size: 12px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+
+.client-btn:hover {
+  background-color: #6bb23b;
+}
+
+.lang-switch {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  margin-right: 50px;
+}
+
+.lang {
+  cursor: pointer;
+}
+
+.lang.active {
+  font-weight: 600;
+}
+
+.divider {
+  color: #aaa;
+}
+
+/* زر القائمة للجوال */
+.menu-toggle {
+  display: none;
+  font-size: 24px;
+  cursor: pointer;
+  margin-right: 30px;
+}
+
+/* --------------------------------------------- */
+/* 🟩  Responsive  */
+/* --------------------------------------------- */
+
+@media (max-width: 992px) {
+  .navbar-links {
+    gap: 15px;
+  }
+
+  .navbar-right {
+    gap: 20px;
+  }
+
+  .logo {
+    margin-left: 20px;
+  }
+}
+
+@media (max-width: 768px) {
+  .menu-toggle {
+    display: block;
+  }
+
+  .navbar {
+    flex-wrap: wrap;
+  }
+
+  .navbar-links {
+    display: none;
+    flex-direction: column;
+    width: 100%;
+    background-color: white;
+    position: absolute;
+    top: 80px;
+    left: 0;
+    padding: 20px 0;
+    border-top: 1px solid #eee;
+  }
+
+  .navbar-links.show {
+    display: flex;
+  }
+
+  .navbar-links li {
+    text-align: center;
+    margin: 10px 0;
+  }
+
+  .navbar-right {
+    display: none;
+  }
+
+  .logo {
+    margin-left: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .logo {
+    height: 20px;
+  }
+
+  .client-btn {
+    padding: 6px 12px;
+    font-size: 11px;
+  }
+
+  .lang-switch {
+    margin-right: 15px;
+  }
+}

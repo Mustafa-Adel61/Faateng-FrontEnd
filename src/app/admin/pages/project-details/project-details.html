@@ -1,0 +1,191 @@
+<!-- details panel (simple modal-ish) -->
+<div class="details-overlay">
+  <div class="details-panel">
+    <button class="close-btn" (click)="doClose()">×</button>
+    <p>{{ project?.client?.fullName || project?.client?.userName || '' }} ·
+      {{ project?.location || project?.siteAddress || '' }}</p>
+    <h3>{{ project?.name || taskss?.Project }}</h3>
+    <p>Created: {{ project?.startDate | date:'yyyy-MM-dd' }} · Address:
+      {{ project?.siteAddress || project?.location || '' }}</p>
+    <div class="details-page-tabs">
+      <button class="details-tab-btn" [class.active]="detailsTab === 'Overview'"
+        (click)="setTab('Overview')">Overview</button>
+      <button class="details-tab-btn" [class.active]="detailsTab === 'Scopes'"
+        (click)="setTab('Scopes')">Scopes/Contracts</button>
+      <button class="details-tab-btn" [class.active]="detailsTab === 'Unit'" (click)="setTab('Unit')">Unit</button>
+      <button class="details-tab-btn" [class.active]="detailsTab === 'Tasks'" (click)="setTab('Tasks')">Tasks</button>
+      <button class="details-tab-btn" [class.active]="detailsTab === 'Reports'"
+        (click)="setTab('Reports')">Reports</button>
+      <button class="details-tab-btn" [class.active]="detailsTab === 'Billing'"
+        (click)="setTab('Billing')">Billing</button>
+      <button class="details-tab-btn" [class.active]="detailsTab === 'File'" (click)="setTab('File')">File</button>
+    </div>
+    <ng-container *ngIf="detailsTab==='Overview'">
+      <!-- 📊 Status Summary Cards -->
+      <div class="status-summary">
+        <div class="summary-card">
+          <span class="label">Units</span>
+          <span class="count">{{ units?.length || 0 }}</span>
+        </div>
+        <div class="summary-card">
+          <span class="label">Open Tasks</span>
+          <span class="count">{{ projectTasks?.length || 0 }}</span>
+        </div>
+        <div class="summary-card">
+          <span class="label">Booked value</span>
+          <span class="count">{{ project?.budget || 0 }}</span>
+        </div>
+        <div class="summary-card">
+          <span class="label">Outstanding</span>
+          <span class="count">—</span>
+        </div>
+      </div>
+    </ng-container>
+    <ng-container *ngIf="detailsTab==='Scopes'">
+      <div class="table-container">
+        <table class="responsive-table">
+          <thead>
+            <tr>
+              <th>Type</th>
+              <th>Title</th>
+              <th>Start</th>
+              <th>End</th>
+              <th>Value</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let scope of scopes">
+              <td>{{scope.type}}</td>
+              <td>{{scope.title}}</td>
+              <td>{{scope.startDate | date:'yyyy-MM-dd'}}</td>
+              <td>{{scope.endDate | date:'yyyy-MM-dd'}}</td>
+              <td>{{scope.value}}</td>
+              <td><span class="statusActive">{{scope.status}}</span></td>
+            </tr>
+            <tr *ngIf="scopes.length === 0">
+              <td colspan="6">No scopes found</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </ng-container>
+    <ng-container *ngIf="detailsTab==='Unit'">
+      <div class="table-container">
+        <table class="responsive-table">
+          <thead>
+            <tr>
+              <th>Serial</th>
+              <th>Model</th>
+              <th>Type</th>
+              <th>Price</th>
+              <th>Quantity</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let unit of units">
+              <td>{{unit.serial}}</td>
+              <td>{{unit.model}}</td>
+              <td>{{unit.type}}</td>
+              <td>{{unit.price}}</td>
+              <td>{{unit.quantity}}</td>
+            </tr>
+            <tr *ngIf="units.length === 0">
+              <td colspan="5">No units found</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </ng-container>
+    <ng-container *ngIf="detailsTab==='Tasks'">
+      <div class="table-container">
+        <table class="responsive-table">
+          <thead>
+            <tr>
+              <th>Task</th>
+              <th>Status</th>
+              <th>Assignee</th>
+              <th>Due</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let task of projectTasks">
+              <td>{{task.title}}</td>
+              <td><span class="status-Scheduled">{{task.status}}</span></td>
+              <td>{{task.assigneeUser?.fullName || ''}}</td>
+              <td>{{ (task.slaDue || task.scheduledEnd) | date:'yyyy-MM-dd' }}</td>
+            </tr>
+            <tr *ngIf="projectTasks.length === 0">
+              <td colspan="3">No tasks found</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </ng-container>
+    <ng-container *ngIf="detailsTab==='Reports'">
+      <div class="table-container">
+        <table class="responsive-table">
+          <thead>
+            <tr>
+              <th>Report</th>
+              <th>Date</th>
+              <th>Technician</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let report of reports">
+              <td>{{report.reportId}}</td>
+              <td>{{report.date | date:'yyyy-MM-dd'}}</td>
+              <td>{{report.technicianName}}</td>
+            </tr>
+            <tr *ngIf="reports.length === 0">
+              <td colspan="3">No reports found</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </ng-container>
+    <ng-container *ngIf="detailsTab==='Billing'">
+      <div class="table-container">
+        <table class="responsive-table">
+          <thead>
+            <tr>
+              <th>Invoice</th>
+              <th>Due Date</th>
+              <th>Amount</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let inv of invoices">
+              <td>{{inv.id}}</td>
+              <td>{{inv.dueDate | date:'yyyy-MM-dd'}}</td>
+              <td>{{inv.total}}</td>
+              <td>{{inv.status}}</td>
+            </tr>
+            <tr *ngIf="invoices.length === 0">
+              <td colspan="4">No invoices found</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </ng-container>
+    <ng-container *ngIf="detailsTab==='File'">
+      <div class="file-tab">
+        <div class="images-grid">
+          <img *ngFor="let img of projectImages" [src]="img" alt="image"
+            style="max-width:120px; max-height:120px; margin:6px; border-radius:8px; object-fit:cover;">
+        </div>
+        <ul>
+          <li *ngFor="let f of projectDocuments">{{ displayFileName(f) }}</li>
+        </ul>
+        <button class="upload-btn">Upload</button>
+      </div>
+    </ng-container>
+    <button class="upload-btn">Create Work Order</button>
+    <button class="upload-btn">New Invoice</button>
+    <button class="upload-btn">Share</button>
+
+
+  </div>
+</div>

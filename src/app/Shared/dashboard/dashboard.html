@@ -1,0 +1,12 @@
+<div class="layout-root">
+  <app-shared-header [role]="role" (sidebarToggle)="sidebarOpen = !sidebarOpen"></app-shared-header>
+
+  <div class="main-area">
+    <app-shared-sidebar [class.open]="sidebarOpen" (closeSidebar)="sidebarOpen = false"
+      [role]="role"></app-shared-sidebar>
+
+    <div class="page-content" (click)="sidebarOpen = false">
+      <router-outlet></router-outlet>
+    </div>
+  </div>
+</div>

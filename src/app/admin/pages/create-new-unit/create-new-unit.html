@@ -1,0 +1,75 @@
+<div class="cnv-backdrop">
+  <div class="cnv-modal report-modal">
+    <button class="cnv-close" (click)="doClose()">✕</button>
+
+    <!-- <h2>Add New Unit</h2> -->
+
+    <div class="report-form-grid">
+
+      <!-- Serial Number -->
+      <label class="full-width">
+        <input type="text" [(ngModel)]="form.Serial" name="Serial" placeholder="Serial / SKU"
+          [ngClass]="{'input-error': submitted && !form.Serial}" />
+      </label>
+
+      <!-- Model Name -->
+      <label class="full-width">
+        <input type="text" [(ngModel)]="form.Model" name="Model" placeholder="Model Name"
+          [ngClass]="{'input-error': submitted && !form.Model}" />
+      </label>
+
+      <!-- Unit Type -->
+      <label class="full-width">
+        <select [(ngModel)]="form.Type" name="Type" [ngClass]="{'input-error': submitted && !form.Type}">
+          <option value="" disabled selected>Unit Type</option>
+          <option *ngFor="let t of unitTypes" [value]="t">{{ t }}</option>
+        </select>
+      </label>
+
+      <!-- Price -->
+      <label class="full-width">
+        <input type="number" [(ngModel)]="form.Price" name="Price" placeholder="Price"
+          [ngClass]="{'input-error': submitted && !form.Price}" />
+      </label>
+
+      <!-- Quantity -->
+      <label class="full-width">
+        <input type="number" [(ngModel)]="form.Quantity" name="Quantity" placeholder="Quantity"
+          [ngClass]="{'input-error': submitted && !form.Quantity}" />
+      </label>
+
+      <!-- Description -->
+      <label class="full-width">
+        <textarea [(ngModel)]="form.Description" name="Description" placeholder="Add description"></textarea>
+      </label>
+
+      <!-- Attachments -->
+      <label class="full-width">
+        <div class="custom-file-upload" (click)="openFilePicker()">
+          <i class="pin-icon">
+            <img src="/assets/images/imgIcon.png" alt="">
+          </i>
+          <span class="upload-text">Upload File</span>
+        </div>
+      </label>
+      <div class="selected-files">
+        <div class="thumbnail-item" *ngFor="let f of form.attachments; let i = index">
+          <button type="button" class="delete-icon" (click)="removeAttachment(i)">✕</button>
+          <ng-container *ngIf="f.type.startsWith('image/'); else nonImageAtt">
+            <img [src]="f.url" (click)="openAttachment(f)">
+          </ng-container>
+          <ng-template #nonImageAtt>
+            <div class="file-chip" (click)="openAttachment(f)">
+              <span class="file-icon">📄</span>
+            </div>
+          </ng-template>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Buttons -->
+    <button type="button" class="save-button-large yellow-bg" (click)="doSave()">Add</button>
+
+  </div>
+</div>

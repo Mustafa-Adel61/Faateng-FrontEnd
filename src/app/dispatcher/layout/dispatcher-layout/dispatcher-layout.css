@@ -1,0 +1,63 @@
+.layout-root {
+  min-height: 100vh;
+  background: #f5f6fa;
+}
+
+.main-area {
+  display: flex;
+  flex-direction: row;
+  min-height: calc(100vh - 60px); /* header height */
+}
+
+app-header {
+  width: 100%;
+  height: 90px;
+  display: block;
+  position: sticky;
+  top: 0;
+  z-index: 1300;
+
+}
+
+app-sidebar {
+  width: 219px;
+  background: #2c3e50;
+  color: #fff;
+  flex-shrink: 0;
+  transition: left 0.3s, width 0.3s;
+  min-height: calc(100vh - 60px);
+  position: relative;
+  z-index: 1100;
+}
+
+.page-content {
+  flex: 1;
+  background: #fff;
+  padding: 24px;
+  min-height: calc(100vh - 60px);
+  box-sizing: border-box;
+  overflow-x: auto;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .main-area {
+    flex-direction: row;
+  }
+  app-sidebar {
+    position: absolute;
+    left: -220px;
+    top: 60px;
+    width: 219px;
+    z-index: 1200;
+    box-shadow: 2px 0 8px #0002;
+  }
+  app-sidebar.open {
+    left: 0;
+  }
+  .page-content {
+    padding: 12px;
+    /* شيلت ال padding في شاشه الفون عشان يبدا علطول */
+    padding-left: 0px;
+  }
+}

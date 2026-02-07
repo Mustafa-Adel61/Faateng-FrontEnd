@@ -1,0 +1,33 @@
+
+<!-- لاحظ كله بيروح لحاجات في ال admin  لما اعمل ال component بتاعت ال client اخليهه تروح ليه   -->
+<nav class="sidebar">
+  <ul class="menu">
+    <li class="section-title">Dashboard</li>
+    <li><a routerLink="/client/units" routerLinkActive="active"(click)="scrollToTop()">Units</a></li>
+    <li class="divider"></li>
+
+    <li class="section-title">Maintenance</li>
+    <li><a routerLink="/client/service-requests" routerLinkActive="active"(click)="scrollToTop()">Service Requests</a></li>
+    <li><a routerLink="/client/history" routerLinkActive="active"(click)="scrollToTop()">History</a></li>
+
+    <li class="divider"></li>
+
+    <li class="section-title">Billing</li>
+    <li><a routerLink="/client/invoices" routerLinkActive="active"(click)="scrollToTop()">Invoices</a></li>
+    <li class="divider"></li>
+
+    <li class="section-title">Agreements & Renewals</li>
+    <li><a routerLink="/client/contracts" routerLinkActive="active"(click)="scrollToTop()">Contracts</a></li>
+
+    <li class="divider"></li>
+    
+    <li class="section-title">Compliance</li>
+    <li><a routerLink="/client/reports-compliance" routerLinkActive="active"(click)="scrollToTop()">Reports & Compliance</a></li>
+    <li class="section-title">Logout</li>
+    <li><a (click)="logout()">Log Out</a></li>
+    <li class="divider"></li>
+    <li><a routerLink="/client/inventory" routerLinkActive="active"(click)="scrollToTop()">
+      <img src="assets/images/setting.png" alt="">
+    </a></li>
+  </ul>
+</nav>

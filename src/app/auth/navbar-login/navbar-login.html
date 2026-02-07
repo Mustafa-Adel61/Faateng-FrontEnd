@@ -1,0 +1,24 @@
+<nav class="navbar">
+  <div class="navbar-left">
+    <img src="assets/images/FAAT_logo.png" alt="FAATENG Logo" class="logo" />
+  </div>
+
+  <!-- زر القائمة للجوال -->
+  <div class="menu-toggle" (click)="toggleMenu()">☰</div>
+
+  <ul class="navbar-links" [class.show]="isMenuOpen">
+    <li><a href="#">PRODUCTS / SERVICES</a></li>
+    <li><a href="#">SUSTAINABILITY</a></li>
+    <li><a href="#">COMPANY</a></li>
+    <li><a href="#">CONTACT</a></li>
+  </ul>
+
+  <div class="navbar-right">
+    <button class="client-btn">CLIENT PORTAL</button>
+    <div class="lang-switch">
+      <span class="lang active">E</span>
+      <span class="divider">|</span>
+      <span class="lang">ع</span>
+    </div>
+  </div>
+</nav>

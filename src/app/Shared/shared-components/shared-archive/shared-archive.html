@@ -1,0 +1,186 @@
+<!-- احطه في admin,dispatcher,client,manager,finance -->
+<app-shared-page-header [createButtonLabel]="'CREATE REPRORT'" [showCreateVisitButton]="false"
+  (createVisit)="openCreateReport()" [showSerchBox]="false" [showDropdown]="false">
+  <span breadcrumb>REPORTS > Maintenance Archive</span>
+
+</app-shared-page-header>
+<app-create-new-report *ngIf="showCreateReportModal" (close)="closeCreateReport()" (save)="saveNewReport($event)">
+</app-create-new-report>
+<div class="task-list">
+  <div class="page-tabs">
+    <button class="tab-btn" [class.active]="activeTab === 'list'" (click)="activeTab = 'list'">Reports List</button>
+    <button class="tab-btn" [class.active]="activeTab === 'map'" (click)="activeTab = 'map'">Map</button>
+  </div>
+
+  <div class="tab-content">
+    <ng-container *ngIf="activeTab === 'list'">
+      <div class="task-toolbar">
+        <div class="toolbar-left">
+
+          <button class="icon-btn">+</button>
+          <button class="icon-btn">
+            <img src="/assets/images/Vector3.png" alt="">
+          </button> <button class="icon-btn">⇅</button>
+        </div>
+
+        <div class="toolbar-right">
+          <div class="search-input">
+            <button>
+              <img class="search-icon" src="/assets/images/search.png" alt="">
+            </button>
+            <input type="text" class="forSearch"  placeholder="Search Report ID, Technician..." />
+
+          </div>
+        </div>
+      </div>
+
+      <table>
+        <thead class="table-header">
+          <tr>
+            <th>
+              <input type="checkbox" [checked]="allSelected" (change)="allSelected = $event.target.checked; toggleAll()"
+                (click)="$event.stopPropagation()" />
+              <!-- <input 
+      type="checkbox" 
+      [(ngModel)]="report.selected" 
+      (change)="updateAllSelected()" 
+      (click)="$event.stopPropagation()"
+    /> -->
+            </th>
+            <th class="faded">Report ID</th>
+            <th class="faded">Date</th>
+            <th class="faded">Maintenance Visits</th>
+            <th class="faded">Work Performed</th>
+            <th class="faded">Technician</th>
+            <th class="faded">Photos</th>
+            <th class="faded">Comments</th>
+            <th class="faded">System ID</th>
+            <th class="faded">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- <tr *ngFor="let report of pagedReports" (click)="openReportDetails(report)" class="report-row"> 
+             <td>
+<input 
+    type="checkbox" 
+    [(ngModel)]="report.selected" 
+    (change)="updateAllSelected()" 
+    (click)="$event.stopPropagation()"/>
+             </td>
+           
+            <td class="faded">{{report.reportId}}</td>
+            <td class="faded">{{report.date}}</td>
+            <td class="faded">
+              <span *ngFor="let visit of report.maintenanceVisits" class="visit-tag">{{visit}}</span>
+            </td>
+            <td class="faded">{{report.workPerformed | slice:0:30}}...</td> <td class="faded">{{report.technician}}</td>
+         
+             <td class="faded report-photos-cell">
+                <ng-container *ngIf="report.photos && report.photos.length > 0">
+                  <div class="photos-preview">
+                  <img *ngFor="let photo of report.photos; let i = index" [src]="photo" alt="Report Photo" class="report-thumbnail" [class.extra-photos]="i >= 4" (click)="openInNewTab(photo)">
+                    <span *ngIf="report.photos.length > 4" class="more-photos-count">
+                        +{{report.photos.length - 4}}
+                    </span>
+                  </div>
+                </ng-container>
+                <span *ngIf="!report.photos || report.photos.length === 0" class="no-photos">No Photos</span>
+            </td>
+
+
+
+            
+            <td class="faded">{{report.comments | slice:0:30}}...</td>
+            <td class="faded">
+              <span class="system-tag">{{report.systemId}}</span>
+            </td>
+          </tr> -->
+
+
+
+          <tr *ngFor="let report of pagedReports" (click)="openReportDetails(report)" class="report-row">
+            <td data-label="Select">
+              <input type="checkbox" [(ngModel)]="report.selected" (change)="updateAllSelected()"
+                (click)="$event.stopPropagation()" />
+            </td>
+            <td class="faded" data-label="Report ID">{{report.reportId}}</td>
+            <td class="faded" data-label="Date">{{report.date}}</td>
+            <td class="faded" data-label="Maintenance Visits">
+              <span *ngFor="let visit of report.maintenanceVisits" class="visit-tag">{{visit}}</span>
+            </td>
+            <td class="faded" data-label="Work Performed">{{report.workPerformed | slice:0:30}}...</td>
+            <td class="faded" data-label="Technician">{{report.technician}}</td>
+            <td class="faded" data-label="Photos">
+              <ng-container *ngIf="report.photos && report.photos.length > 0">
+                <div class="photos-preview">
+                  <img *ngFor="let photo of report.photos; let i = index" [src]="photo" alt="Report Photo"
+                    class="report-thumbnail" [class.extra-photos]="i >= 4" (click)="openInNewTab(photo)">
+                  <span *ngIf="report.photos.length > 4" class="more-photos-count">
+                    +{{report.photos.length - 4}}
+                  </span>
+                </div>
+              </ng-container>
+              <span *ngIf="!report.photos || report.photos.length === 0" class="no-photos">No Photos</span>
+            </td>
+            <td class="faded" data-label="Comments">{{report.comments | slice:0:30}}...</td>
+            <td class="faded" data-label="System ID">
+              <span class="system-tag">{{report.systemId}}</span>
+            </td>
+            <td (click)="$event.stopPropagation()">
+              <select class="action-row" (change)="onSelectChange(report, $event)">
+                <option value="">Actions</option>
+                <option value="delete" *ngIf="role === 'admin'">Delete</option>
+              </select>
+            </td>
+          </tr>
+
+
+
+        </tbody>
+      </table>
+
+      <div class="pagination" *ngIf="totalPages > 1">
+        <button class="page-btn" [disabled]="page === 1" (click)="setPage(page-1)">
+        </button>
+
+        <ng-container *ngFor="let p of visiblePages">
+          <button class="page-btn" [class.active]="p === page" (click)="setPage(p)">{{p}}</button>
+        </ng-container>
+
+        <button class="page-btn" [disabled]="page === totalPages" (click)="setPage(page+1)">></button>
+      </div>
+    </ng-container>
+
+    <ng-container *ngIf="activeTab === 'map'">
+      <div class="map-container">
+        <iframe width="100%" height="500" frameborder="0" style="border:0" [src]="mapUrl" allowfullscreen>
+        </iframe>
+        <div class="map-caption">
+          Damascus Boulevard<br />
+          Address: Building A1 - UNIT#HW • Oil & Grease
+        </div>
+      </div>
+    </ng-container>
+  </div>
+</div>
+
+<!-- تفاصيل الأرشيف -->
+<div class="details-overlay" *ngIf="showDetails">
+  <div class="details-panel">
+    <button class="close-btn" (click)="closeDetails()">×</button>
+    <h3>{{ selectedReport?.reportId }}</h3>
+    <span class="details-span" [ngClass]="{
+      'status-Approved': selectedReport?.Status === 'Approved'
+    }">{{ selectedReport?.Status }}</span>
+    <p><strong>Visits:</strong> {{ selectedReport?.maintenanceVisits?.join(', ') }}</p>
+    <p><strong>System ID:</strong> {{ selectedReport?.systemId }}</p>
+    <p><strong>Work Performed:</strong> {{ selectedReport?.workPerformed }}</p>
+    <p><strong>Technician:</strong> {{ selectedReport?.technician }}</p>
+    <p><strong>Date:</strong> {{ selectedReport?.date }}</p>
+    <p><strong>Comments:</strong> {{ selectedReport?.comments }}</p>
+    <p><strong>Photos:</strong></p>
+    <div class="thumbnail-row" *ngIf="selectedReport?.photos?.length">
+      <img *ngFor="let photo of selectedReport?.photos" [src]="photo" alt="Thumbnail" (click)="openInNewTab(photo)">
+    </div>
+  </div>
+</div>

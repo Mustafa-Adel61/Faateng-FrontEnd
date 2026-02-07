@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>اختبار رفع الملفات</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .file-upload-container {
+            margin: 20px 0;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        .file-name {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #333;
+        }
+        .upload-btn {
+            background-color: #4a90e2;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-bottom: 10px;
+            font-weight: bold;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>اختبار رفع الملفات</h1>
+    
+    <div class="file-upload-container">
+        <input type="file" id="fileInput">
+        <button class="upload-btn" onclick="handleFileUpload()">اختر ملف</button>
+        <div id="fileName" class="file-name"></div>
+    </div>
+
+    <script>
+        // طريقة 1: استخدام زر منفصل
+        function handleFileUpload() {
+            document.getElementById('fileInput').click();
+        }
+
+        // عرض اسم الملف عند اختياره
+        document.getElementById('fileInput').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                document.getElementById('fileName').textContent = 'تم اختيار: ' + file.name;
+                console.log('تم اختيار الملف:', file.name);
+            }
+        });
+    </script>
+</body>
+</html>

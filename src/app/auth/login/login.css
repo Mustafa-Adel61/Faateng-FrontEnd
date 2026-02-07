@@ -1,0 +1,157 @@
+.login-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  /* background: #fafafa; */
+}
+
+.login-box {
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  width: 450px;
+  padding: 40px;
+  text-align: center;
+}
+
+/* .logo {
+  width: 120px;
+  margin-bottom: 10px;
+} */
+ 
+/* اللوجو */
+.logo-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.image {
+  height: 57px;
+  width: 155px;
+  object-fit: contain;
+  display: block;
+}
+
+.pointImage {
+  position: absolute;
+  height: 14px;
+  width: 15px;
+  right: 3px;
+  top: 22px;
+}
+
+h2 {
+  /* font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 8px; */
+
+  font-family: Roboto;
+font-weight: 700;
+font-style: Bold;
+font-size: 20px;
+/* leading-trim: NONE; */
+line-height: 100%;
+letter-spacing: 0%;
+
+}
+
+.subtitle {
+font-family: Roboto;
+line-height: 1.4;
+font-weight: 300;
+margin-bottom: 25px;
+font-style: Light;
+padding-left: 25px;
+padding-right: 25px;
+font-size: 15px;
+text-align: center;
+color: #1B1616;
+}
+
+.form-group {
+  text-align: left;
+  margin-bottom: 18px;
+  position: relative; 
+}
+
+label {
+font-family: Roboto;
+font-weight: 600;
+font-style: Bold;
+font-size: 17px;
+/* leading-trim: NONE; */
+line-height: 100%;
+letter-spacing: 0%;
+color: #1B1616;
+padding-left: 10px;
+}
+
+input {
+  width: 85%;
+  padding: 15px 35px 10px 5px;
+  margin-left: 10px;
+  border: none;
+  border-bottom: 1px solid #ccc;
+  outline: none;
+  font-size: 14px;
+  font-family: Roboto;
+font-weight: 300;
+font-style: Light;
+font-size: 15px;
+line-height: 100%;
+letter-spacing: 0%;
+color: #1B1616;
+}
+
+input:focus {
+  border-bottom: 1.5px solid #000;
+}
+
+.checkmark {
+  position: absolute;
+  right: 20px;
+  bottom: 12px;
+  color: green;
+  font-size: 14px;
+}
+
+.error-message {
+  color: red;
+  font-size: 15px;
+  margin-top: 12px;
+  text-align: center;
+}
+
+.login-btn {
+  background: #1B1616;
+  color: #F5D11C;
+  border: none;
+  padding: 12px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: 0.3s;
+  width: 270px;
+height: 67;
+top: 771px;
+left: 773px;
+opacity: 1;
+border-radius: 34px;
+}
+
+.login-btn:hover {
+  background: #222;
+}
+
+.register-link {
+  margin-top: 20px;
+  font-size: 13px;
+  color: #555;
+}
+
+.register-link a {
+  color: #000;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+}

@@ -1,0 +1,280 @@
+  <div class="tab-content">
+    <!-- List tab -->
+    <ng-container>
+      <div class="task-toolbar">
+        <div class="toolbar-left">
+          <button class="icon-btn" (click)="openCreateRequest()" *ngIf="role === 'client'">+</button>
+          <button class="icon-btn" (click)="toggleFilterBuilder()">
+            <img src="/assets/images/Vector3.png" alt="">
+          </button>
+          <button class="icon-btn">⇅</button>
+        </div>
+
+        <div class="toolbar-right">
+          <div class="search-input">
+            <button><img class="search-icon" src="/assets/images/search.png" alt=""></button>
+            <input type="text"
+             class="forSearch"
+             [(ngModel)]="searchText" 
+             placeholder="Search" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Filter Builder -->
+      <div class="filter-builder" *ngIf="showFilterBuilder">
+        <h4>Add filter</h4>
+        <div class="filter-row">
+          <select [(ngModel)]="newFilter.field">
+            <option value="">Select Field</option>
+            <option value="status">Status</option>
+            <option value="name">Project</option>
+            <option value="team">Team</option>
+            <option value="priority">Priority</option>
+            <option value="visitType">Visit Type</option>
+            <option value="address">Address</option>
+            <option value="slaStatus">SLA Status</option>
+          </select>
+
+          <select [(ngModel)]="newFilter.value" *ngIf="getFilterValues(newFilter.field).length">
+            <option *ngFor="let v of getFilterValues(newFilter.field)" [value]="v">{{ v }}</option>
+          </select>
+
+          <button class="add-btn" (click)="applyFilter()">Apply</button>
+          <button class="add-btn" (click)="showFilterBuilder=false" style="background:#ccc;color:#000">Close</button>
+        </div>
+      </div>
+
+      <!-- Active filters -->
+      <div class="active-filters" *ngIf="activeFilters.length">
+        <span class="filter-chip" *ngFor="let f of activeFilters; let i = index">
+          {{ f.field }}: <strong>{{ f.value }}</strong>
+          <button (click)="removeFilter(i)">×</button>
+        </span>
+        <button class="clear-btn" (click)="clearAllFilters()">Clear All</button>
+      </div>
+<!-- selected count -->
+<div class="selected-count" *ngIf="selectedCount > 0">
+  {{ selectedCount }} row(s) selected
+</div>
+      <!-- table -->
+      <table>
+        <thead>
+          <tr>
+            <th>
+            <input 
+               type="checkbox" 
+               [checked]="allSelected" 
+               (change)="allSelected = $event.target.checked; toggleAll()" 
+               (click)="$event.stopPropagation()"/>
+            </th>
+            <th class="faded">Visit ID</th>
+            <th class="faded">Scheduled Date</th>
+            <th class="faded">Visit Type</th>
+            <th class="faded">Assigned Technician</th>
+            <th class="faded">Maintenance Report</th>
+            <th class="faded">Work Performed</th>
+            <th class="faded">Photos</th>
+            <th class="faded">Comments</th>
+            <th class="faded">System ID</th>
+            <th class="faded">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- <tr *ngFor="let task of pagedTasks" (click)="openDetails(task)"> -->
+          <tr *ngFor="let task of pagedTasks" (click)="openDetails(task)">
+            <td>
+              <!-- <input type="checkbox" [(ngModel)]="task.selected" (change)="updateAllSelected()" /> -->
+              <input 
+      type="checkbox" 
+      [(ngModel)]="task.selected" 
+      (change)="updateAllSelected()" 
+      (click)="$event.stopPropagation()"
+    />
+            </td>
+            <td class="faded">
+              <span [ngClass]="{
+                'status-Scheduled': task.status === 'Scheduled',
+                'status-Dispatched': task.status === 'Dispatched',
+                'status-On-Site': task.status === 'On-Site',
+                'status-Waiting-Parts': task.status === 'Waiting-Parts',
+                'status-QA-Review': task.status === 'QA/Review',
+                'status-Backlog': task.status === 'Backlog'|| task.status === 'Done'|| task.status === 'Closed',
+              }">{{ task.status }}</span>
+            </td>
+            <td class="faded">{{ task.name }}</td>
+            <td class="faded">{{ task.units }}</td>
+            <td class="faded">{{ task.assignee }}</td>
+            <td class="faded">{{ task.team }}</td>
+
+            <td class="faded">
+              <span [ngClass]="{
+                'priority-high': task.priority === 'High',
+                'sla-overdue': task.priority === 'Urgent',
+                'priority-low': task.priority === 'Low'
+              }">{{ task.priority }}</span>
+            </td>
+
+            <td class="faded">{{ task.address }}</td>
+            <td class="faded">{{ task.due }}</td>
+            <td class="faded">{{ task.slaDue }}</td>
+            <td class="faded">
+              <span [ngClass]="{
+                'sla-ok': task.slaStatus === 'OK',
+                'sla-overdue': task.slaStatus === 'Overdue',
+                'sla-pending': task.slaStatus === 'Pending'
+              }">{{ task.slaStatus }}</span>
+            </td>
+            <td class="faded ">{{ task.objective }}</td>
+<!-- (click)="$event.stopPropagation()" بيمنع ال click انه ياخد ال action الي فوقيه عشان كدا لو دوست عليها مش هيفتح ال details  -->
+            <td (click)="$event.stopPropagation()">
+                <select class="action-row" (change)="onSelectChange(task, $event)">
+                <option value="">Actions</option>
+                <option value="view">View Details</option>
+                <option value="createWorkOrder" *ngIf="task.status === 'New' && canCreateTask">Create Work Order</option>
+                <!-- <option value="edit">Edit</option> -->
+                <option value="delete">Delete</option>
+                </select>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- pagination -->
+      <div class="pagination" *ngIf="totalPages > 1">
+        <button class="page-btn" [disabled]="page === 1" (click)="setPage(page-1)">&lt;</button>
+        <ng-container *ngFor="let p of visiblePages">
+          <button class="page-btn" [class.active]="p === page" (click)="setPage(p)">{{ p }}</button>
+        </ng-container>
+        <button class="page-btn" [disabled]="page === totalPages" (click)="setPage(page+1)">&gt;</button>
+      </div>
+    </ng-container>
+
+  </div>
+<!-- details panel (simple modal-ish) -->
+<div class="details-overlay" *ngIf="showDetails">
+  <div class="details-panel">
+    <button class="close-btn" (click)="closeDetails()">×</button>
+    <h3>{{ selectedTask?.name }}</h3>
+
+              <span class="details-span" [ngClass]="{
+                'status-Scheduled': selectedTask?.status === 'Scheduled',
+                'status-Dispatched': selectedTask?.status === 'Dispatched',
+                'status-On-Site': selectedTask?.status === 'On-Site',
+                'status-Waiting-Parts': selectedTask?.status === 'Waiting-Parts',
+                'status-QA-Review': selectedTask?.status === 'QA/Review',
+                'status-Backlog': selectedTask?.status === 'Backlog'|| selectedTask?.status === 'Done'|| selectedTask?.status === 'Closed',        
+                }">{{ selectedTask?.status }}</span>
+
+               <span class="details-span" [ngClass]="{
+                'sla-ok': selectedTask?.slaStatus === 'OK',
+                'sla-overdue': selectedTask?.slaStatus === 'Overdue',
+                'sla-pending': selectedTask?.slaStatus === 'Pending'
+              }">{{ selectedTask?.slaStatus }}</span>
+
+               <span  class="details-span"[ngClass]="{
+                'priority-high': selectedTask?.priority === 'High',
+                'sla-overdue': selectedTask?.priority === 'Urgent',
+                'priority-low': selectedTask?.priority === 'Low'
+              }">{{ selectedTask?.priority }}</span>
+
+
+<!-- عملت الشرط دا عشان لو فيها null ميدخلش اصلا  -->
+   <p *ngIf="selectedTask">
+  <strong>Status </strong>
+  <select [(ngModel)]="selectedTask.status" (change)="updateTaskStatus(selectedTask)">
+    <option *ngFor="let s of getSortedStatuses(selectedTask.status)" [value]="s">
+      {{ s }}
+    </option>
+  </select>
+</p>
+
+    <p><strong>Assignee:</strong> {{ selectedTask?.assignee }}</p>
+    <p><strong>Team:</strong> {{ selectedTask?.team }}</p>
+    <p><strong>Units:</strong> {{ selectedTask?.units }}</p>
+    <p><strong>Address:</strong> {{ selectedTask?.address }}</p>
+    <p><strong>Due:</strong> {{ selectedTask?.due }}</p>
+    <p><strong>SLA Due:</strong> {{ selectedTask?.slaDue }}</p>
+    <p><strong>Objective:</strong> {{ selectedTask?.objective }}</p>
+    <div>
+      <strong>Assign Technician</strong>
+      <select [(ngModel)]="selectedTechnicianId">
+        <option [ngValue]="null">Select Technician</option>
+        <option *ngFor="let t of technicians" [value]="t.id">{{ t.name }}</option>
+      </select>
+      <button (click)="assignTechnician()">Assign</button>
+    </div>
+    <!-- <p><strong>SLA Status:</strong> {{ selectedTask?.slaStatus }}</p>
+    <p><strong>Notes:</strong> {{ selectedTask?.notes }}</p> -->
+  </div>
+</div>
+
+<!-- Create Service Request Modal -->
+<div class="details-overlay" *ngIf="showCreateRequestModal" style="z-index: 1001;">
+  <div class="details-panel" style="width: 80%; max-width: 800px;">
+    <button class="close-btn" (click)="closeCreateRequest()">×</button>
+    <h3>Create Service Request</h3>
+    <div class="details-content">
+      <div class="detail-row">
+        <label>Project (optional)</label>
+        <select [(ngModel)]="selectedProjectId" (change)="onProjectChange()">
+          <option [ngValue]="null">No Project</option>
+          <option *ngFor="let p of availableProjects" [ngValue]="p.id">{{ p.title || p.name }}</option>
+        </select>
+      </div>
+      <div class="detail-row">
+        <label>Unit (optional)</label>
+        <select [(ngModel)]="newRequest.unitId">
+          <option [ngValue]="null">No Unit</option>
+          <option *ngFor="let u of availableUnits" [ngValue]="u.id">{{ u.model }} ({{ u.serial }})</option>
+        </select>
+      </div>
+      <div class="detail-row">
+        <label>Unit Name (optional if no Unit)</label>
+        <input type="text" [(ngModel)]="newRequest.unitName" placeholder="e.g., Elevator A - Tower 3">
+      </div>
+      <div class="detail-row">
+        <label>Service Type</label>
+        <select [(ngModel)]="newRequest.serviceType">
+          <option value="HVAC">HVAC</option>
+          <option value="Elevator">Elevator</option>
+          <option value="Electrical">Electrical</option>
+          <option value="Plumbing">Plumbing</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+      <div class="detail-row">
+        <label>Description</label>
+        <textarea [(ngModel)]="newRequest.description" rows="4" placeholder="Describe the issue..."></textarea>
+      </div>
+      <div class="detail-row">
+        <label>Fault Code (optional)</label>
+        <input type="text" [(ngModel)]="newRequest.faultCode">
+      </div>
+      <div class="detail-row">
+        <label>Preferred Time (optional)</label>
+        <input type="datetime-local" [(ngModel)]="newRequest.preferredTime">
+      </div>
+      <div class="detail-row">
+        <label>Images URLs (comma-separated, optional)</label>
+        <input type="text" [(ngModel)]="newRequest.imagesText" placeholder="https://... , https://...">
+      </div>
+    </div>
+    <div class="details-footer">
+      <button class="btn-cancel" (click)="closeCreateRequest()">Cancel</button>
+      <button class="btn-save" (click)="saveNewRequest()">Submit</button>
+    </div>
+  </div>
+</div>
+
+<!-- Create Work Order Modal -->
+<div class="details-overlay" *ngIf="showCreateWorkOrderModal" style="z-index: 1001;">
+  <div class="details-panel" style="width: 80%; max-width: 800px;">
+    <app-create-new-visit 
+      [serviceRequest]="selectedRequestForWorkOrder" 
+      (close)="closeCreateWorkOrder()" 
+      (save)="onWorkOrderCreated($event)">
+    </app-create-new-visit>
+  </div>
+</div>
+

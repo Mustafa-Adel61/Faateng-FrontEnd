@@ -1,0 +1,416 @@
+/* ========== TOOLBAR ========== */
+h1{
+font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+.task-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #1b1616;
+  padding: 0.5rem 1rem;
+  border-radius: 10px;
+  margin-top: 30px;
+}
+
+/* Left icons */
+.toolbar-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.icon-btn {
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s, filter 0.2s;
+}
+
+.icon-btn:hover {
+  color: #ffcc00;
+}
+
+.icon-btn:hover img {
+  filter: brightness(0) saturate(100%) invert(70%) sepia(98%) saturate(1234%) hue-rotate(1deg)
+    brightness(105%) contrast(105%);
+}
+
+/* Right search box */
+
+.search-input {
+  display: flex;
+  align-items: center;
+  gap: 8px;                    /* مسافة بين الزرار والـ input */
+  padding: 4px 8px 4px 8px;
+  border-radius: 15px;
+  border: 1px solid #FFFFFF1A;
+  background: #333;
+  color: #FFFFFFEB;
+  font-size: 0.9rem;
+  width: 220px;
+}
+
+.search-input button {
+  background: transparent;      /* نفس خلفية الـ box */
+  border: none;                 /* من غير بوردر */
+  cursor: pointer;              /* شكل اليد */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;                   /* نشيل أي مساحة جوه الزر */
+}
+
+.search-input button:hover .search-icon {
+  opacity: 1;                   /* شوية إضاءة لما يقرب */
+}
+
+.search-input .search-icon {
+  width: 14px;
+  height: 14px;
+  object-fit: contain;
+  opacity: 0.8;
+}
+
+.search-input .forSearch {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #FFFFFFEB;
+  font-family: fontfamily/Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.search-input .forSearch::placeholder {
+  color: #aaa;
+}
+
+/* Filter builder */
+.filter-builder { background:#fff; border:1px solid #e6e6e6; padding:12px; border-radius:8px; margin:10px 0; width:auto; box-shadow:0 2px 8px rgba(0,0,0,0.06); }
+.filter-row { display:flex; gap:8px; align-items:center; }
+.filter-row select { padding:6px 8px; border-radius:6px; border:1px solid #ccc; }
+.add-btn { background:#000; color:#fff; border:none; padding:6px 10px; border-radius:18px; cursor:pointer; }
+.clear-btn { background:#f5f5f5; border:1px solid #ddd; padding:6px 8px; border-radius:18px; margin-left:8px; cursor:pointer; }
+
+/* active filters chips */
+.active-filters { display:flex; gap:8px; align-items:center; margin:8px 0; flex-wrap:wrap; }
+.filter-chip { background:#f1f1f1; padding:6px 10px; border-radius:20px; font-size:13px; display:inline-flex; gap:6px; align-items:center; }
+.filter-chip button { background:none; border:none; cursor:pointer; font-size:14px; }
+/* select */
+.selected-count {
+  background: #ffe066;
+  padding: 6px 12px;
+  border-radius: 20px;
+  display: inline-block;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+
+/* 💡 حاوية التاريخين */
+.date-range-inputs {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  /* background: hsl(220, 27%, 98%); */
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid #ddd;
+  /* box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05); */
+}
+
+/* 🗓️ الحقل الواحد */
+.date-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.date-field label {
+  font-size: 13px;
+  color: #555;
+  font-weight: 500;
+}
+
+/* 🎯 الـ input */
+.date-field input[type="date"] {
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  padding: 6px 8px;
+  font-size: 14px;
+  background-color: #fff;
+  color: #333;
+  transition: all 0.2s ease-in-out;
+}
+
+.date-field input[type="date"]:hover {
+  border-color: #888;
+}
+
+.date-field input[type="date"]:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.2);
+}
+/* ========== TABLE ========== */
+table {
+  width: 100%; /* يخلي الجدول بعرض الصفحة بالكامل */
+  border-collapse: collapse;
+  margin-top: 1rem;
+  background: #fff;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+th,
+td {
+  padding: 0.6rem;
+  text-align: left;
+  border-bottom: 1px solid #eee;
+}
+
+th {
+  font-weight: 600;
+}
+
+tr:hover {
+  background: #fafafa;
+}
+
+/* checkbox */
+table th:first-child,
+table td:first-child {
+  width: 36px;
+  text-align: center;
+}
+
+input[type="checkbox"] {
+  accent-color: #ffe066;
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+/*淡 النصوص*/
+.faded {
+  color: #b0b3b9;
+  font-weight: 400;
+}
+.action-row{
+  display:flex;
+  gap:8px;
+  align-items:center;
+  height: 50px;
+  border: 1px solid rgba(0, 0, 0, 0.1); /* أسود شفاف بنسبة 20% */
+  border-radius: 6px; /* اختياري - يخلي الحواف ناعمة */
+
+}
+
+/* ========== PAGINATION ========== */
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 1.5rem 0 0.5rem 0;
+}
+
+.page-btn {
+  background: none;
+  border: none;
+  color: #222;
+  font-size: 1rem;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.page-btn.active {
+  background: #ffe066;
+  color: #222;
+  font-weight: bold;
+}
+
+.page-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+/* status */
+.status-Paid { background:#e6f9ea; color:#1f7a3a; padding:4px 8px; border-radius:12px; font-weight:500;; }
+.status-Overdue { background:#fdeeee; color:#c73a3a; padding:4px 8px; border-radius:12px; font-weight:500; }
+.status-Draft { background:oklch(97.343% 0.00143 285.217); color:oklch(37.3% 0.034 259.733); padding:4px 8px; border-radius:12px; font-weight:500; }
+.status-Pending { background:oklch(93.532% 0.02405 67.431); color:oklch(66.6% 0.179 58.318); padding:4px 8px; border-radius:12px; font-weight:500; }
+
+
+
+/* details overlay */
+.details-overlay {margin-top: 80px; position:fixed; inset:0; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,0.4); z-index:1000; }
+.details-panel { background:#fff; padding:20px; border-radius:10px; max-width:600px; width:90%; box-shadow:0 6px 20px rgba(0,0,0,0.2); position:relative; }
+.close-btn { position:absolute; top:8px; right:10px; border:none; background:#eee; width:30px; height:30px; border-radius:6px; cursor:pointer; }
+
+/* التغيير في ال deatials */
+.details-panel select {
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+  margin-left: 8px;
+  background: #f9f9f9;
+  cursor: pointer;
+}
+.details-span{
+  margin-left: 10px;
+}
+
+.details-panel select:focus {
+  outline: none;
+  border-color: #000;
+}
+.details-panel p strong {
+  font-family: poppins;
+  /* color: #8a8b8b; */
+  opacity: 0.5;
+  font-size: 15px;
+}
+
+/*main photo in details */
+.photoGallery {
+  display: flex;
+  flex: 2;
+}
+.main-photo-area {
+  flex: 1;
+  width: 100%; /* تأخذ العرض المتاح */
+}
+
+/* 1. تعديل الصورة الرئيسية (Main Image) */
+.main-report-photo {
+  width: 100%;
+  height: 150px; 
+  /* التعديل هنا: استخدام 'contain' لعرض الصورة بالكامل داخل الإطار */
+  object-fit: cover; /* <--- التعديل الرئيسي */
+  
+  /* إضافة لون خلفية لرؤية حدود الإطار بوضوح عندما تكون الصورة أصغر */
+  background-color: #f0f0f0; 
+  
+  border-radius: 8px; 
+  box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+}
+/* images in details  */
+/* 2. تعديل الصور المصغرة (Thumbnails) */
+.thumbnail-row {
+  flex: 1;
+  display: flex;
+  gap: 10px;
+  justify-content: flex-start;
+  width: 50%;
+  flex-wrap: wrap; 
+}
+
+.thumbnail-row img {
+  width: 80px;
+  height: 80px;
+  /* التعديل هنا: استخدام 'contain' لعرض الصورة المصغرة بالكامل */
+  object-fit: cover; /* <--- التعديل الرئيسي */
+  
+  /* إضافة لون خلفية لرؤية حدود الإطار */
+  background-color: #f0f0f0; 
+  
+  border-radius: 8px; 
+  cursor: pointer;
+  border: 2px solid transparent; 
+  transition: border-color 0.2s ease-in-out;
+  /* الأهم: جعل الصور تتوسع بالتساوي لملء المساحة */
+  flex-grow: 1; 
+  width: 0; /* تعيين هذا ضروري لكي يعمل flex-grow بشكل صحيح */
+}
+/* ... (باقي التنسيقات) ... */
+
+.thumbnail-row img.active-thumbnail {
+  border-color: #007bff; /* إطار أزرق للصورة النشطة */
+}
+
+.thumbnail-row img:hover {
+  border-color: #aaddff;
+}
+
+
+
+
+/* ✅ الحاوية العامة */
+.status-summary {
+  display: flex;
+  gap: 1rem;
+  margin: 20px 0;
+  flex-wrap: wrap;
+}
+
+/* ✅ الكروت */
+.summary-card {
+  flex: 1;
+  min-width: 200px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 14px 18px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  transition: all 0.2s ease-in-out;
+}
+
+.summary-card:hover {
+  box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+}
+
+/* ✅ النصوص */
+.summary-card .label {
+  color: #666;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.summary-card .count {
+  font-size: 22px;
+  font-weight: 600;
+  color: #222;
+  margin-top: 4px;
+}
+
+
+
+/* ========== RESPONSIVE ========== */
+@media (max-width: 768px) {
+  table, thead, tbody, th, td, tr { display:block; }
+  thead { display:none; }
+  tbody tr { margin-bottom:10px; border-radius:8px; box-shadow:0 1px 6px rgba(0,0,0,0.04); padding:8px; }
+  tbody td { display:flex; justify-content:space-between; align-items:center; padding:8px 6px; border-bottom:1px solid #eee; }
+  tbody td::before { content: attr(data-label); font-weight:600; color:#333; margin-right:10px; }
+  .filter-builder, .active-filters { width:100%; box-sizing:border-box; }
+   .date-range-inputs {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+@media (max-width: 600px) {
+  .date-range-inputs {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .summary-card{
+      align-items: center;
+
+  }
+}

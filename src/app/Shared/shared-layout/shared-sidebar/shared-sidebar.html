@@ -1,0 +1,251 @@
+<nav class="sidebar">
+  <ul class="menu">
+
+    <!-- ADMIN -->
+    <ng-container *ngIf="role==='admin'">
+      <li class="section-title">DISPATCHING</li>
+
+      <li class="has-children" (click)="toggle('tasks')" [class.open]="tasksOpen">
+        <span class="label">
+          <a [routerLink]="['tasks']" routerLinkActive="active" (click)="$event.stopPropagation();scrollToTop()">Task
+            List</a>
+        </span>
+        <span class="arrow"><img src="/assets/images/Vector.png" alt=""></span>
+      </li>
+
+      <li><a [routerLink]="['calendar']" routerLinkActive="active" (click)="scrollToTop()">Calendar</a></li>
+      <!-- <li><a [routerLink]="['dispatcher']" routerLinkActive="active"(click)="scrollToTop()">Dispatcher</a></li> -->
+      <!-- <li><a [routerLink]="['technician']" routerLinkActive="active"(click)="scrollToTop()">Technician</a></li> -->
+      <li><a [routerLink]="['suggested-repairs']" routerLinkActive="active" (click)="scrollToTop()">Suggested
+          Repairs</a></li>
+      <li><a [routerLink]="['proposal-generator']" routerLinkActive="active" (click)="scrollToTop()">Proposal
+          Generator</a></li>
+
+      <li class="section-title">REPORTS</li>
+      <li><a [routerLink]="['archive']" routerLinkActive="active" (click)="scrollToTop()">Archive</a></li>
+      <li><a [routerLink]="['reports-review-queue']" routerLinkActive="active" (click)="scrollToTop()">Reports Review
+          Queue</a></li>
+
+      <li class="section-title">CRM</li>
+      <li><a [routerLink]="['projects']" routerLinkActive="active" (click)="scrollToTop()">Projects</a></li>
+      <li><a [routerLink]="['units']" routerLinkActive="active" (click)="scrollToTop()">Units</a></li>
+      <li><a [routerLink]="['contracts']" routerLinkActive="active" (click)="scrollToTop()">Contracts</a></li>
+
+      <li class="section-title">FINANCIAL</li>
+      <li><a [routerLink]="['billing']" routerLinkActive="active" (click)="scrollToTop()">Billing</a></li>
+      <li><a [routerLink]="['invoices']" routerLinkActive="active" (click)="scrollToTop()">Invoices</a></li>
+
+      <li class="section-title">LIBRARY</li>
+      <li><a [routerLink]="['inventory']" routerLinkActive="active" (click)="scrollToTop()">Inventory</a></li>
+      <li><a [routerLink]="['fault-code']" routerLinkActive="active" (click)="scrollToTop()">Fault Code</a></li>
+      <li><a [routerLink]="['manual']" routerLinkActive="active" (click)="scrollToTop()">Unit Manual</a></li>
+      <li><a [routerLink]="['training']" routerLinkActive="active" (click)="scrollToTop()">Training</a></li>
+
+      <li class="section-title">Add User</li>
+      <li><a [routerLink]="['/register']" routerLinkActive="active" (click)="scrollToTop()">ADD USER</a></li>
+    </ng-container>
+    <!-- CLIENT -->
+    <ng-container *ngIf="role === 'client'">
+
+      <li class="section-title">Dashboard</li>
+      <li><a [routerLink]="['units']" routerLinkActive="active" (click)="scrollToTop()">Units</a></li>
+      <li class="divider"></li>
+
+      <li class="section-title">Maintenance</li>
+      <li><a [routerLink]="['service-requests']" routerLinkActive="active" (click)="scrollToTop()">Service Requests</a>
+      </li>
+      <li><a [routerLink]="['history']" routerLinkActive="active" (click)="scrollToTop()">History</a></li>
+
+      <li class="divider"></li>
+
+      <li class="section-title">Billing</li>
+      <li><a [routerLink]="['invoices']" routerLinkActive="active" (click)="scrollToTop()">Invoices</a></li>
+
+      <li class="divider"></li>
+
+      <li class="section-title">Agreements & Renewals</li>
+      <li><a [routerLink]="['contracts']" routerLinkActive="active" (click)="scrollToTop()">Contracts</a></li>
+
+      <li class="divider"></li>
+
+      <li class="section-title">Compliance</li>
+      <li><a [routerLink]="['reports-compliance']" routerLinkActive="active" (click)="scrollToTop()">Reports &
+          Compliance</a></li>
+    </ng-container>
+
+    <!-- MANAGER -->
+    <ng-container *ngIf="role === 'manager'">
+
+      <!-- DISPATCHING -->
+      <li class="section-title">DISPATCHING</li>
+
+      <li>
+        <a [routerLink]="['task-list']" routerLinkActive="active" (click)="scrollToTop()">Task List</a>
+      </li>
+
+      <li>
+        <a [routerLink]="['calendar']" routerLinkActive="active" (click)="scrollToTop()">Calendar</a>
+      </li>
+
+      <li>
+        <a [routerLink]="['dispatcher-view']" routerLinkActive="active" (click)="scrollToTop()">Dispatcher View</a>
+      </li>
+
+      <li>
+        <a [routerLink]="['technicians']" routerLinkActive="active" (click)="scrollToTop()">Technicians</a>
+      </li>
+
+      <li class="divider"></li>
+
+      <!-- REPORTS -->
+      <li class="section-title">REPORTS</li>
+
+      <li>
+        <a [routerLink]="['archive']" routerLinkActive="active" (click)="scrollToTop()">Archive</a>
+      </li>
+
+      <li>
+        <a [routerLink]="['reports']" routerLinkActive="active" (click)="scrollToTop()">Reports</a>
+      </li>
+
+      <li class="divider"></li>
+
+      <!-- CRM -->
+      <li class="section-title">CRM</li>
+
+      <li>
+        <a [routerLink]="['projects']" routerLinkActive="active" (click)="scrollToTop()">Projects</a>
+      </li>
+
+      <li>
+        <a [routerLink]="['units']" routerLinkActive="active" (click)="scrollToTop()">Units</a>
+      </li>
+
+      <li>
+        <a [routerLink]="['contacts']" routerLinkActive="active" (click)="scrollToTop()">Contacts</a>
+      </li>
+
+      <li class="divider"></li>
+
+      <!-- LIBRARY -->
+      <li class="section-title">LIBRARY</li>
+
+      <li>
+        <a [routerLink]="['inventory']" routerLinkActive="active" (click)="scrollToTop()">Inventory</a>
+      </li>
+
+      <li>
+        <a [routerLink]="['fault-codes']" routerLinkActive="active" (click)="scrollToTop()">Fault Codes</a>
+      </li>
+
+      <li>
+        <a [routerLink]="['unit-manuals']" routerLinkActive="active" (click)="scrollToTop()">Unit Manuals</a>
+      </li>
+
+      <li>
+        <a [routerLink]="['training']" routerLinkActive="active" (click)="scrollToTop()">Training</a>
+      </li>
+
+
+    </ng-container>
+
+    <!-- DISPATCHER -->
+    <ng-container *ngIf="role==='dispatcher'">
+      <li class="section-title">DISPATCHING</li>
+      <li><a [routerLink]="['service-requests']" routerLinkActive="active" (click)="scrollToTop()">Service Requests</a>
+      </li>
+      <li><a [routerLink]="['task-list']" routerLinkActive="active" (click)="scrollToTop()">Task List</a></li>
+      <li><a [routerLink]="['calendar']" routerLinkActive="active" (click)="scrollToTop()">Calendar</a></li>
+      <li><a [routerLink]="['dispatcher-view']" routerLinkActive="active" (click)="scrollToTop()">Dispatcher View</a>
+      </li>
+
+      <li class="section-title">RECORDS</li>
+      <li><a [routerLink]="['projects']" routerLinkActive="active" (click)="scrollToTop()">Projects</a></li>
+      <li><a [routerLink]="['units']" routerLinkActive="active" (click)="scrollToTop()">Units</a></li>
+      <li><a [routerLink]="['archive']" routerLinkActive="active" (click)="scrollToTop()">Archive</a></li>
+
+      <li class="section-title">LIBRARY</li>
+      <li><a [routerLink]="['inventory']" routerLinkActive="active" (click)="scrollToTop()">Inventory</a></li>
+      <li><a [routerLink]="['fault-codes']" routerLinkActive="active" (click)="scrollToTop()">Fault Codes</a></li>
+      <li><a [routerLink]="['unit-manuals']" routerLinkActive="active" (click)="scrollToTop()">Unit Manuals</a></li>
+      <li><a [routerLink]="['training']" routerLinkActive="active" (click)="scrollToTop()">Training</a></li>
+    </ng-container>
+
+    <!-- TECHNICIAN -->
+    <ng-container *ngIf="role === 'technician'">
+
+      <li class="section-title">TECHNICIAN</li>
+
+      <li class="has-children" (click)="toggle('tasks')" [class.open]="tasksOpen">
+        <span class="label">
+          <a [routerLink]="['task-list']" routerLinkActive="active" (click)="$event.stopPropagation(); scrollToTop()">
+            Task List
+          </a>
+        </span>
+        <span class="arrow">
+          <img src="/assets/images/Vector.png" alt="">
+        </span>
+      </li>
+
+      <li>
+        <a [routerLink]="['suggested-repairs']" routerLinkActive="active" (click)="scrollToTop()">
+          Suggested Repairs
+        </a>
+      </li>
+
+      <li>
+        <a [routerLink]="['calendar']" routerLinkActive="active" (click)="scrollToTop()">
+          Calendar
+        </a>
+      </li>
+
+      <li class="section-title">LIBRARY</li>
+
+      <li>
+        <a [routerLink]="['inventory']" routerLinkActive="active" (click)="scrollToTop()">
+          Inventory
+        </a>
+      </li>
+
+      <li>
+        <a [routerLink]="['fault-codes']" routerLinkActive="active" (click)="scrollToTop()">
+          Fault Codes
+        </a>
+      </li>
+
+      <li>
+        <a [routerLink]="['unit-manuals']" routerLinkActive="active" (click)="scrollToTop()">
+          Unit Manuals
+        </a>
+      </li>
+
+      <li>
+        <a [routerLink]="['training']" routerLinkActive="active" (click)="scrollToTop()">
+          Training
+        </a>
+      </li>
+
+      <li>
+        <a [routerLink]="['checklists']" routerLinkActive="active" (click)="scrollToTop()">
+          Checklists
+        </a>
+      </li>
+
+
+    </ng-container>
+
+
+    <!-- FINANCE -->
+    <ng-container *ngIf="role==='finance'">
+      <li class="section-title">FINANCIAL</li>
+      <li><a [routerLink]="['projects']" routerLinkActive="active" (click)="scrollToTop()">Projects</a></li>
+      <li><a [routerLink]="['units']" routerLinkActive="active" (click)="scrollToTop()">Units</a></li>
+      <li><a [routerLink]="['archive']" routerLinkActive="active" (click)="scrollToTop()">Archive</a></li>
+      <li><a [routerLink]="['contracts']" routerLinkActive="active" (click)="scrollToTop()">Contracts</a></li>
+      <li><a [routerLink]="['invoice']" routerLinkActive="active" (click)="scrollToTop()">Invoice</a></li>
+    </ng-container>
+
+    <li class="divider"></li>
+    <li><a (click)="logout()">Log Out</a></li>
+  </ul>
+</nav>

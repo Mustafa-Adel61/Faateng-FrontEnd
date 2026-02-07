@@ -1,0 +1,67 @@
+<!-- <app-page-header  [showCreateVisitButton]="false" 
+    [showDropdown]="false">
+  <span breadcrumb>REPORTS > Archive > {{reportDetails?.reportId}}</span>
+</app-page-header> -->
+
+<div class="report-details-page-container" *ngIf="reportDetails">
+  <div class="report-id-header">
+    <h1>{{reportDetails.reportId}}</h1>
+  </div>
+
+  <div class="details-content-wrapper">
+    <div class="left-column-photos">
+      <div class="main-photo-area">
+        <img [src]="mainImage" alt="Main Work Photo" *ngIf="mainImage" class="main-report-photo" (click)="openUrl(mainImage)">
+        <div *ngIf="!mainImage && reportDetails.photos.length === 0" class="no-photo-placeholder">No Main Photo Available</div>
+      </div>
+      
+      <div class="thumbnail-row" *ngIf="reportDetails.photos && reportDetails.photos.length > 0">
+        <img 
+          *ngFor="let photo of reportDetails.photos" 
+          [src]="photo" 
+          alt="Thumbnail" 
+          (click)="setMainImage(photo)" 
+          [class.active-thumbnail]="photo === mainImage"
+        >
+      </div>
+      <div *ngIf="!reportDetails.photos || reportDetails.photos.length === 0" class="no-thumbnails-placeholder">No additional photos</div>
+    </div>
+
+    <div class="right-column-text">
+      <div class="detail-row">
+        <div class="detail-item">
+          <span class="detail-label">Date</span>
+          <span class="detail-value">{{reportDetails.date}}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Technician</span>
+          <span class="detail-value">{{reportDetails.technician}}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">System ID</span>
+          <span class="detail-value system-tag">{{reportDetails.systemId}}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Maintenance Visits</span>
+          <span class="detail-value">
+            <span *ngFor="let visit of reportDetails.maintenanceVisits" class="visit-tag">{{visit}}</span>
+          </span>
+        </div>
+      </div>
+      
+      <div class="detail-section">
+        <h2 class="section-heading">Work Performed</h2>
+        <p class="section-text">{{reportDetails.workPerformed}}</p>
+      </div>
+      
+      <div class="detail-section">
+        <h2 class="section-heading">Comments</h2>
+        <p class="section-text">{{reportDetails.comments}}</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div *ngIf="!reportDetails" class="report-not-found">
+  <p>Report details not found for ID: {{reportId}}</p>
+</div>

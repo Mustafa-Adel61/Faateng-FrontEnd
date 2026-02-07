@@ -1,0 +1,162 @@
+/* ===== HEADER ===== */
+.app-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 95%;
+  height: 90px;
+  background: #F0F0F0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 2rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+}
+
+/* الشمال */
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.menu-btn {
+  font-size: 1.8rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.sidebar-toggle {
+  background: none;
+  border: none;
+  font-size: 1.8rem;
+  cursor: pointer;
+  display: none; /* يظهر بس في الشاشات الصغيرة */
+}
+
+/* اللوجو */
+.logo-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.image {
+  height: 57px;
+  width: 155px;
+  object-fit: contain;
+  display: block;
+}
+
+.pointImage {
+  position: absolute;
+  height: 14px;
+  width: 15px;
+  right: 3px;
+  top: 15px;
+}
+
+/* اليمين */
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.icon {
+  font-size: 1.4rem;
+  cursor: pointer;
+  color: #333;
+}
+
+.icon:hover {
+  color: #ffcc00;
+}
+
+.user-img {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid #ddd;
+}
+
+/* محتوى الصفحة مايختفيش تحت الهيدر */
+body {
+  margin: 0;
+  padding-top: 90px;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 900px) {
+  .sidebar-toggle {
+    display: inline-block;
+  }
+}
+
+@media (max-width: 768px) {
+  .app-header {
+    padding: 0 1rem;
+    height: 90px;
+  }
+
+  .menu-btn {
+    font-size: 1.6rem;
+  }
+
+  .image {
+    height: 40px;
+  }
+
+  .icon {
+    font-size: 1.2rem;
+  }
+
+  .user-img {
+    width: 32px;
+    height: 32px;
+  }
+}
+
+/* ===== تحت 450px ===== */
+@media (max-width: 600px) {
+  .app-header {
+    flex-direction: column;
+    align-items: center;
+    height: auto;
+    padding: 0.5rem 1rem 0.8rem 1rem;
+    gap: 0.4rem;
+  }
+
+  .header-left {
+    justify-content: center;
+    width: 100%;
+  }
+
+  .header-right {
+    justify-content: flex-end;
+    width: 100%;
+    position: relative;
+  }
+
+  .sidebar-toggle {
+    display: inline-block;
+    position: absolute;
+    left: 0;           /* أقصى الشمال */
+    top: 50%;
+    transform: translateY(-50%);
+  }
+
+  .logo-wrapper .image {
+    width: 120px;
+    height: auto;
+  }
+  .pointImage {
+  position: absolute;
+  height: 14px;
+  width: 15px;
+  right: 1px;
+  top: 6px;
+}
+}

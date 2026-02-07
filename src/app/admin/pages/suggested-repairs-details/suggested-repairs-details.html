@@ -1,0 +1,48 @@
+<!-- <app-page-header
+[showCreateVisitButton]="false" 
+    [showDropdown]="false"
+>
+  <span breadcrumb>REPORTS &gt; Archive &gt; {{ repairDetails.Code }}</span>
+</app-page-header> -->
+<div *ngIf="repairDetails" class="repair-details-container">
+  <h4 class="repair-id">{{ repairDetails.Code }}</h4>
+
+  <div class="repair-info">
+    <div class="info-item">
+      <label>PROJECT NAME</label>
+      <p>{{ repairDetails.projectName }}</p>
+    </div>
+
+    <div class="info-item">
+      <label>Technician Name</label>
+      <p>{{ repairDetails.technicianName }}</p>
+    </div>
+
+    <div class="info-item">
+      <label>Location</label>
+      <p>{{ repairDetails.location }}</p>
+    </div>
+
+    <div class="info-item">
+      <label>Unit Type</label>
+      <p class="tag unit">{{ repairDetails.unitType }}</p>
+    </div>
+
+    <div class="info-item">
+      <label>Priority</label>
+      <p class="tag priority" [ngClass]="repairDetails.priority.toLowerCase()">
+        {{ repairDetails.priority }}
+      </p>
+    </div>
+  </div>
+
+  <div class="repair-section">
+    <label>Issue Description</label>
+    <p>{{ repairDetails.issueDescription }}</p>
+  </div>
+
+  <div class="repair-section">
+    <label>Suggested Repair</label>
+    <p>{{ repairDetails.suggestedRepair }}</p>
+  </div>
+</div>

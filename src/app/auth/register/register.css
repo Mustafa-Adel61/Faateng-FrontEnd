@@ -1,0 +1,228 @@
+/* ---------------- HEADER ---------------- */
+.header {
+  padding: 20px 40px;
+}
+
+.logo-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.image {
+  height: 57px;
+  width: 155px;
+  object-fit: contain;
+  display: block;
+}
+
+.pointImage {
+  position: absolute;
+  height: 14px;
+  width: 15px;
+  right: 3px;
+  top: 22px;
+}
+
+/* ---------------- CONTAINER ---------------- */
+.register-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+}
+
+.register-box {
+  background: #f5d11c;
+  flex-grow: 1;
+  padding: 30px 8vw;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+/* ---------------- HEADINGS ---------------- */
+h2 {
+  font-family: Roboto;
+  font-weight: 700;
+  font-size: 22px;
+  line-height: 100%;
+  margin-bottom: 5px;
+}
+
+.subtitle {
+  color: #333;
+  font-size: 14px;
+  margin-bottom: 40px;
+  padding-left: 10vw;
+  padding-right: 10vw;
+  font-family: Roboto;
+  font-weight: 300;
+  line-height: 1.4;
+  text-align: center;
+}
+
+/* ---------------- FORM ---------------- */
+form {
+  width: 90%;
+  max-width: 800px;
+  text-align: left;
+}
+
+.form-row {
+  display: flex;
+  gap: 50px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.form-group {
+  flex: 1;
+  min-width: 250px;
+  display: flex;
+  flex-direction: column;
+}
+
+label {
+  font-family: Roboto;
+  font-weight: 700;
+  font-size: 13px;
+  line-height: 100%;
+  margin-bottom: 5px;
+}
+
+input {
+  border: none;
+  border-bottom: 1px solid #000;
+  padding: 8px 5px;
+  background: transparent;
+  font-family: Roboto;
+  font-weight: 300;
+  font-size: 15px;
+  color: #1b1616;
+  outline: none;
+}
+
+/* ---------------- BUTTON ---------------- */
+.btn-register {
+  margin-top: 50px;
+  background: #f5d11c;
+  color: #ffffff;
+  border: none;
+  padding: 12px 50px;
+  border-radius: 25px;
+  font-weight: 700;
+  font-size: 17px;
+  cursor: pointer;
+  transition: 0.3s;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.btn-register:hover {
+  background: #222;
+  color: #f5d11c;
+}
+
+/* ---------------- ERROR MESSAGE ---------------- */
+.msg {
+  margin-top: 20px;
+  color: #f10a0a;
+  font-size: 14px;
+  text-align: center;
+}
+
+/* ---------------- RESPONSIVE ---------------- */
+.select-wrapper {
+  position: relative;
+}
+
+.modern-select {
+  width: 100%;
+  padding: 12px 42px 12px 14px;
+  font-size: 15px;
+  border-radius: 10px;
+  border: 1px solid #dcdcdc;
+  background-color: #f5d11c;
+  appearance: none;
+  outline: none;
+  transition: all 0.25s ease;
+  cursor: pointer;
+}
+
+.modern-select:hover {
+  border-color: #999;
+}
+
+.modern-select:focus {
+  border-color: #3f8cff;
+  box-shadow: 0 0 0 3px rgba(63, 140, 255, 0.15);
+}
+
+/* السهم */
+.select-wrapper .arrow {
+  position: absolute;
+  top: 50%;
+  right: 14px;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+  transform: translateY(-50%);
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-top: 7px solid #666;
+}
+
+/* التابلت */
+@media (max-width: 992px) {
+  .register-box {
+    padding: 30px 40px;
+  }
+
+  .form-row {
+    gap: 30px;
+  }
+}
+
+/* الموبايل */
+@media (max-width: 768px) {
+  h2 {
+    font-size: 18px;
+  }
+
+  .subtitle {
+    font-size: 13px;
+    padding: 0 20px;
+  }
+
+  form {
+    width: 100%;
+  }
+
+  .form-row {
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .btn-register {
+    width: 100%;
+    padding: 12px 0;
+  }
+}
+
+/* الموبايلات الصغيرة جدًا */
+@media (max-width: 480px) {
+  .logo-wrapper .image {
+    height: 40px;
+    width: auto;
+  }
+
+  .register-box {
+    padding: 20px;
+  }
+
+  input {
+    font-size: 14px;
+  }
+}

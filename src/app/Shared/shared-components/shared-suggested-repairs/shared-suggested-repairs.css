@@ -1,0 +1,765 @@
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 1.5rem 0 0.5rem 0;
+}
+
+.page-btn {
+  background: none;
+  border: none;
+  color: #222;
+  font-size: 1rem;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.page-btn.active {
+  background: #ffe066;
+  color: #222;
+  font-weight: bold;
+}
+
+.page-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.tab-btn {
+  background: none;
+  border: none;
+  font-size: 1rem;
+  font-weight: 300;
+  color: black;
+  padding: 0.5rem 1.5rem;
+  border-radius: 4px 4px 0 0;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s, border-bottom 0.2s;
+}
+
+/* الحالة العادية والهفر */
+.tab-btn:hover {
+  border-bottom: 3px solid #000;
+  /* خط أسود عند الهفر */
+}
+
+/* الحالة المختارة */
+.tab-btn.active {
+  background: none;
+  /* بدون خلفية */
+  color: #000;
+  /* لون النص */
+  border-bottom: 3px solid #000;
+  /* خط أسود */
+  box-shadow: none;
+  /* شيل الظل */
+}
+
+.task-list {
+  background: #fff;
+  padding: 1rem;
+  border-radius: 4px;
+  padding-top: 20px;
+  width: 99%;
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+
+    th,
+    td {
+      padding: .5rem;
+      text-align: left;
+      border-bottom: 1px solid #eee;
+    }
+
+    th {
+      font-weight: 600;
+    }
+
+    tr:hover {
+      background: #fafafa;
+    }
+  }
+}
+
+/* task-toolbar */
+/* Toolbar */
+.task-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #1b1616;
+  /* اللون الأسود الغامق */
+  padding: 0.5rem 1rem;
+  border-radius: 10px;
+}
+
+/* Left icons */
+.toolbar-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.icon-btn {
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s, filter 0.2s;
+}
+
+.icon-btn:hover {
+  color: #ffcc00;
+  /* لون hover */
+}
+
+/* make image yallow on hover */
+.icon-btn:hover img {
+  filter: brightness(0) saturate(100%) invert(70%) sepia(98%) saturate(1234%) hue-rotate(1deg) brightness(105%) contrast(105%);
+}
+
+
+/* Right search box */
+
+.search-input::placeholder {
+  color: #aaa;
+}
+
+/* Filter builder */
+.filter-builder {
+  background: #fff;
+  border: 1px solid #e6e6e6;
+  padding: 12px;
+  border-radius: 8px;
+  margin: 10px 0;
+  width: auto;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.filter-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.filter-row select {
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+
+.add-btn {
+  background: #000;
+  color: #fff;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 18px;
+  cursor: pointer;
+}
+
+.clear-btn {
+  background: #f5f5f5;
+  border: 1px solid #ddd;
+  padding: 6px 8px;
+  border-radius: 18px;
+  margin-left: 8px;
+  cursor: pointer;
+}
+
+/* active filters chips */
+.active-filters {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin: 8px 0;
+  flex-wrap: wrap;
+}
+
+.filter-chip {
+  background: #f1f1f1;
+  padding: 6px 10px;
+  border-radius: 20px;
+  font-size: 13px;
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.filter-chip button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+/* select */
+.selected-count {
+  background: #ffe066;
+  padding: 6px 12px;
+  border-radius: 20px;
+  display: inline-block;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+
+.search-input {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  /* مسافة بين الزرار والـ input */
+  padding: 4px 8px 4px 8px;
+  border-radius: 15px;
+  border: 1px solid #FFFFFF1A;
+  background: #333;
+  color: #FFFFFFEB;
+  font-size: 0.9rem;
+  width: 220px;
+}
+
+.search-input button {
+  background: transparent;
+  /* نفس خلفية الـ box */
+  border: none;
+  /* من غير بوردر */
+  cursor: pointer;
+  /* شكل اليد */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  /* نشيل أي مساحة جوه الزر */
+}
+
+.search-input button:hover .search-icon {
+  opacity: 1;
+  /* شوية إضاءة لما يقرب */
+}
+
+.search-input .search-icon {
+  width: 14px;
+  height: 14px;
+  object-fit: contain;
+  opacity: 0.8;
+}
+
+.search-input .forSearch {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #FFFFFFEB;
+  font-family: fontfamily/Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.search-input .forSearch::placeholder {
+  color: #aaa;
+}
+
+/* ////////////////////////// */
+/* اجعل الخط باهت */
+.faded {
+  color: #b0b3b9;
+  font-weight: 400;
+}
+
+.action-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  height: 50px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  /* أسود شفاف بنسبة 20% */
+  border-radius: 6px;
+  /* اختياري - يخلي الحواف ناعمة */
+
+}
+
+/* checkbox */
+table th:first-child,
+table td:first-child {
+  width: 36px;
+  text-align: center;
+}
+
+input[type="checkbox"] {
+  accent-color: #ffe066;
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+/* اجعل الـ Update باللون الأصفر */
+.update-link {
+  color: #ffe066;
+  font-weight: 500;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.update-link:hover {
+  text-decoration: underline;
+}
+
+/*  priority */
+.priority-Critical {
+  background: oklch(89.8% 0.03603 0.291);
+  color: oklch(57.438% 0.22764 18.271);
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-weight: 550;
+}
+
+.priority-High {
+  background: oklch(92.821% 0.02827 65.674);
+  color: oklch(71.246% 0.17567 54.506);
+  ;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-weight: 500;
+}
+
+.priority-Medium {
+  background: oklch(92.238% 0.01692 271.239);
+  color: oklch(48.8% 0.243 264.376);
+  ;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-weight: 500;
+}
+
+/* status */
+.status-UnderReview {
+  background: oklch(92.821% 0.02827 65.674);
+  color: oklch(67.936% 0.15137 58.698);
+  ;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-weight: 500;
+}
+
+.status-Approved {
+  background: oklch(91.225% 0.06554 158.546);
+  color: oklch(52.7% 0.154 150.069);
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-weight: 500;
+}
+
+.status-Draft {
+  background: oklch(97.343% 0.00143 285.217);
+  color: oklch(37.3% 0.034 259.733);
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-weight: 500;
+}
+
+.status-Rejected {
+  background: oklch(89.8% 0.03603 0.291);
+  color: oklch(57.438% 0.22764 18.271);
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-weight: 500;
+}
+
+/* details overlay */
+.details-overlay {
+  margin-top: 80px;
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 1000;
+}
+
+.details-panel {
+  background: #fff;
+  padding: 20px;
+  border-radius: 10px;
+  max-width: 600px;
+  width: 90%;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+  position: relative;
+}
+
+.close-btn {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  border: none;
+  background: #eee;
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+/* التغيير في ال deatials */
+.details-panel select {
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+  margin-left: 8px;
+  background: #f9f9f9;
+  cursor: pointer;
+}
+
+.details-span {
+  margin-left: 10px;
+}
+
+.details-panel select:focus {
+  outline: none;
+  border-color: #000;
+}
+
+.details-panel p strong {
+  font-family: poppins;
+  /* color: #8a8b8b; */
+  opacity: 0.5;
+  font-size: 15px;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+/* ستايل مشترك */
+.save-button-large {
+  padding: 4px 8px;
+  /* نفس الـ badge */
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 500;
+  border: none;
+  cursor: pointer;
+  background: transparent;
+  transition: filter 0.15s ease, transform 0.1s ease;
+}
+
+/* Approve = نفس status-Approved */
+.green-bg {
+  background: oklch(91.225% 0.06554 158.546);
+  color: oklch(52.7% 0.154 150.069);
+}
+
+/* Reject = نفس priority-Critical */
+.red-bg {
+  background: oklch(89.8% 0.03603 0.291);
+  color: oklch(57.438% 0.22764 18.271);
+  font-weight: 550;
+}
+
+/* Hover خفيف جدًا */
+.save-button-large:hover {
+  filter: brightness(0.96);
+}
+
+/* Active */
+.save-button-large:active {
+  transform: scale(0.95);
+}
+
+/* ✅ الحاوية العامة */
+.status-summary {
+  display: flex;
+  gap: 1rem;
+  margin: 20px 0;
+  flex-wrap: wrap;
+}
+
+/* ✅ الكروت */
+.summary-card {
+  flex: 1;
+  min-width: 180px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 14px 18px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  transition: all 0.2s ease-in-out;
+}
+
+.summary-card:hover {
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+}
+
+/* ✅ النصوص */
+.summary-card .label {
+  color: #666;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.summary-card .count {
+  font-size: 22px;
+  font-weight: 600;
+  color: #222;
+  margin-top: 4px;
+}
+
+/* 🟩 ألوان مخصصة حسب الحالة */
+.summary-card.approved {
+  border-color: #16a34a;
+}
+
+.summary-card.review {
+  border-color: #2563eb;
+}
+
+.summary-card.critical {
+  border-color: #dc2626;
+}
+
+
+
+/* images in details  */
+
+/*main photo in details */
+.photoGallery {
+  display: flex;
+  flex: 2;
+}
+
+.main-photo-area {
+  flex: 1;
+  width: 100%;
+  /* تأخذ العرض المتاح */
+}
+
+/* 1. تعديل الصورة الرئيسية (Main Image) */
+.main-report-photo {
+  width: 100%;
+  height: 100px;
+  /* التعديل هنا: استخدام 'contain' لعرض الصورة بالكامل داخل الإطار */
+  object-fit: cover;
+  /* <--- التعديل الرئيسي */
+
+  /* إضافة لون خلفية لرؤية حدود الإطار بوضوح عندما تكون الصورة أصغر */
+  background-color: #f0f0f0;
+
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+}
+
+/* 2. تعديل الصور المصغرة (Thumbnails) */
+.thumbnail-row {
+  flex: 1;
+  display: flex;
+  gap: 10px;
+  justify-content: flex-start;
+  width: 50%;
+  flex-wrap: wrap;
+}
+
+.thumbnail-row img {
+  width: 80px;
+  height: 80px;
+  /* التعديل هنا: استخدام 'contain' لعرض الصورة المصغرة بالكامل */
+  object-fit: cover;
+  /* <--- التعديل الرئيسي */
+
+  /* إضافة لون خلفية لرؤية حدود الإطار */
+  background-color: #f0f0f0;
+
+  border-radius: 8px;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: border-color 0.2s ease-in-out;
+  /* الأهم: جعل الصور تتوسع بالتساوي لملء المساحة */
+  flex-grow: 1;
+  width: 0;
+  /* تعيين هذا ضروري لكي يعمل flex-grow بشكل صحيح */
+}
+
+/* ... (باقي التنسيقات) ... */
+
+.thumbnail-row img.active-thumbnail {
+  border-color: #007bff;
+  /* إطار أزرق للصورة النشطة */
+}
+
+.thumbnail-row img:hover {
+  border-color: #aaddff;
+}
+
+/* Score */
+/* الحاوية العامة */
+.progress-container {
+  background-color: #e5e7eb;
+  /* رمادي فاتح */
+  border-radius: 8px;
+  height: 8px;
+  width: 100%;
+  overflow: hidden;
+  position: relative;
+}
+
+/* الشريط الداخلي */
+.progress-bar {
+  height: 100%;
+  border-radius: 8px;
+  transition: width 0.4s ease-in-out, background-color 0.3s ease;
+}
+
+/* الألوان */
+.progress-green {
+  background-color: #10b981;
+  /* أخضر */
+}
+
+.progress-yellow {
+  background-color: #facc15;
+  /* أصفر */
+}
+
+.progress-red {
+  background-color: #ef4444;
+  /* أحمر */
+}
+
+/* النسبة المئوية */
+.progress-label {
+  font-size: 12px;
+  color: #555;
+  margin-left: 4px;
+}
+
+/* Pagination */
+/* ===== Responsive Table (Suggested Repairs) ===== */
+
+/* من أول 900px لتحت */
+@media (max-width: 900px) {
+  .task-filters {
+    flex-wrap: wrap;
+    gap: 0.6rem;
+  }
+
+  .dropdown,
+  .date-picker {
+    width: 48%;
+  }
+
+  .search-input {
+    width: 200px;
+  }
+
+  /* .search-input {
+    width: 100%;
+    margin-top: 0.5rem;
+  }
+
+  .task-toolbar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.6rem;
+  }
+
+  .toolbar-right {
+    width: 100%;
+    display: flex;
+    justify-content: flex-end;
+  } */
+}
+
+/* لما تكون الشاشة أقل من 768px */
+@media (max-width: 768px) {
+
+  .task-list table,
+  .task-list thead,
+  .task-list tbody,
+  .task-list th,
+  .task-list td,
+  .task-list tr {
+    display: block;
+  }
+
+  .task-list thead {
+    display: none;
+    /* نخفي العناوين */
+  }
+
+  .summary-card {
+    min-width: 45%;
+  }
+
+  .task-list tr {
+    background: #fff;
+    margin-bottom: 1rem;
+    border-radius: 6px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+    padding: 0.5rem;
+  }
+
+  .task-list td {
+    border: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.4rem 0.6rem;
+    font-size: 0.9rem;
+    border-bottom: 1px solid #eee;
+  }
+
+  .task-list td:last-child {
+    border-bottom: none;
+  }
+
+  .task-list td::before {
+    content: attr(data-label);
+    font-weight: 600;
+    color: #555;
+    text-transform: capitalize;
+  }
+
+  .task-list input[type="checkbox"] {
+    transform: scale(1.1);
+  }
+}
+
+/* لما تكون الشاشة أقل من 500px */
+@media (max-width: 500px) {
+  .task-list td {
+    font-size: 0.8rem;
+  }
+
+  .task-list td::before {
+    font-size: 0.75rem;
+  }
+
+  .dropdown,
+  .date-picker {
+    width: 100%;
+  }
+
+  .pagination {
+    flex-wrap: wrap;
+  }
+
+  .priority-pill {
+    font-size: 10px;
+    padding: 3px 8px;
+  }
+}

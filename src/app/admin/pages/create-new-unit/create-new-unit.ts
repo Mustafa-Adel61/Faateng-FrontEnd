@@ -1,0 +1,102 @@
+import { Component, EventEmitter, Output } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { HttpClient, HttpClientModule } from '@angular/common/http';
+import { FormsModule } from '@angular/forms';
+import { UnitService } from '../../../core/unit.service';
+
+@Component({
+  selector: 'app-create-new-unit',
+  standalone: true,
+  imports: [FormsModule, CommonModule, HttpClientModule],
+  templateUrl: './create-new-unit.html',
+  styleUrl: './create-new-unit.css'
+})
+export class CreateNewUnit {
+  @Output() close = new EventEmitter<void>();
+  @Output() save = new EventEmitter<any>();
+
+  unitTypes = ['Lifts', 'Escalators', 'HVAC', 'Accessories'];
+
+  form = {
+    Serial: '',
+    Model: '',
+    Type: '',
+    Price: null,
+    Quantity: null,
+    Description: '',
+    attachments: [] as { name: string; type: string; url: string }[]
+  };
+
+  submitted = false;
+  maxFileSize = 10; // MB
+  allowedFileTypes = ['image/jpeg','image/jpg','image/png','image/gif','image/webp','application/pdf'];
+
+  constructor(private unitService: UnitService, private http: HttpClient) {}
+
+  doClose() {
+    this.close.emit();
+  }
+
+  doSave() {
+    this.submitted = true;
+    if (!this.form.Serial || !this.form.Model || !this.form.Type || !this.form.Price || !this.form.Quantity) {
+      return;
+    }
+
+    const payload = {
+      serial: this.form.Serial,
+      model: this.form.Model,
+      type: this.form.Type,
+      price: Number(this.form.Price),
+      quantity: Number(this.form.Quantity),
+      photos: this.form.attachments.map(a => a.url)
+    };
+
+    this.unitService.create(payload).subscribe({
+      next: (res) => {
+        this.save.emit(res);
+        this.doClose();
+      },
+      error: (err) => console.error(err)
+    });
+  }
+
+  openFilePicker() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.multiple = true;
+    input.accept = 'image/*,application/pdf';
+    input.onchange = (event: Event) => {
+      const target = event.target as HTMLInputElement;
+      const files = target.files;
+      if (!files || files.length === 0) return;
+      Array.from(files).forEach(file => {
+        if (file.size > this.maxFileSize * 1024 * 1024) return;
+        if (!this.allowedFileTypes.includes(file.type)) return;
+        const reader = new FileReader();
+        reader.onload = (e: any) => {
+          if (!e.target.result) return;
+          this.form.attachments.push({
+            name: file.name,
+            type: file.type,
+            url: e.target.result
+          });
+        };
+        reader.readAsDataURL(file);
+      });
+    };
+    input.click();
+  }
+
+  removeAttachment(index: number) {
+    this.form.attachments.splice(index, 1);
+  }
+
+  openAttachment(file: any) {
+    // Open in new tab
+    const win = window.open();
+    if (win) {
+      win.document.write('<iframe src="' + file.url + '" frameborder="0" style="border:0; top:0px; left:0px; bottom:0px; right:0px; width:100%; height:100%;" allowfullscreen></iframe>');
+    }
+  }
+}

@@ -1,0 +1,221 @@
+/* في ملف report-details.css */
+
+.report-details-page-container {
+  padding: 20px;
+  background-color: #fff; /* خلفية بيضاء للصفحة */
+  border-radius: 8px;
+  /* box-shadow: 0 1px 3px rgba(0,0,0,0.1); */
+  margin: 20px; /* مسافة من حواف الشاشة */
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+
+
+  font-family: Satoshi;
+font-weight: 700;
+font-style: Bold;
+font-size: 22px;
+line-height: 33px;
+letter-spacing: 0px;
+color: #231F20;
+}
+
+.report-id-header h1 {
+  font-size: 1.5em; /* حجم أصغر لرقم التقرير في الأعلى */
+  /* color: #231F20; */
+  margin-bottom: 20px;
+  margin-left: 10px;
+  padding-bottom: 10px;
+  
+font-family: Satoshi;
+font-weight: 700;
+font-style: Bold;
+font-size: 22px;
+line-height: 33px;
+letter-spacing: 0px;
+}
+
+.details-content-wrapper {
+  display: flex;
+  gap: 30px; /* المسافة بين العمود الأيسر والأيمن */
+}
+
+.left-column-photos {
+  flex: 2; /* الصورة تأخذ جزء أكبر من المساحة (مثلاً 3/5) */
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* توسيط الصور */
+}
+
+.main-photo-area {
+  width: 100%; /* تأخذ العرض المتاح */
+  margin-bottom: 15px;
+}
+
+/* في ملف report-details.css */
+
+/* ... (باقي التنسيقات كما هي) ... */
+
+/* 1. تعديل الصورة الرئيسية (Main Image) */
+.main-report-photo {
+  width: 100%;
+  height: 400px; 
+  /* التعديل هنا: استخدام 'contain' لعرض الصورة بالكامل داخل الإطار */
+  object-fit: cover; /* <--- التعديل الرئيسي */
+  
+  /* إضافة لون خلفية لرؤية حدود الإطار بوضوح عندما تكون الصورة أصغر */
+  background-color: #f0f0f0; 
+  
+  border-radius: 8px; 
+  box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+  margin-bottom: 15px;
+}
+
+/* تعديل Placeholder لتتماشى مع التغيير */
+.no-photo-placeholder, .no-thumbnails-placeholder {
+  /* ... (الحفاظ على نفس التنسيق) ... */
+  background-color: #f0f0f0; 
+}
+
+/* 2. تعديل الصور المصغرة (Thumbnails) */
+.thumbnail-row {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-start;
+  width: 100%;
+  flex-wrap: wrap; 
+}
+
+.thumbnail-row img {
+  width: 80px;
+  height: 80px;
+  /* التعديل هنا: استخدام 'contain' لعرض الصورة المصغرة بالكامل */
+  object-fit: cover; /* <--- التعديل الرئيسي */
+  
+  /* إضافة لون خلفية لرؤية حدود الإطار */
+  background-color: #f0f0f0; 
+  
+  border-radius: 8px; 
+  cursor: pointer;
+  border: 2px solid transparent; 
+  transition: border-color 0.2s ease-in-out;
+  /* الأهم: جعل الصور تتوسع بالتساوي لملء المساحة */
+  flex-grow: 1; 
+  width: 0; /* تعيين هذا ضروري لكي يعمل flex-grow بشكل صحيح */
+}
+
+/* ... (باقي التنسيقات) ... */
+
+.thumbnail-row img.active-thumbnail {
+  border-color: #007bff; /* إطار أزرق للصورة النشطة */
+}
+
+.thumbnail-row img:hover {
+  border-color: #aaddff;
+}
+
+.right-column-text {
+  flex: 3; /* التفاصيل النصية تأخذ جزء أصغر (مثلاً 2/5) */
+  display: flex;
+  flex-direction: column;
+  gap: 20px; /* مسافة بين الأقسام النصية الكبيرة */
+}
+
+.detail-row {
+  display: flex;
+  flex-wrap: wrap; /* للسماح للعناصر بالنزول لسطر جديد */
+  gap: 20px 40px; /* مسافة رأسية وأفقية بين العناصر */
+  padding-bottom: 20px;
+  
+}
+
+.detail-item {
+  display: flex;
+  flex-direction: column; /* العنوان فوق القيمة */
+  min-width: 150px; /* لتجنب ضغط العناصر كثيرًا */
+}
+
+.detail-label {
+  font-size: 0.8em;
+  /* font-size: 15px; */
+  /* color: #888; */
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  margin-bottom: 5px;
+}
+
+.detail-value {
+  color:#A4A4A4;
+font-family: poppins;
+font-weight: 500;
+font-style: Medium;
+font-size: 15px;
+line-height: 20px;
+letter-spacing: 0px;
+}
+
+.system-tag, .visit-tag {
+  /* استخدم نفس تنسيقاتك من archive.css هنا أو عدلها */
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 15px;
+  font-weight: normal;
+  color: #fff;
+  /* background-color: #6c757d;  */
+}
+.system-tag {
+  background-color: #f4f8f8; 
+  color: #231F20;
+}
+.visit-tag {
+  background-color: #f7b7b7; 
+  margin-right: 5px; /* مسافة بين الـ tags */
+}
+
+.section-heading {
+  font-size: 1em;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  color: #231F20;
+  margin-bottom: 7px;
+  /* border-bottom: 1px solid #eee;  */
+  padding-bottom: 1px;
+}
+
+.section-text {
+  line-height: 1.7;
+  color: #A4A4A4;
+
+
+  font-family: Satoshi;
+font-weight: 500;
+font-style: Medium;
+font-size: 18px;
+line-height: 27px;
+letter-spacing: 0px;
+
+}
+
+.report-not-found {
+  text-align: center;
+  padding: 50px;
+  color: #888;
+}
+
+/* Responsive design for smaller screens */
+@media (max-width: 992px) {
+  .details-content-wrapper {
+    flex-direction: column; /* تصبح الأعمدة فوق بعضها */
+  }
+
+  .left-column-photos,
+  .right-column-text {
+    flex: none; /* إزالة الـ flex-grow */
+    width: 100%; /* تأخذ العرض بالكامل */
+  }
+
+  .thumbnail-row {
+    justify-content: center; /* توسيط الصور المصغرة */
+  }
+
+  .main-report-photo, .no-photo-placeholder {
+    height: 300px; /* تقليل الارتفاع على الشاشات الأصغر */
+  }
+}

@@ -1,0 +1,115 @@
+<div class="cnv-backdrop">
+  <div class="cnv-modal report-modal">
+      <button class="cnv-close" (click)="doClose()">✕</button>
+      
+      <h2>Create Invoice</h2>
+
+      <div class="report-form-grid">
+
+      <label class="full-width">Client <span class="required">*</span>
+        <select [(ngModel)]="selectedClientId" name="Client"
+        [ngClass]="{'input-error': submitted && !selectedClientId}"
+        >
+          <option [ngValue]="null" disabled selected>Select Client</option>
+          <option *ngFor="let c of clients" [ngValue]="c.id">{{ c.name }}</option>
+        </select>
+      </label>
+
+      <label class="full-width">Title <span class="required">*</span>
+      <input type="text" [(ngModel)]="form.Title" name="Title"placeholder="What is this for?"
+               [ngClass]="{'input-error': submitted && !form.Title}"
+
+      />
+      </label>
+
+       <label>Issue Date <span class="required">*</span>
+        <input type="Date" 
+               [(ngModel)]="form.IssueDate" 
+               name="IssueDate" 
+               (click)="forceDatePicker($event)" 
+               class="styled-date-input"
+                [ngClass]="{'input-error': submitted && !form.IssueDate}"
+               /> 
+      </label>
+       <label>Due Date <span class="required">*</span>
+        <input type="Date" 
+               [(ngModel)]="form.DueDate" 
+               name="DueDate" 
+               (click)="forceDatePicker($event)" 
+               class="styled-date-input"
+                [ngClass]="{'input-error': submitted && !form.DueDate}"
+               /> 
+      </label>
+
+      <label>Project (optional)
+          <input type="text" [(ngModel)]="form.Project" name="Project"placeholder="PRJ-####"/>
+      </label>
+
+      <label>Contract (optional)
+          <input type="text" [(ngModel)]="form.Contract" name="Contract" placeholder="CTR-####"/>
+      </label>
+      <label class="full-width" >Line Items
+        <div class="inline3input">
+            <input class="one" type="text" placeholder="Service" [(ngModel)]="form.Contract" name="Contract"/>
+            <input class="two" type="number" [(ngModel)]="form.Contract" name="Contract"/>
+            <input class="three" type="number" [(ngModel)]="form.Contract" name="Contract"/>
+        </div>
+      </label>
+      <hr class="full-width"/>
+
+      <label class="full-width">Recurring
+        <div class="inline3input">
+            <input 
+             class="three"
+             type="checkbox" 
+             (click)="$event.stopPropagation()"
+             [(ngModel)]="form.RecurringEnabled" 
+             >
+            <label class="relativelable" for="checkBox">Enabled</label>
+            <select 
+            [(ngModel)]="form.BillingCycle"
+            name="BillingCycle"
+            [disabled]="!form.RecurringEnabled"
+            >
+                <option *ngFor="let t of BillingCycles" [value]="t">{{t}}</option>
+            </select>
+            <label class="relativelable" >Terms</label>
+            <input 
+            type="number" 
+            name="" 
+            id=""
+            [disabled]="!form.RecurringEnabled"
+            >
+            <label class="relativelable" for="">days</label>
+        </div>
+
+      </label>
+
+
+      <!-- <label class="full-width">Recurring
+  <div class="inline3input align-center">
+    <label class="custom-checkbox">
+      <input type="checkbox" [(ngModel)]="form.Contract" name="checkBox" />
+      <span class="checkmark"></span>
+      Enabled
+    </label>
+
+    <select [(ngModel)]="form.BillingCycle" name="BillingCycle">
+      <option *ngFor="let t of BillingCycles" [value]="t">{{ t }}</option>
+    </select>
+
+    <label class="relativelable">Terms</label>
+    <input type="number" [(ngModel)]="form.Terms" name="Terms" />
+    <label class="relativelable">days</label>
+  </div>
+</label>
+
+ -->
+
+
+    </div>
+    <div class="cnv-actions report-actions">
+    <button type="button" class="cancel-button" (click)="doClose()">Cancel</button>
+    <button type="button" class="save-button-large yellow-bg" (click)="doSave()">Save</button>
+    </div>
+</div>

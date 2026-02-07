@@ -1,0 +1,23 @@
+
+<!-- لاحظ كله بيروح لحاجات في ال admin  لما اعمل ال component بتاعت ال client اخليهه تروح ليه   -->
+<nav class="sidebar">
+  <ul class="menu">
+    <li class="section-title">Technician</li>
+    <li><a routerLink="/technician/task-list" routerLinkActive="active"(click)="scrollToTop()">Tasks</a></li>
+    <li><a routerLink="/technician/suggested-repairs" routerLinkActive="active"(click)="scrollToTop()">Suggested repairs</a></li>
+    <li><a routerLink="/technician/calendar" routerLinkActive="active"(click)="scrollToTop()">Calendar</a></li>
+    <li class="divider"></li>
+    <li class="section-title">Library</li>
+    <li><a routerLink="/technician/inventory" routerLinkActive="active"(click)="scrollToTop()">Inventory</a></li>
+    <li><a routerLink="/technician/fault-codes" routerLinkActive="active"(click)="scrollToTop()">Fault codes </a></li>
+    <li><a routerLink="/technician/unit-manuals" routerLinkActive="active"(click)="scrollToTop()">Unit manuals</a></li>
+    <li><a routerLink="/technician/training" routerLinkActive="active"(click)="scrollToTop()">Training</a></li>
+    <li><a routerLink="/technician/checklists" routerLinkActive="active"(click)="scrollToTop()">Checklists</a></li>
+    <li class="section-title">Logout</li>
+    <li><a (click)="logout()">Log Out</a></li>
+    <li class="divider"></li>
+    <li><a routerLink="/client/inventory" routerLinkActive="active"(click)="scrollToTop()">
+      <img src="assets/images/setting.png" alt="">
+    </a></li>
+  </ul>
+</nav>

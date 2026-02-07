@@ -1,0 +1,284 @@
+<app-shared-page-header [showCreateVisitButton]="role === 'technician'" [createButtonLabel]="'CREATE SUGGESTED-REPAIR'"
+  (createVisit)="openCreateReport()" [showDropdown]="false">
+  <span breadcrumb>DISPATCHING &gt; Suggested-repairs</span>
+
+</app-shared-page-header>
+<app-create-new-suggested-repair *ngIf="showCreateReportModal" (close)="closeCreateReport()"
+  (save)="saveNewReport($event)">
+
+</app-create-new-suggested-repair>
+
+
+<div class="task-list">
+
+
+  <div class="tab-content">
+
+    <!-- 📊 Status Summary Cards -->
+    <div class="status-summary">
+      <div class="summary-card">
+        <span class="label">Total</span>
+        <span class="count">{{ tasks.length }}</span>
+      </div>
+      <div class="summary-card">
+        <span class="label">Approved</span>
+        <span class="count">{{ getStatusCount('Approved') }}</span>
+      </div>
+      <div class="summary-card">
+        <span class="label">Under Review</span>
+        <span class="count">{{ getStatusCount('Under Review') }}</span>
+      </div>
+      <div class="summary-card">
+        <span class="label">Critical</span>
+        <span class="count">{{ getPriorityCount('Critical') }}</span>
+      </div>
+    </div>
+    <!-- task-toolbar -->
+    <div class="task-toolbar">
+      <!-- Left side: actions -->
+      <div class="toolbar-left">
+
+        <button class="icon-btn">+</button>
+        <button class="icon-btn" (click)="toggleFilterBuilder()">
+          <img src="/assets/images/Vector3.png" alt="">
+        </button> <!-- هنا تحط أيقونة الفلتر -->
+        <button class="icon-btn">⇅</button> <!-- هنا أيقونة sort -->
+      </div>
+
+      <!-- Right side: search -->
+      <div class="toolbar-right">
+        <div class="search-input">
+          <button><img class="search-icon" src="/assets/images/search.png" alt=""></button>
+          <input type="text" class="forSearch" [(ngModel)]="searchText" placeholder="Search" />
+        </div>
+      </div>
+    </div>
+
+
+    <!-- Filter Builder -->
+    <div class="filter-builder" *ngIf="showFilterBuilder">
+      <h4>Add filter</h4>
+      <div class="filter-row">
+        <select [(ngModel)]="newFilter.field">
+          <option value="">Select Field</option>
+          <option value="Code">Code</option>
+          <option value="ProjectName">ProjectName</option>
+          <option value="TechnicalName">TechnicalName</option>
+          <option value="UnitType">UnitType</option>
+          <option value="Location">Location</option>
+          <option value="IssueDescription">IssueDescription</option>
+          <option value="SuggestedRepair">SuggestedRepair</option>
+          <option value="Priority">Priority</option>
+          <option value="Status">Status</option>
+        </select>
+
+        <!-- ✅ لو الفيلد Date يظهر اتنين input -->
+        <div *ngIf="newFilter.field === 'Date'" class="date-range-inputs">
+          <div class="date-field">
+            <label>From</label>
+            <input type="date" [(ngModel)]="newFilter.dateFrom" (click)="forceDatePicker($event)" />
+          </div>
+          <div class="date-field">
+            <label>To</label>
+            <input type="date" [(ngModel)]="newFilter.dateTo" (click)="forceDatePicker($event)" />
+          </div>
+        </div>
+
+        <!-- باقي الفيلدات العادية -->
+        <select *ngIf="newFilter.field !== 'Date' && getFilterValues(newFilter.field).length"
+          [(ngModel)]="newFilter.value">
+          <option *ngFor="let v of getFilterValues(newFilter.field)" [value]="v">{{ v }}</option>
+        </select>
+
+        <button class="add-btn" (click)="applyFilter()">Apply</button>
+        <button class="add-btn" (click)="showFilterBuilder=false" style="background:#ccc;color:#000">Close</button>
+      </div>
+
+    </div>
+
+
+    <!-- Active filters -->
+    <div class="active-filters" *ngIf="activeFilters.length">
+      <span class="filter-chip" *ngFor="let f of activeFilters; let i = index">
+        <ng-container *ngIf="f.field !== 'Date'">
+          {{ f.field }}: <strong>{{ f.value }}</strong>
+        </ng-container>
+        <ng-container *ngIf="f.field === 'Date'">
+          {{ f.field }}: <strong>{{ f.dateFrom || '...' }} → {{ f.dateTo || '...' }}</strong>
+        </ng-container>
+        <button (click)="removeFilter(i)">×</button>
+      </span>
+
+      <button class="clear-btn" (click)="clearAllFilters()">Clear All</button>
+    </div>
+    <!-- selected count -->
+    <div class="selected-count" *ngIf="selectedCount > 0">
+      {{ selectedCount }} row(s) selected
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>
+            <input type="checkbox" [checked]="allSelected" (change)="allSelected = $event.target.checked; toggleAll()"
+              (click)="$event.stopPropagation()" />
+          </th>
+          <th class="faded">Code</th>
+          <th class="faded">Project Name</th>
+          <th class="faded">Technical Name</th>
+          <th class="faded">Unit Type</th>
+          <th class="faded">Location</th>
+          <th class="faded">Issue Description</th>
+          <th class="faded">Suggested Repair</th>
+          <th class="faded">AI</th>
+          <!-- ضيفت اتنين -->
+          <th class="faded">Priority</th>
+          <th class="faded">Status</th>
+          <th class="faded">Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- <tr *ngFor="let task of pagedTasks; let i = index">
+             <td>
+        <input type="checkbox" [(ngModel)]="task.selected" (change)="updateAllSelected()"/>
+      </td>
+            <td class="faded">{{task.Code}}</td>
+            <td class="faded">{{task.ProjectName}}</td>
+            <td class="faded">{{task.TechnicalName}}</td>
+            <td class="faded">{{task.UnitType}}</td>
+            <td class="faded">{{task.Location}}</td>
+            <td class="faded">{{task.IssueDescription}}</td>
+            <td class="faded">{{task.SuggestedRepair}}</td>
+              <td>
+              <span [ngClass]="getPriorityClass(i)" class="priority-pill">
+             {{ task.Priority }}
+              </span>
+              </td>
+
+            <td ><a class="update-link" href="#">Update</a></td>
+          </tr> -->
+        <tr *ngFor="let task of pagedTasks" (click)="openDetails(task)">
+          <td>
+            <!-- <input type="checkbox" [(ngModel)]="task.selected" (change)="updateAllSelected()" /> -->
+            <input type="checkbox" [(ngModel)]="task.selected" (change)="updateAllSelected()"
+              (click)="$event.stopPropagation()" />
+          </td>
+          <td class="faded" data-label="Code">{{task.Code}}</td>
+          <td class="faded" data-label="Project Name">{{task.ProjectName}}</td>
+          <td class="faded" data-label="Technical Name">{{task.TechnicalName}}</td>
+          <td class="faded" data-label="Unit Type">{{task.UnitType}}</td>
+          <td class="faded" data-label="Location">{{task.Location}}</td>
+          <td class="faded" data-label="Issue Description">{{task.IssueDescription}}</td>
+          <td class="faded" data-label="Suggested Repair">{{task.SuggestedRepair}}</td>
+          <td class="faded">
+            <div class="progress-container">
+              <div class="progress-bar" [style.width.%]="task.Score" [ngClass]="getProgressColor(task.Score)">
+              </div>
+            </div>
+            <span class="progress-label">{{ task.Score }}%</span>
+          </td>
+          <!-- <td data-label="Priority">
+    <span [ngClass]="getPriorityClass(i)" class="priority-pill">
+      {{ task.Priority }}
+    </span>
+  </td> -->
+
+          <td class="faded">
+            <span [ngClass]="{
+                'priority-Critical': task.Priority === 'Critical',
+                'priority-High': task.Priority === 'High',
+                'priority-Medium': task.Priority === 'Medium'
+              }">{{ task.Priority }}</span>
+          </td>
+
+          <td class="faded">
+            <span [ngClass]="{
+                'status-UnderReview': task.Status === 'Under Review',
+                'status-Draft': task.Status === 'Draft',
+                'status-Approved': task.Status === 'Approved',
+                'status-Rejected': task.Status === 'Rejected'
+              }">{{ task.Status }}</span>
+          </td>
+          <td (click)="$event.stopPropagation()">
+            <select class="action-row" (change)="onSelectChange(task, $event)">
+              <option value="">Actions</option>
+              <option value="view">ReView</option>
+              <!-- <option value="edit">Edit</option> -->
+              <option value="delete" *ngIf="role === 'admin'">Delete</option>
+            </select>
+          </td>
+        </tr>
+
+      </tbody>
+    </table>
+
+    <!-- Pagination -->
+    <div class="pagination" *ngIf="totalPages > 1">
+      <button class="page-btn" [disabled]="page === 1" (click)="setPage(page-1)">&lt;</button>
+
+      <ng-container *ngFor="let p of visiblePages">
+        <button class="page-btn" [class.active]="p === page" (click)="setPage(p)">{{p}}</button>
+      </ng-container>
+
+      <button class="page-btn" [disabled]="page === totalPages" (click)="setPage(page+1)">&gt;</button>
+    </div>
+  </div>
+</div>
+
+<!-- details panel (simple modal-ish) -->
+<div class="details-overlay" *ngIf="showDetails">
+  <div class="details-panel">
+    <button class="close-btn" (click)="closeDetails()">×</button>
+    <h3>{{ selectedTask?.ProjectName }}</h3>
+
+    <span class="details-span" [ngClass]="{
+                'status-UnderReview': selectedTask?.Status === 'Under Review',
+                'status-Approved': selectedTask?.Status === 'Approved',
+                'status-Draft': selectedTask?.Status === 'Draft',
+                'status-Rejected': selectedTask?.Status === 'Rejected'
+                }">{{ selectedTask?.Status }}</span>
+    <!-- عملت الشرط دا عشان لو فيها null ميدخلش اصلا  -->
+    <div *ngIf="selectedTask && (role === 'manager' || role === 'admin')">
+      <strong>Action </strong>
+      <div class="action-buttons" style="display:flex; gap:10px; margin-top:10px;">
+        <button class="save-button-large green-bg" *ngIf="selectedTask?.Status !== 'Approved'"
+          (click)="approve(selectedTask)">
+          Approve
+        </button>
+        <button class="save-button-large red-bg" *ngIf="selectedTask?.Status !== 'Rejected'"
+          (click)="reject(selectedTask)">
+          Reject
+        </button>
+      </div>
+    </div>
+
+
+    <p><strong>Project Name:</strong> {{ selectedTask?.ProjectName }}</p>
+    <p><strong>Site_Unit:</strong> {{ selectedTask?.TechnicalName }}</p>
+    <p><strong>Template:</strong> {{ selectedTask?.UnitType }}</p>
+    <p><strong>Tech:</strong> {{ selectedTask?.Location }}</p>
+    <p><strong>Date:</strong> {{ selectedTask?.IssueDescription }}</p>
+    <p><strong>Score:</strong> {{ selectedTask?.Score }}%</p>
+    <p><strong>Photo:</strong></p>
+    <!-- photo -->
+    <!-- <div class="thumbnail-row" *ngIf="selectedTask?.images">
+        <img 
+          *ngFor="let photo of selectedTask?.images" 
+          [src]="photo" 
+          alt="Thumbnail" 
+        >
+      </div> -->
+
+
+    <div class="photoGallery">
+
+      <div class="thumbnail-row" *ngIf="selectedTask?.images">
+        <img *ngFor="let photo of selectedTask?.images" [src]="photo" alt="Thumbnail" (click)="setMainImage(photo)"
+          [class.active-thumbnail]="photo === mainImage">
+      </div>
+      <div class="main-photo-area">
+        <img [src]="mainImage" alt="Main Work Photo" *ngIf="mainImage" class="main-report-photo" (click)="openInNewTab(mainImage)">
+      </div>
+    </div>
+  </div>
+</div>

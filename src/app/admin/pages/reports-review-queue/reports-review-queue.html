@@ -1,0 +1,216 @@
+<app-shared-page-header 
+[createButtonLabel]="'CREATE REPRORT'" 
+[showCreateVisitButton]="true"
+(createVisit)="openCreateReport()"
+    >
+  <span breadcrumb>Reports > Reports Review Queue</span>
+</app-shared-page-header>
+
+<app-create-new-report 
+        *ngIf="showCreateReportModal" 
+        (close)="closeCreateReport()"
+        (save)="saveNewReport($event)"
+        >
+</app-create-new-report>
+
+<div class="task-list">
+  <div class="tab-content">
+    <!-- List tab -->
+    <ng-container >
+      <div class="task-toolbar">
+        <div class="toolbar-left">
+          <button class="icon-btn">+</button>
+          <button class="icon-btn" (click)="toggleFilterBuilder()">
+            <img src="/assets/images/Vector3.png" alt="">
+          </button>
+          <button class="icon-btn">⇅</button>
+        </div>
+
+        <div class="toolbar-right">
+          <div class="search-input">
+            <button><img class="search-icon" src="/assets/images/search.png" alt=""></button>
+            <input type="text"
+             class="forSearch"
+             [(ngModel)]="searchText" 
+             placeholder="Search" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Filter Builder -->
+      <div class="filter-builder" *ngIf="showFilterBuilder">
+        <h4>Add filter</h4>     
+    <div class="filter-row">
+    <select [(ngModel)]="newFilter.field">
+    <option value="">Select Field</option>
+    <option value="Report">Report</option>
+    <option value="Visit">Visit</option>
+    <option value="Site_Unit">Site Unit</option>
+    <option value="Template">Template</option>
+    <option value="Tech">Tech</option>
+    <option value="Date">Date</option>
+    <option value="Score">Score</option>
+    <option value="Critical">Critical</option>
+    <option value="Status">Status</option>
+  </select>
+
+  <!-- ✅ لو الفيلد Date يظهر اتنين input -->
+<div *ngIf="newFilter.field === 'Date'" class="date-range-inputs">
+  <div class="date-field">
+    <label>From</label>
+    <input type="date" [(ngModel)]="newFilter.dateFrom"  (click)="forceDatePicker($event)" />
+  </div>
+  <div class="date-field">
+    <label>To</label>
+    <input type="date" [(ngModel)]="newFilter.dateTo" (click)="forceDatePicker($event)"  />
+  </div>
+</div>
+
+  <!-- باقي الفيلدات العادية -->
+  <select *ngIf="newFilter.field !== 'Date' && getFilterValues(newFilter.field).length"
+          [(ngModel)]="newFilter.value">
+    <option *ngFor="let v of getFilterValues(newFilter.field)" [value]="v">{{ v }}</option>
+  </select>
+
+  <button class="add-btn" (click)="applyFilter()">Apply</button>
+  <button class="add-btn" (click)="showFilterBuilder=false" style="background:#ccc;color:#000">Close</button>
+</div>
+
+      </div>
+
+
+      <!-- Active filters -->
+      <div class="active-filters" *ngIf="activeFilters.length">
+     <span class="filter-chip" *ngFor="let f of activeFilters; let i = index">
+  <ng-container *ngIf="f.field !== 'Date'">
+    {{ f.field }}: <strong>{{ f.value }}</strong>
+  </ng-container>
+  <ng-container *ngIf="f.field === 'Date'">
+    {{ f.field }}: <strong>{{ f.dateFrom || '...' }} → {{ f.dateTo || '...' }}</strong>
+  </ng-container>
+  <button (click)="removeFilter(i)">×</button>
+</span>
+
+        <button class="clear-btn" (click)="clearAllFilters()">Clear All</button>
+      </div>
+<!-- selected count -->
+<div class="selected-count" *ngIf="selectedCount > 0">
+  {{ selectedCount }} row(s) selected
+</div>
+      <!-- table -->
+      <table>
+        <thead>
+          <tr>
+            <th>
+            <input 
+               type="checkbox" 
+               [checked]="allSelected" 
+               (change)="allSelected = $event.target.checked; toggleAll()" 
+               (click)="$event.stopPropagation()"/>
+            </th>
+            <th class="faded">Report</th>
+            <th class="faded">Visit</th>
+            <th class="faded">Site / Unit</th>
+            <th class="faded">Template</th>
+            <th class="faded">Tech</th>
+            <th class="faded">Date</th>
+            <th class="faded">Score</th>
+            <th class="faded">Critical</th>
+            <th class="faded">Status</th>
+            <th class="faded">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          
+          <tr *ngFor="let task of pagedTasks" (click)="openDetails(task)">
+            <td>
+              <!-- <input type="checkbox" [(ngModel)]="task.selected" (change)="updateAllSelected()" /> -->
+              <input 
+      type="checkbox" 
+      [(ngModel)]="task.selected" 
+      (change)="updateAllSelected()" 
+      (click)="$event.stopPropagation()"
+    />
+            </td>
+            <td class="faded">{{ task.Report }}</td>
+            <td class="faded">{{ task.Visit }}</td>
+            <td class="faded">{{ task.Site_Unit }}</td>
+            <td class="faded">{{ task.Template }}</td>
+            <td class="faded">{{ task.Tech }}</td>
+            <td class="faded">{{ task.Date }}</td>
+            <td class="faded">{{ task.Score }}%</td>
+            <td class="faded">{{ task.Critical }}</td>
+            <td class="faded">
+              <span [ngClass]="{
+                'status-Submitted': task.Status === 'Submitted',
+                'status-Approved': task.Status === 'Approved',
+                'status-Returned': task.Status === 'Returned',
+              }">{{ task.Status }}</span>
+            </td>         
+<!-- (click)="$event.stopPropagation()" بيمنع ال click انه ياخد ال action الي فوقيه عشان كدا لو دوست عليها مش هيفتح ال details  -->
+            <td (click)="$event.stopPropagation()">
+                <select class="action-row" (change)="onSelectChange(task, $event)">
+                <option value="">Actions</option>
+                <option value="view">ReView</option>
+                <!-- <option value="edit">Edit</option> -->
+                <option value="delete">Delete</option>
+                </select>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <!-- pagination -->
+      <div class="pagination" *ngIf="totalPages > 1">
+        <button class="page-btn" [disabled]="page === 1" (click)="setPage(page-1)">&lt;</button>
+        <ng-container *ngFor="let p of visiblePages">
+          <button class="page-btn" [class.active]="p === page" (click)="setPage(p)">{{ p }}</button>
+        </ng-container>
+        <button class="page-btn" [disabled]="page === totalPages" (click)="setPage(page+1)">&gt;</button>
+      </div>
+    </ng-container>
+  </div>
+</div>
+<!-- details panel (simple modal-ish) -->
+<div class="details-overlay" *ngIf="showDetails">
+  <div class="details-panel">
+    <button class="close-btn" (click)="closeDetails()">×</button>
+    <h3>{{ selectedTask?.Report }}</h3>
+
+              <span class="details-span" [ngClass]="{
+                'status-Submitted': selectedTask?.Status === 'Submitted',
+                'status-Approved': selectedTask?.Status === 'Approved',
+                'status-Returned': selectedTask?.Status === 'Returned',
+                }">{{ selectedTask?.Status }}</span>
+<!-- عملت الشرط دا عشان لو فيها null ميدخلش اصلا  -->
+   <p *ngIf="selectedTask">
+  <strong>Status </strong>
+  <select [(ngModel)]="selectedTask.Status" (change)="updateTaskStatus(selectedTask)">
+    <option *ngFor="let s of getSortedStatuses(selectedTask.Status)" [value]="s">
+      {{ s }}
+    </option>
+  </select>
+</p>
+
+    <p><strong>Visit:</strong> {{ selectedTask?.Visit }}</p>
+    <p><strong>Site_Unit:</strong> {{ selectedTask?.Site_Unit }}</p>
+    <p><strong>Template:</strong> {{ selectedTask?.Template }}</p>
+    <p><strong>Tech:</strong> {{ selectedTask?.Tech }}</p>
+    <p><strong>Date:</strong> {{ selectedTask?.Date }}</p>
+    <p><strong>Score:</strong> {{ selectedTask?.Score }}%</p>
+    <p><strong>Critical:</strong> {{ selectedTask?.Critical }}</p>
+    <p><strong>Photo:</strong></p>
+        <!-- photo -->
+      <div class="thumbnail-row" *ngIf="selectedTask?.images">
+        <img 
+          *ngFor="let photo of selectedTask?.images" 
+          [src]="photo" 
+          alt="Thumbnail" 
+        >
+      </div>
+    
+
+  
+
+
+  </div>
+</div>

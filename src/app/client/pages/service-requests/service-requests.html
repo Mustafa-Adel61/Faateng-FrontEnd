@@ -1,0 +1,9 @@
+<app-shared-page-header [createButtonLabel]="'CREATE SERVICE REQUEST'" [showCreateVisitButton]="true"
+  (createVisit)="openCreateRequest()">
+  <span breadcrumb>Maintenance > Service Requests</span>
+</app-shared-page-header>
+
+<app-create-service-request *ngIf="showCreateRequestModal" (close)="closeCreateRequest()" (save)="onRequestCreated()">
+</app-create-service-request>
+
+<app-shared-service-requestes [role]="'client'"></app-shared-service-requestes>

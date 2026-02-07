@@ -1,0 +1,64 @@
+
+<div class="billing-container">
+  <h2>Billing</h2>
+  <p class="subtitle">Manage your billing and payment details</p>
+
+  <div class="billing-cards">
+    <div class="card plan-card">
+      <div class="plan-header">
+        <div class="plan-title">
+          <h3>Basic Plan</h3>
+          <span class="status-badge">Over Due</span>
+        </div>
+
+        <div class="plan-price">
+          <span class="amount">$10</span>
+          <span class="per-month">per month</span>
+        </div>
+      </div>
+
+      <p class="description">Our most popular plan for small teams</p>
+
+      <p class="usage">14 of 20 users</p>
+      <div class="progress-bar">
+        <div class="progress" style="width: 70%"></div>
+      </div>
+
+      <div class="plan-footer">
+        <a href="#" class="upgrade-link">Upgrade plan   <img src="assets/images/Iconas.png" alt=""></a>
+      </div>
+    </div>
+
+    <div class="card payment-card">
+      <h3>Payment method</h3>
+      <p class="subtitle-small">Change how you pay for your plan</p>
+
+      <div class="payment-box">
+
+  <div class="top-row">
+    <div class="payment-info">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/0/04/Visa.svg" alt="Visa" class="card-icon" />
+      <div>
+        <p><strong>Visa ending in 1234</strong></p>
+        <p class="expiry">Expiry 06/2027</p>
+      </div>
+    </div>
+
+    <button class="edit-btn">Edit</button>
+  </div>
+
+  <div class="billing-email">
+    <span>📧</span>
+    billing@mepsoI.com
+  </div>
+
+</div>
+
+    </div>
+  </div>
+
+<h2>Billing and Invoicing</h2>
+<p class="subtitle">Pick an account plan that fits your workflow</p>
+
+<app-shared-invoice [role]="'client'"></app-shared-invoice>
+</div>
