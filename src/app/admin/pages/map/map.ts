@@ -1,8 +1,9 @@
 import { NgFor } from '@angular/common';
-import { Component, AfterViewInit } from '@angular/core';
+import { Component, AfterViewInit, inject } from '@angular/core';
 import { TaskService, TaskItem } from '../../../core/task.service';
 import * as L from 'leaflet';
 import { SharedTaskDetails } from '../../../Shared/shared-components/shared-task-details/shared-task-details';
+import { ToastService } from '../../../Shared/services/toast.service';
 
 @Component({
   selector: 'app-map',
@@ -60,6 +61,7 @@ export class MapComponent implements AfterViewInit {
   selected: TaskItem | null = null;
   statuses = ['Scheduled', 'Dispatched', 'On-Site', 'Waiting-Parts', 'Backlog', 'QA/Review', 'Done', 'Closed'];
 
+  private toast: ToastService = inject(ToastService);
   private map?: L.Map;
   private markers: L.Marker[] = [];
 
@@ -145,6 +147,9 @@ export class MapComponent implements AfterViewInit {
 
   onDetailsChangeStatus() {
     if (!this.selected) return;
-    this.taskService.updateStatus(this.selected.id, this.selected.status).subscribe();
+    this.taskService.updateStatus(this.selected.id, this.selected.status).subscribe({
+      next: () => this.toast.show('تم تحديث الحالة بنجاح', 'success'),
+      error: () => this.toast.show('فشل تحديث الحالة', 'error')
+    });
   }
 }

@@ -3,11 +3,12 @@ import { CommonModule } from '@angular/common';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { UnitService } from '../../../core/unit.service';
+import { Loading } from '../../../Shared/shared-components/loading/loading';
 
 @Component({
   selector: 'app-create-new-unit',
   standalone: true,
-  imports: [FormsModule, CommonModule, HttpClientModule],
+  imports: [FormsModule, CommonModule, HttpClientModule, Loading],
   templateUrl: './create-new-unit.html',
   styleUrl: './create-new-unit.css'
 })
@@ -32,6 +33,7 @@ export class CreateNewUnit {
   allowedFileTypes = ['image/jpeg','image/jpg','image/png','image/gif','image/webp','application/pdf'];
 
   constructor(private unitService: UnitService, private http: HttpClient) {}
+  loading: boolean = false;
 
   doClose() {
     this.close.emit();
@@ -52,12 +54,17 @@ export class CreateNewUnit {
       photos: this.form.attachments.map(a => a.url)
     };
 
+    this.loading = true;
     this.unitService.create(payload).subscribe({
       next: (res) => {
         this.save.emit(res);
         this.doClose();
+        this.loading = false;
       },
-      error: (err) => console.error(err)
+      error: (err) => {
+        console.error(err);
+        this.loading = false;
+      }
     });
   }
 

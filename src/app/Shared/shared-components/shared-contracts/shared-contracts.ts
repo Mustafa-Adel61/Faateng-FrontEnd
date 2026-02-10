@@ -70,7 +70,8 @@ export class SharedContracts implements OnInit {
           Value: c.value || 0,
           StartDate: c.startDate ? new Date(c.startDate).toLocaleDateString() : '',
           EndDate: c.endDate ? new Date(c.endDate).toLocaleDateString() : '',
-          Client: c.client?.name || 'Unknown Client',
+          Client: c.client?.fullName || 'Unknown Client',
+          Units: c.unit.type || 'Unknown Units',
           Terms: c.terms,
           raw: c
         }));
@@ -188,6 +189,8 @@ export class SharedContracts implements OnInit {
   }
   get pagedContracts(): Contract[] {
     const start = (this.page - 1) * this.pageSize;
+    console.log(this.filteredContracts);
+    
     return this.filteredContracts.slice(start, start + this.pageSize);
   }
   get visiblePages(): number[] {

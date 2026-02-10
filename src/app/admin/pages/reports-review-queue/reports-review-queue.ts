@@ -1,9 +1,10 @@
 import { NgIf, NgFor, NgClass } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { SharedPageHeader } from '../../../Shared/shared-layout/shared-page-header/shared-page-header';
 import { CreateNewReport } from "../create-new-report/create-new-report";
 import { ResourceService } from '../../../core/resource.service';
+import { ToastService } from '../../../Shared/services/toast.service';
 interface Task {
     id?: number;
     selected: boolean;
@@ -34,6 +35,7 @@ export class ReportsReviewQueue {
   // details panel
   showDetails = false;
   selectedTask: Task | null = null;
+    private toast: ToastService = inject(ToastService);
 
   // Selection
   allSelected = false;
@@ -272,13 +274,17 @@ applyFilter() {
     if (selected === 'Approved' && task.id) {
       this.resource.update('Reports', task.id + '/approve', {}).subscribe(() => {
         this.tasks[index].Status = 'Approved';
+        this.toast.show('تم تحديث الحالة بنجاح', 'success')
+
       });
     } else if (selected === 'Returned' && task.id) {
       this.resource.update('Reports', task.id + '/reject', {}).subscribe(() => {
         this.tasks[index].Status = 'Returned';
+        this.toast.show('تم تحديث الحالة بنجاح', 'success')
       });
     } else {
       this.tasks[index].Status = selected;
+        this.toast.show('تم تحديث الحالة بنجاح', 'success')
     }
   }
   forceDatePicker(event: Event) {

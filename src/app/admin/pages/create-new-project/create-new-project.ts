@@ -3,10 +3,11 @@ import { Component, ElementRef, EventEmitter, OnInit, Output, ViewChild } from '
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ResourceService } from '../../../core/resource.service';
 import { UnitService } from '../../../core/unit.service';
+import { Loading } from '../../../Shared/shared-components/loading/loading';
 
 @Component({
   selector: 'app-create-new-project',
-  imports: [FormsModule,CommonModule,NgIf,ReactiveFormsModule],
+  imports: [FormsModule,CommonModule,NgIf,ReactiveFormsModule, Loading],
   templateUrl: './create-new-project.html',
   styleUrl: './create-new-project.css'
 })
@@ -136,12 +137,17 @@ form = {
   };
 
   constructor(private resource: ResourceService, private unitService: UnitService) {}
+  loading: boolean = false;
+  private pendingLoads = 0;
+  private markLoadingStart() { this.pendingLoads++; this.loading = true; }
+  private markLoadingEnd() { this.pendingLoads = Math.max(0, this.pendingLoads - 1); if (this.pendingLoads === 0) this.loading = false; }
 
   ngOnInit(): void {
     this.loadUnits();
     this.loadDropdowns(); // Load dropdowns from DB
     
     // Load Clients
+    this.markLoadingStart();
     this.resource.getAll('Users/clients').subscribe({
       next: (list) => {
         this.clients = (list || []).map((c: any) => ({ id: c.id, name: c.name }));
@@ -149,7 +155,8 @@ form = {
       error: () => {
         this.clients = [];
         this.selectedClientId = null;
-      }
+      },
+      complete: () => { this.markLoadingEnd(); }
     });
 
     const key = localStorage.getItem('gmaps_api_key');
@@ -176,6 +183,7 @@ form = {
     ];
 
     lookups.forEach(lookup => {
+      this.markLoadingStart();
       this.resource.getAll(`Lookups/${lookup.key}`).subscribe({
         next: (data) => {
           if (data && data.length > 0) {
@@ -187,7 +195,8 @@ form = {
         error: () => {
           // Fallback to default if API fails
           (this as any)[lookup.target] = lookup.default;
-        }
+        },
+        complete: () => { this.markLoadingEnd(); }
       });
     });
   }
@@ -208,6 +217,7 @@ form = {
       this.selectedUnitIds = [];
       return;
     }
+    this.markLoadingStart();
     this.resource.getAll(`Users/${this.selectedClientId}/units`).subscribe({
       next: (list) => {
         this.units = (list || []).map((u: any) => ({
@@ -218,7 +228,8 @@ form = {
       error: () => {
         this.units = [];
         this.selectedUnitIds = [];
-      }
+      },
+      complete: () => { this.markLoadingEnd(); }
     });
   }
 
@@ -291,6 +302,7 @@ form = {
       .filter(u => !!u.isSelected && Number(u.quantityToUse) > 0)
       .map(u => ({ unitId: Number(u.id), qty: Number(u.quantityToUse) }));
     const unitIds = selected.map(s => s.unitId);
+    this.loading = true;
     this.save.emit({ ...rest, clientId: this.selectedClientId, unitIds, selectedUnits: selected });
   }
 
@@ -448,21 +460,25 @@ form = {
   }
 
   loadUnits() {
+    this.markLoadingStart();
     this.unitService.getAll().subscribe({
       next: (list) => {
-        this.unitsList = (list || []).map((u: any) => ({
-          id: u.id,
-          model: u.model,
-          serial: u.serial,
-          price: u.price,
-          quantity: u.quantity,
-          isSelected: false,
-          quantityToUse: 1
-        }));
+        this.unitsList = (list || [])
+          .map((u: any) => ({
+            id: u.id,
+            model: u.model,
+            serial: u.serial,
+            price: u.price,
+            quantity: u.quantity,
+            isSelected: false,
+            quantityToUse: 1
+          }))
+          .filter((u: any) => Number(u.quantity) > 0);
       },
       error: () => {
         this.unitsList = [];
-      }
+      },
+      complete: () => { this.markLoadingEnd(); }
     });
   }
 

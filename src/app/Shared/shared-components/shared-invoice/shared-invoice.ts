@@ -1,9 +1,11 @@
 import { SharedPageHeader } from './../../shared-layout/shared-page-header/shared-page-header';
 import { NgClass, NgFor, NgIf } from '@angular/common';
-import { Component, Input } from '@angular/core';
+import { Component, Input, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CreateNewInvoice } from '../../../admin/pages/create-new-invoice/create-new-invoice';
 import { ResourceService } from '../../../core/resource.service';
+import { ToastService } from '../../services/toast.service';
+import { Loading } from '../loading/loading';
 interface Invoice {
   selected: boolean;
   Invoice: string;
@@ -19,12 +21,14 @@ interface Invoice {
 @Component({
   selector: 'app-shared-invoice',
   standalone: true,
-  imports: [NgFor, NgIf, FormsModule, NgClass, CreateNewInvoice, SharedPageHeader],
+  imports: [NgFor, NgIf, FormsModule, NgClass, CreateNewInvoice, SharedPageHeader, Loading],
   templateUrl: './shared-invoice.html',
   styleUrl: './shared-invoice.css'
 })
 export class SharedInvoice {
   @Input() role: 'admin' | 'manager' | 'finance' | 'client' | null = null;
+  private toastService: ToastService = inject(ToastService);
+  loading: boolean = false;
 
   // UI state
   showFilterBuilder = false;
@@ -67,6 +71,7 @@ export class SharedInvoice {
       photos: []
     };
 
+    this.loading = true;
     this.resource.create('Invoices/create', payload).subscribe({
       next: (created) => {
         const newInvoice: Invoice = {
@@ -83,6 +88,7 @@ export class SharedInvoice {
         };
         this.tasks.unshift(newInvoice);
         this.closeCreate();
+        this.loading = false;
       },
       error: (err) => {
         console.error('Failed to create invoice', err);
@@ -101,6 +107,7 @@ export class SharedInvoice {
         };
         this.tasks.unshift(newInvoice);
         this.closeCreate();
+        this.loading = false;
       }
     });
   }
@@ -382,16 +389,25 @@ export class SharedInvoice {
       this.openDetails(task);
     } else if (action === 'delete') {
       if (!confirm(`Delete ${task.Invoice}?`)) return;
-      // حذف من المصدر
+      this.loading = true;
       const idx = this.tasks.indexOf(task);
       if (idx >= 0) this.tasks.splice(idx, 1);
       // adjust pagination if needed
       if (this.page > this.totalPages) this.page = this.totalPages;
+      this.toastService.show('تم حذف الفاتورة بنجاح', 'success');
+      this.loading = false;
     } else if (action === 'pay') {
       if (confirm(`Pay invoice ${task.Invoice} for $${task.Amount}?`)) {
-        this.resource.update('Invoices', task.Invoice, { status: 'Paid' }).subscribe(() => {
-          task.Status = 'Paid';
-          alert('Payment Successful!');
+        this.loading = true;
+        this.resource.update('Invoices', task.Invoice, { status: 'Paid' }).subscribe({
+          next: () => {
+            task.Status = 'Paid';
+            this.toastService.show('تم الدفع بنجاح', 'success');
+            this.loading = false;
+          },
+          error: () => {
+            this.loading = false;
+          }
         });
       }
     }
@@ -436,7 +452,16 @@ export class SharedInvoice {
     if (index !== -1) {
       this.tasks[index].Status = task.Status;
     }
-    this.resource.update('Invoices', task.Invoice, { status: task.Status }).subscribe();
+    this.loading = true;
+    this.resource.update('Invoices', task.Invoice, { status: task.Status }).subscribe({
+      next: () => {
+        this.toastService.show('تم تحديث حالة الفاتورة', 'success');
+        this.loading = false;
+      },
+      error: () => {
+        this.loading = false;
+      }
+    });
   }
   forceDatePicker(event: Event) {
     const target = event.target as HTMLInputElement;
@@ -485,4 +510,3 @@ export class SharedInvoice {
 
   constructor(private resource: ResourceService) { }
 }
-

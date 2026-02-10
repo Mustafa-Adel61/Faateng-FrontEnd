@@ -10,7 +10,7 @@ export interface Unit {
   type: string;
   price: number;
   quantity: number;
-  photos?: string; // JSON string from backend
+  photos?: string[]; // array مباشرة
 }
 
 @Injectable({

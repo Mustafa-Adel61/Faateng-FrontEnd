@@ -2,10 +2,11 @@ import { NgClass, NgFor, NgIf, CommonModule } from '@angular/common';
 import { Component, EventEmitter, Output, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ResourceService } from '../../../core/resource.service';
+import { Loading } from '../../../Shared/shared-components/loading/loading';
 
 @Component({
   selector: 'app-create-new-billing',
-  imports: [FormsModule,NgFor,NgClass,CommonModule],
+  imports: [FormsModule,NgFor,NgClass,CommonModule, Loading],
   templateUrl: './create-new-billing.html',
   styleUrl: './create-new-billing.css'
 })
@@ -36,14 +37,17 @@ export class CreateNewBilling implements OnInit {
 
  };
  
- constructor(private resource: ResourceService) {}
+  constructor(private resource: ResourceService) {}
+  loading: boolean = false;
 
  ngOnInit() {
+    this.loading = true;
     this.resource.getAll('Users/clients').subscribe({
       next: (list) => {
         this.clients = (list || []).map((c: any) => ({ id: c.id, name: c.name }));
       },
-      error: () => { this.clients = []; }
+      error: () => { this.clients = []; },
+      complete: () => { this.loading = false; }
     });
  }
 
@@ -63,6 +67,7 @@ submitted = false;
   }
     // إرسال بيانات الـ Report الجديدة
     const clientName = this.clients.find(c => c.id === this.selectedClientId)?.name || '';
+    this.loading = true;
     this.save.emit({ ...this.form, ClientId: this.selectedClientId, ClientName: clientName });
   }
 forceDatePicker(event: Event) {

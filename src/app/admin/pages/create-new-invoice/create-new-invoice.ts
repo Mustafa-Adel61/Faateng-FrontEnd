@@ -2,10 +2,11 @@ import { NgClass, CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ResourceService } from '../../../core/resource.service';
+import { Loading } from '../../../Shared/shared-components/loading/loading';
 
 @Component({
   selector: 'app-create-new-invoice',
-  imports: [FormsModule,NgClass,CommonModule],
+  imports: [FormsModule,NgClass,CommonModule, Loading],
   templateUrl: './create-new-invoice.html',
   styleUrls: ['./create-new-invoice.css']
 })
@@ -30,21 +31,29 @@ export class CreateNewInvoice implements OnInit {
     WorkOrderId: ''
  };
 
- constructor(private resource: ResourceService) {}
+  constructor(private resource: ResourceService) {}
+  loading: boolean = false;
+  private pendingLoads = 0;
+  private markLoadingStart() { this.pendingLoads++; this.loading = true; }
+  private markLoadingEnd() { this.pendingLoads = Math.max(0, this.pendingLoads - 1); if (this.pendingLoads === 0) this.loading = false; }
 
  ngOnInit() {
+    this.markLoadingStart();
     this.resource.getAll('Users/clients').subscribe({
       next: (list) => {
         this.clients = (list || []).map((c: any) => ({ id: c.id, name: c.name }));
       },
-      error: () => { this.clients = []; }
+      error: () => { this.clients = []; },
+      complete: () => { this.markLoadingEnd(); }
     });
 
+    this.markLoadingStart();
     this.resource.getAll('Lookups/Projects').subscribe({
       next: (list) => {
         this.projects = list || [];
       },
-      error: () => { this.projects = []; }
+      error: () => { this.projects = []; },
+      complete: () => { this.markLoadingEnd(); }
     });
 
     if (this.workOrder) {
@@ -87,6 +96,7 @@ export class CreateNewInvoice implements OnInit {
         }
     }
 
+    this.loading = true;
     this.save.emit({ 
         ...this.form, 
         ClientId: this.selectedClientId, 

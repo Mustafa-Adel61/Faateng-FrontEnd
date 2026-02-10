@@ -5,12 +5,13 @@ import { Component, EventEmitter, Output, OnInit, Input } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { UnitService, Unit } from '../../../core/unit.service';
 import { ResourceService } from '../../../core/resource.service';
+import { Loading } from '../../../Shared/shared-components/loading/loading';
 import * as L from 'leaflet';
 declare const google: any;
 
 @Component({
   selector: 'app-create-new-visit',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, Loading],
   templateUrl: './create-new-visit.html',
   styleUrl: './create-new-visit.css'
 })
@@ -61,12 +62,22 @@ export class CreateNewVisit implements OnInit {
   private lmap?: L.Map | null = null;
   private lmarker?: L.Marker | null = null;
   useGoogle = false;
+  loading: boolean = false;
+  private pendingLoads = 0;
+  private markLoadingStart() { this.pendingLoads++; this.loading = true; }
+  private markLoadingEnd() { this.pendingLoads = Math.max(0, this.pendingLoads - 1); if (this.pendingLoads === 0) this.loading = false; }
 
 
   ngOnInit() {
-    this.unitService.getAll().subscribe(data => {
+    this.markLoadingStart();
+    this.unitService.getAll().subscribe({
+      next: (data) => {
       this.units = data;
+      },
+      error: () => {},
+      complete: () => { this.markLoadingEnd(); }
     });
+    this.markLoadingStart();
     this.resource.getAll('Projects').subscribe({
       next: (items) => {
         this.projects = (items || []).map((p: any) => ({
@@ -74,15 +85,17 @@ export class CreateNewVisit implements OnInit {
           name: p.name ?? p.projectName
         }));
       },
-      error: () => this.projects = []
+      error: () => { this.projects = []; },
+      complete: () => { this.markLoadingEnd(); }
     });
-
+    this.markLoadingStart();
     this.resource.getAll('Auth/technicians').subscribe({
       next: (items) => this.technicians = (items || []).map((t: any) => ({
         id: t.id,
         name: t.name || t.email || t.id
       })),
-      error: () => this.technicians = []
+      error: () => { this.technicians = []; },
+      complete: () => { this.markLoadingEnd(); }
     });
 
     // Pre-fill from Service Request if available

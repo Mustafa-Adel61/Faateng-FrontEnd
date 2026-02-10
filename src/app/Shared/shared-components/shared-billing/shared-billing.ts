@@ -4,6 +4,7 @@ import { Component, Input } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CreateNewBilling } from '../../../admin/pages/create-new-billing/create-new-billing';
 import { ResourceService } from '../../../core/resource.service';
+import { Loading } from '../loading/loading';
 interface Invoice {
   selected: boolean;
   Invoice: string;
@@ -17,7 +18,7 @@ interface Invoice {
 }
 @Component({
   selector: 'app-shared-billing',
-  imports: [NgFor, NgIf, FormsModule, CreateNewBilling, NgClass, SharedPageHeader],
+  imports: [NgFor, NgIf, FormsModule, CreateNewBilling, NgClass, SharedPageHeader, Loading],
   standalone: true,
   templateUrl: './shared-billing.html',
   styleUrl: './shared-billing.css'
@@ -54,11 +55,13 @@ export class SharedBilling {
   }
 
   constructor(private resourceService: ResourceService) { }
+  loading: boolean = false;
   loadTasks() {
     const params: any = {};
     if (this.role) {
       params.role = this.role;
     }
+    this.loading = true;
     this.resourceService.getAll('invoices', params).subscribe({
       next: (data: any[]) => {
         this.tasks = data.map(item => ({
@@ -72,10 +75,12 @@ export class SharedBilling {
           Status: item.status || item.Status || 'Unpaid',
           photos: item.photos || []
         }));
+        this.loading = false;
       },
       error: (err) => {
         console.error('Failed to load invoices, using mock data', err);
         this.loadMockData();
+        this.loading = false;
       }
     });
   }
@@ -336,11 +341,11 @@ export class SharedBilling {
       this.openDetails(task);
     } else if (action === 'delete') {
       if (!confirm(`Delete ${task.Invoice}?`)) return;
-      // حذف من المصدر
+      this.loading = true;
       const idx = this.tasks.indexOf(task);
       if (idx >= 0) this.tasks.splice(idx, 1);
-      // adjust pagination if needed
       if (this.page > this.totalPages) this.page = this.totalPages;
+      this.loading = false;
     }
   }
 
@@ -387,9 +392,11 @@ export class SharedBilling {
       // If we need ID, we might need to store it. Assuming Invoice Number is unique or we have ID.
       // If we don't have ID, we use Invoice number as ID for now.
       const id = task.id || task.Invoice; 
+      this.loading = true;
       this.resourceService.update('invoices', id, payload).subscribe({
         next: () => console.log('Invoice status updated'),
-        error: (err) => console.error('Failed to update invoice status', err)
+        error: (err) => console.error('Failed to update invoice status', err),
+        complete: () => { this.loading = false; }
       });
     }
   }
@@ -493,4 +500,3 @@ export class SharedBilling {
     return count;
   }
 }
-

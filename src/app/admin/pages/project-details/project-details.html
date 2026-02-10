@@ -79,7 +79,7 @@
               <th>Model</th>
               <th>Type</th>
               <th>Price</th>
-              <th>Quantity</th>
+              <!-- <th>Quantity</th> -->
             </tr>
           </thead>
           <tbody>
@@ -88,7 +88,7 @@
               <td>{{unit.model}}</td>
               <td>{{unit.type}}</td>
               <td>{{unit.price}}</td>
-              <td>{{unit.quantity}}</td>
+              <!-- <td>{{unit.quantity}}</td> -->
             </tr>
             <tr *ngIf="units.length === 0">
               <td colspan="5">No units found</td>
@@ -99,6 +99,20 @@
     </ng-container>
     <ng-container *ngIf="detailsTab==='Tasks'">
       <div class="table-container">
+        <table class="responsive-table" *ngIf="monthlyTasks.length">
+          <thead>
+            <tr>
+              <th>Month</th>
+              <th>Tasks</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let m of monthlyTasks">
+              <td>{{m.year}}-{{m.month | number:'2.0-0'}}</td>
+              <td>{{m.count}}</td>
+            </tr>
+          </tbody>
+        </table>
         <table class="responsive-table">
           <thead>
             <tr>

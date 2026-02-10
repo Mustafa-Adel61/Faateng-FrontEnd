@@ -1,3 +1,4 @@
+<app-loading [loading]="loading"></app-loading>
 <app-shared-page-header [createButtonLabel]="'CREATE UNIT'" [showCreateVisitButton]="role === 'admin'"
   (createVisit)="openCreateUnit()">
   <span breadcrumb>CRM &gt; Units</span>
@@ -74,9 +75,10 @@
         <div class="unit-photos" *ngIf="getUnitPhotos(filteredUnits[selectedUnitIndex]).length > 0">
           <h4>Attachments</h4>
           <div class="photos-grid">
-            <div *ngFor="let photo of getUnitPhotos(filteredUnits[selectedUnitIndex])" class="photo-thumb" (click)="openPhoto(photo)">
+            <div *ngFor="let photo of getUnitPhotos(filteredUnits[selectedUnitIndex])" class="photo-thumb"
+              (click)="openPhoto(photo)">
               <ng-container *ngIf="photo.startsWith('data:image') || photo.startsWith('http'); else pdfIcon">
-                 <img [src]="photo" alt="attachment">
+                <img [src]="photo" alt="attachment">
               </ng-container>
               <ng-template #pdfIcon>
                 <div class="pdf-placeholder">PDF</div>

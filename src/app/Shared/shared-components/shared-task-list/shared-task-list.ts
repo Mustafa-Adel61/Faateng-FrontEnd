@@ -1,5 +1,5 @@
 import { SharedPageHeader } from './../../shared-layout/shared-page-header/shared-page-header';
-import { Component, Input, OnInit, SimpleChanges } from '@angular/core';
+import { Component, Input, OnInit, SimpleChanges, inject } from '@angular/core';
 import { NgClass, NgFor, NgIf } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
@@ -10,6 +10,7 @@ import { TaskService, CreateTaskDto, TaskItem } from '../../../core/task.service
 import { CreateNewSuggestedRepair } from '../../../technician/pages/create-new-suggested-repair/create-new-suggested-repair';
 import { ResourceService } from '../../../core/resource.service';
 import { CreateNewInvoice } from '../../../admin/pages/create-new-invoice/create-new-invoice';
+import { ToastService } from '../../services/toast.service';
 
 interface Task {
   id?: number;
@@ -73,6 +74,7 @@ export class SharedTaskList implements OnInit {
 
   @Input() role: 'admin' | 'dispatcher' | 'manager' | 'technician' | 'finance' | null = null;
 
+  private toast: ToastService = inject(ToastService);
   constructor(private sanitizer: DomSanitizer, private taskService: TaskService, private resource: ResourceService) {
     this.mapUrl = this.sanitizer.bypassSecurityTrustResourceUrl(
       'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d53291.429!2d36.2165!3d33.5138!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x1518e75e1b2b1b2b%3A0x7d0b0b0b0b0b0b!2sDamascus!5e0!3m2!1sen!2ssy!4v1660000000000!5m2!1sen!2ssy'
@@ -236,8 +238,7 @@ export class SharedTaskList implements OnInit {
     if (action === 'view') {
       this.openDetails(task);
     } else if (action === 'edit') {
-      // تنفيذ edit: هنا مجرد alert مثال
-      alert(`Edit: ${task.name}`);
+      this.toast.show('تم فتح شاشة التعديل', 'info');
     } else if (action === 'delete') {
       if (!confirm(`Delete ${task.name}?`)) return;
            const id = String(task.id).replace('#', '');
@@ -246,9 +247,10 @@ export class SharedTaskList implements OnInit {
           const idx = this.tasks.indexOf(task);
           if (idx >= 0) this.tasks.splice(idx, 1);
           if (this.page > this.totalPages) this.page = this.totalPages;
+          this.toast.show('تم حذف المهمة بنجاح', 'success');
         },
         error: (err) => {
-          alert('Not authorized or failed to delete');
+          this.toast.show('غير مصرح أو فشل الحذف', 'error');
           console.error('Delete SuggestedRepair failed', err);
         }
       });
@@ -294,6 +296,7 @@ export class SharedTaskList implements OnInit {
       const index = this.tasks.findIndex(t => t?.id === task.id);
       if (index !== -1) {
         this.tasks[index].status = task.status;
+        this.toast.show('تم تحديث الحالة بنجاح', 'success');
       }
     });
   }
@@ -343,7 +346,7 @@ export class SharedTaskList implements OnInit {
         }
       }, err => {
         console.error(err);
-        alert('Error creating task: ' + err.message);
+        this.toast.show('فشل إنشاء الزيارة', 'error');
         this.showCreate = false;
         document.body.style.overflow = 'auto';
       });
@@ -406,7 +409,7 @@ export class SharedTaskList implements OnInit {
     this.resource.create('SuggestedRepairs', payload).subscribe({
       next: (res) => {
         console.log('Suggested Repair Created', res);
-        alert('Suggested Repair Created Successfully');
+        this.toast.show('تم إنشاء الإصلاح المقترح بنجاح', 'success');
         // Optionally update the task status to 'Waiting-Parts' or something
         if (this.selectedTaskForSuggestedRepair && this.selectedTaskForSuggestedRepair.id) {
           this.updateTaskStatus({ id: this.selectedTaskForSuggestedRepair.id, status: 'Waiting-Parts' });
@@ -415,7 +418,7 @@ export class SharedTaskList implements OnInit {
       },
       error: (err) => {
         console.error('Error creating suggested repair', err);
-        alert('Failed to create Suggested Repair');
+        this.toast.show('فشل إنشاء الإصلاح المقترح', 'error');
         this.closeCreateSuggestedRepair();
       }
     });
@@ -450,7 +453,7 @@ export class SharedTaskList implements OnInit {
     this.resource.create('Invoices', payload).subscribe({
       next: (res) => {
         console.log('Invoice Created', res);
-        alert('Invoice Created Successfully');
+        this.toast.show('تم إنشاء الفاتورة بنجاح', 'success');
         // Update Task status to 'Invoiced' if desired, or just keep as Done
         if (this.selectedTaskForInvoice && this.selectedTaskForInvoice.id) {
           // Maybe we don't change WO status, or maybe we do. 
@@ -460,10 +463,9 @@ export class SharedTaskList implements OnInit {
       },
       error: (err) => {
         console.error('Error creating invoice', err);
-        alert('Failed to create Invoice');
+        this.toast.show('فشل إنشاء الفاتورة', 'error');
         this.closeCreateInvoice();
       }
     });
   }
 }
-

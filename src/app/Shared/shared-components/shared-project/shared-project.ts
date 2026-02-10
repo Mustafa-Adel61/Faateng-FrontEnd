@@ -8,6 +8,7 @@ import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ResourceService } from '../../../core/resource.service';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
+import { Loading } from "../loading/loading";
 
 interface Task {
   id?: number; // Added id for backend operations
@@ -23,7 +24,7 @@ interface Task {
 }
 @Component({
   selector: 'app-shared-project',
-  imports: [FormsModule, NgIf, NgFor, CreateNewProject, ProjectDetails, SharedPageHeader],
+  imports: [FormsModule, NgIf, NgFor, CreateNewProject, ProjectDetails, SharedPageHeader, Loading],
   templateUrl: './shared-project.html',
   styleUrl: './shared-project.css'
 })
@@ -51,7 +52,7 @@ export class SharedProject {
   page = 1;
   pageSize = 10;
   @Input() role: 'admin' | 'dispatcher' | 'manager' | 'client' | 'finance' | null = null;
-
+  loading: boolean = false;
 
   ngOnInit(): void { this.loadTasks(); }
   tasks: Task[] = [];
@@ -66,7 +67,7 @@ export class SharedProject {
           Project: p.name || 'Unknown Project',
           Client: p.clientName || '',
           siteAddress: p.location || '',
-          Scopes: 0,
+          Scopes: p.scopesCount || 0,
           Units: Number(p.unitsCount ?? 0),
           OpenTasks: Number(p.tasksCount ?? 0),
           BookedValue: p.budget || 0,
@@ -88,21 +89,45 @@ export class SharedProject {
       // Implement delete
       if (confirm('Are you sure you want to delete this project?')) {
         if (task.id) {
-          this.resourceService.delete('Projects', task.id).subscribe(() => this.loadTasks());
+          this.loading = true;
+          this.resourceService.delete('Projects', task.id).subscribe({
+            next: () => {
+              this.loadTasks();
+              this.loading = false;
+            },
+            error: () => {
+              this.loadTasks();
+              this.loading = false;
+            }
+          });
         }
       }
     } else if (action === 'approve') {
       if (task.id) {
-        this.resourceService.update('Projects', task.id + '/approve', {}).subscribe(() => {
-          task.Status = 'Approved';
-          alert('Project Approved');
+        this.loading = true;
+        this.resourceService.update('Projects', task.id + '/approve', {}).subscribe({
+          next: () => {
+            task.Status = 'Approved';
+            alert('Project Approved');
+            this.loading = false;
+          },
+          error: () => {
+            this.loading = false;
+          }
         });
       }
     } else if (action === 'reject') {
       if (task.id) {
-        this.resourceService.update('Projects', task.id + '/reject', {}).subscribe(() => {
-          task.Status = 'Rejected';
-          alert('Project Rejected');
+        this.loading = true;
+        this.resourceService.update('Projects', task.id + '/reject', {}).subscribe({
+          next: () => {
+            task.Status = 'Rejected';
+            alert('Project Rejected');
+            this.loading = false;
+          },
+          error: () => {
+            this.loading = false;
+          }
         });
       }
     }
@@ -489,6 +514,7 @@ export class SharedProject {
   }
 
   addProject(newVisit: any) {
+        this.loading = true;
     const payload = {
       name: newVisit.projectName || 'New Project',
       description: newVisit.Notes_SpecialInstructio || '',
@@ -562,14 +588,18 @@ export class SharedProject {
     };
 
     this.resourceService.create('Projects', payload).subscribe({
+
       next: () => {
         this.loadTasks();
         this.page = 1;
         this.showCreate = false;
+        this.loading = false;
+
         document.body.style.overflow = 'auto';
       },
       error: () => {
         this.loadTasks();
+        this.loading = false;
         this.page = 1;
         this.showCreate = false;
         document.body.style.overflow = 'auto';

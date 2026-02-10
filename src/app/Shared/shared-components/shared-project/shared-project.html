@@ -1,16 +1,11 @@
+<app-loading [loading]="loading"></app-loading>
 
-<app-shared-page-header
- (createVisit)="openCreate()"
- [createButtonLabel]="'CREATE PROJECT'" 
-  [showCreateVisitButton]="true"
->
+<app-shared-page-header (createVisit)="openCreate()" [createButtonLabel]="'CREATE PROJECT'"
+  [showCreateVisitButton]="true">
   <span breadcrumb>CRM &gt; Projects</span>
 </app-shared-page-header>
 <!-- modal create -->
-<app-create-new-project
-  *ngIf="showCreate"
-  (close)="closeCreate()"
-  (save)="addProject($event)">
+<app-create-new-project *ngIf="showCreate" (close)="closeCreate()" (save)="addProject($event)">
 </app-create-new-project>
 
 <div class="task-list">
@@ -24,29 +19,26 @@
     <ng-container *ngIf="activeTab === 'list'">
       <!-- task-toolbar -->
       <div class="task-toolbar">
-  <!-- Left side: actions -->
-  <div class="toolbar-left">
+        <!-- Left side: actions -->
+        <div class="toolbar-left">
 
-    <button class="icon-btn">+</button>
-    <button class="icon-btn" (click)="toggleFilterBuilder()">
-      <img src="/assets/images/Vector3.png" alt="">
-    </button> <!-- هنا تحط أيقونة الفلتر -->
-    <button class="icon-btn">⇅</button> <!-- هنا أيقونة sort -->
-  </div>
+          <button class="icon-btn">+</button>
+          <button class="icon-btn" (click)="toggleFilterBuilder()">
+            <img src="/assets/images/Vector3.png" alt="">
+          </button> <!-- هنا تحط أيقونة الفلتر -->
+          <button class="icon-btn">⇅</button> <!-- هنا أيقونة sort -->
+        </div>
 
-  <!-- Right side: search -->
-  <div class="toolbar-right">
-     <div class="search-input">
+        <!-- Right side: search -->
+        <div class="toolbar-right">
+          <div class="search-input">
             <button><img class="search-icon" src="/assets/images/search.png" alt=""></button>
-            <input type="text"
-             class="forSearch"
-             [(ngModel)]="searchText" 
-             placeholder="Search" />
+            <input type="text" class="forSearch" [(ngModel)]="searchText" placeholder="Search" />
           </div>
-  </div>
-</div>
+        </div>
+      </div>
 
-  <!-- Filter Builder -->
+      <!-- Filter Builder -->
       <div class="filter-builder" *ngIf="showFilterBuilder">
         <h4>Add filter</h4>
         <div class="filter-row">
@@ -78,20 +70,17 @@
         </span>
         <button class="clear-btn" (click)="clearAllFilters()">Clear All</button>
       </div>
-<!-- selected count -->
-<div class="selected-count" *ngIf="selectedCount > 0">
-  {{ selectedCount }} row(s) selected
-</div>
+      <!-- selected count -->
+      <div class="selected-count" *ngIf="selectedCount > 0">
+        {{ selectedCount }} row(s) selected
+      </div>
       <table>
         <thead>
           <tr>
-             <th>
-               <input 
-               type="checkbox" 
-               [checked]="allSelected" 
-               (change)="allSelected = $event.target.checked; toggleAll()" 
-               (click)="$event.stopPropagation()"/>
-               </th>
+            <th>
+              <input type="checkbox" [checked]="allSelected" (change)="allSelected = $event.target.checked; toggleAll()"
+                (click)="$event.stopPropagation()" />
+            </th>
             <th class="faded">Project </th>
             <th class="faded">Client</th>
             <th class="faded">City</th>
@@ -124,23 +113,19 @@
 
 
 
-          <tr *ngFor="let task of pagedTasks"(click)="openDetails(task)">
-      <td data-label="Select">
-      <input 
-      type="checkbox" 
-      [(ngModel)]="task.selected" 
-      (change)="updateAllSelected()" 
-      (click)="$event.stopPropagation()"
-       />
-      </td>
-      <td class="faded" data-label="Project">{{task.Project}}</td>
-      <td class="faded" data-label="Client">{{task.Client}}</td>
-      <td class="faded" data-label="siteAddress">{{task.siteAddress}}</td>
-      <td class="faded" data-label="Scopes">{{task.Scopes}}</td>
-      <td class="faded" data-label="Units">{{task.Units}}</td>
-      <td class="faded" data-label="OpenTasks">{{task.OpenTasks}}</td>
-      <td class="faded" data-label="BookedValue">{{task.BookedValue}}</td>
-      <!-- <td data-label="Action">
+          <tr *ngFor="let task of pagedTasks" (click)="openDetails(task)">
+            <td data-label="Select">
+              <input type="checkbox" [(ngModel)]="task.selected" (change)="updateAllSelected()"
+                (click)="$event.stopPropagation()" />
+            </td>
+            <td class="faded" data-label="Project">{{task.Project}}</td>
+            <td class="faded" data-label="Client">{{task.Client}}</td>
+            <td class="faded" data-label="siteAddress">{{task.siteAddress}}</td>
+            <td class="faded" data-label="Scopes">{{task.Scopes}}</td>
+            <td class="faded" data-label="Units">{{task.Units}}</td>
+            <td class="faded" data-label="OpenTasks">{{task.OpenTasks}}</td>
+            <td class="faded" data-label="BookedValue">{{task.BookedValue}}</td>
+            <!-- <td data-label="Action">
         <a class="update-link" href="#">
           <img src="/assets/images/P1.png" alt="">
           <img src="/assets/images/PP2.png" alt="">
@@ -148,17 +133,19 @@
           <img src="/assets/images/P4.png" alt="">
         </a>
       </td> -->
-       <td (click)="$event.stopPropagation()">
-                <select class="action-row" (change)="onSelectChange(task, $event)">
+            <td (click)="$event.stopPropagation()">
+              <select class="action-row" (change)="onSelectChange(task, $event)">
                 <option value="">Actions</option>
                 <option value="view">View Details</option>
                 <!-- <option value="edit">Edit</option> -->
                 <option value="delete" *ngIf="role === 'admin'">Delete</option>
-                <option value="approve" *ngIf="(role === 'admin' || role === 'manager') && task.Status !== 'Approved'">Approve</option>
-                <option value="reject" *ngIf="(role === 'admin' || role === 'manager') && task.Status !== 'Rejected'">Reject</option>
-                </select>
+                <option value="approve" *ngIf="(role === 'admin' || role === 'manager') && task.Status !== 'Approved'">
+                  Approve</option>
+                <option value="reject" *ngIf="(role === 'admin' || role === 'manager') && task.Status !== 'Rejected'">
+                  Reject</option>
+              </select>
             </td>
-    </tr>
+          </tr>
         </tbody>
       </table>
 
@@ -177,13 +164,7 @@
     <!-- الخريطة -->
     <ng-container *ngIf="activeTab === 'map'">
       <div class="map-container">
-        <iframe
-          width="100%"
-          height="500"
-          frameborder="0"
-          style="border:0"
-          [src]="mapUrl"
-          allowfullscreen>
+        <iframe width="100%" height="500" frameborder="0" style="border:0" [src]="mapUrl" allowfullscreen>
         </iframe>
         <div class="map-caption">
           Damascus Boulevard<br />
@@ -195,8 +176,4 @@
 </div>
 
 
-<app-project-details
-  [taskss]="selectedTask"
-   *ngIf="showDetails"
-   (close)="closeDetails()"
-></app-project-details>
+<app-project-details [taskss]="selectedTask" *ngIf="showDetails" (close)="closeDetails()"></app-project-details>

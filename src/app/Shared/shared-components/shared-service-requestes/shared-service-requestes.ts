@@ -1,11 +1,12 @@
 import { SharedPageHeader } from './../../shared-layout/shared-page-header/shared-page-header';
-import { Component, Input, OnInit, SimpleChanges } from '@angular/core';
+import { Component, Input, OnInit, SimpleChanges, inject } from '@angular/core';
 import { NgClass, NgFor, NgIf } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { CreateNewVisit } from '../../../admin/pages/create-new-visit/create-new-visit';
 import { ResourceService } from '../../../core/resource.service';
 import { AuthService } from '../../../core/auth';
+import { ToastService } from '../../services/toast.service';
 
 interface Task {
   id?: number | string;
@@ -91,6 +92,7 @@ export class SharedServiceRequestes implements OnInit {
 
   @Input() role: 'client' | null = null;
 
+  private toastService: ToastService = inject(ToastService);
   constructor(private resource: ResourceService, private auth: AuthService) { }
 
   ngOnInit(): void {
@@ -230,7 +232,7 @@ export class SharedServiceRequestes implements OnInit {
       },
       error: (err) => {
         console.error('Failed to create service request', err);
-        alert('Failed to create service request');
+        this.toastService.show('فشل إنشاء الطلب', 'error');
       }
     });
   }
@@ -278,7 +280,7 @@ export class SharedServiceRequestes implements OnInit {
       },
       error: (err) => {
         console.error('Error creating Task', err);
-        alert('Task Created (Mock)');
+        this.toastService.show('تم إنشاء المهمة (نموذج)', 'info');
         this.closeCreateWorkOrder();
       }
     });

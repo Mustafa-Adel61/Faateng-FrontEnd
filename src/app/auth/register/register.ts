@@ -1,8 +1,9 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AuthService } from '../../core/auth';
 import { Router } from '@angular/router';
+import { ToastService } from '../../Shared/services/toast.service';
 
 @Component({
   selector: 'app-register',
@@ -14,6 +15,7 @@ export class Register {
   form: any;
   error = '';
   success = '';
+  private toast: ToastService = inject(ToastService);
 
   constructor(
     private fb: FormBuilder,
@@ -53,7 +55,8 @@ export class Register {
       next: () => {
         this.error = '';
         this.success = 'Account created successfully!';
-        setTimeout(() => this.router.navigate(['/login']), 1000);
+        this.toast.show(this.success, 'success');
+
       },
       error: (err) => {
         this.error = (err?.error || 'Registration failed');

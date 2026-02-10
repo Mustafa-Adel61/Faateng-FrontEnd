@@ -1,3 +1,4 @@
+<app-loading [loading]="loading"></app-loading>
 <div class="cnv-backdrop">
   <div class="cnv-modal">
     <button class="cnv-close" (click)="doClose()">✕</button>
@@ -27,11 +28,6 @@
             </div>
           </div>
           <div class="report-form-grid">
-
-
-
-
-
             <label>Project Name <span class="required">*</span>
               <input type="text" [(ngModel)]="form.projectName" name="projectName"
                 [ngClass]="{'input-error': submitted && !form.projectName}" />
@@ -39,7 +35,7 @@
 
             <label>Client/Company <span class="required">*</span>
               <select [(ngModel)]="selectedClientId" name="clientId"
-                [ngClass]="{'input-error': submitted && !selectedClientId}" (change)="onClientChange()">
+                [ngClass]="{'input-error': submitted && !selectedClientId}">
                 <option [ngValue]="null" disabled>Select Client</option>
                 <option *ngFor="let c of clients" [ngValue]="c.id">{{c.name}}</option>
               </select>
@@ -69,8 +65,7 @@
                       (keydown)="$event.stopPropagation()" (input)="$event.stopPropagation()">
                   </div>
                 </div>
-                <!-- <div class="error-text" *ngIf="submitted && !unitsList.some(u => u.isSelected)">Please select at least -->
-                <!-- one unit</div> -->
+                <div class="error-text" *ngIf="submitted && !hasSelectedUnits()">Please select at least one unit</div>
                 <div *ngIf="getFilteredUnits().length === 0" class="no-data">No units available.</div>
               </div>
             </div>

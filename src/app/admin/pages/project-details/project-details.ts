@@ -25,6 +25,7 @@ export class ProjectDetails implements OnChanges {
   projectFiles: string[] = [];
   projectImages: string[] = [];
   projectDocuments: string[] = [];
+  monthlyTasks: { year: number; month: number; count: number }[] = [];
 
   constructor(private resource: ResourceService) {}
 
@@ -47,6 +48,9 @@ export class ProjectDetails implements OnChanges {
         this.project = bundle?.project || null;
         this.units = bundle?.units || [];
         this.projectTasks = bundle?.tasks || [];
+        this.monthlyTasks = Array.isArray(bundle?.monthlyTasks)
+          ? bundle.monthlyTasks.map((x: any) => ({ year: x.year, month: x.month, count: x.count }))
+          : [];
         this.reports = bundle?.reports || [];
         this.invoices = bundle?.invoices || [];
         this.scopes = bundle?.contracts || [];
@@ -66,6 +70,7 @@ export class ProjectDetails implements OnChanges {
       error: () => {
         this.units = [];
         this.projectTasks = [];
+        this.monthlyTasks = [];
         this.reports = [];
         this.invoices = [];
         this.scopes = [];
