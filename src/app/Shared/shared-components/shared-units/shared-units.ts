@@ -22,9 +22,15 @@ export class SharedUnits implements OnInit {
   showCreateRequestModal: boolean = false;
   selectedUnitForRequest: any = null;
 
-  activeTab = 'Lifts';
+  activeTab = 'Elevator';
   selectedUnitIndex: number | null = null;
   cardsPerRow = 1; // This logic seems flawed if css grid is used, but keeping existing logic
+
+  allTabs = [
+    'Elevator', 'Escalator', 'Moving Walk',
+    'AHU', 'FCU', 'VRF / DX', 'Chiller', 'Cooling Tower',
+    'Pump', 'Exhaust/Supply Fan', 'Package / Rooftop Unit'
+  ];
 
   units: Unit[] = [];
   filteredUnits: Unit[] = [];
@@ -143,7 +149,6 @@ export class SharedUnits implements OnInit {
       }
     }
   }
-
   deleteUnit(unit: Unit) {
     if (!unit.id) return;
     if (!confirm('Are you sure you want to delete this unit? This will also remove it from inventory.')) return;

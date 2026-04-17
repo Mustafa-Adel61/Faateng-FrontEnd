@@ -11,6 +11,10 @@ export interface Unit {
   price: number;
   quantity: number;
   photos?: string[]; // array مباشرة
+  projectName?: string;
+  clientName?: string;
+  projectId?: number;
+  clientId?: string;
 }
 
 @Injectable({

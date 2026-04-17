@@ -6,6 +6,7 @@ import { Observable } from 'rxjs';
 export interface TaskItem {
   id: number;
   unitId: number;
+  projectId?: number;
   unit?: any;
   title: string;
   description?: string;
@@ -26,6 +27,7 @@ export interface TaskItem {
 
 export interface CreateTaskDto {
   unitId: number;
+  projectId?: number;
   title: string;
   description?: string;
   scheduledStart?: string;
@@ -50,6 +52,9 @@ export class TaskService {
   getAll(): Observable<TaskItem[]> {
     return this.http.get<TaskItem[]>(`${API_BASE_URL}/Tasks`);
   }
+  get(id: number): Observable<TaskItem> {
+    return this.http.get<TaskItem>(`${API_BASE_URL}/Tasks/${id}`);
+  }
 
   create(dto: CreateTaskDto): Observable<TaskItem> {
     return this.http.post<TaskItem>(`${API_BASE_URL}/Tasks`, dto);
@@ -65,6 +70,9 @@ export class TaskService {
     return this.http.put<TaskItem>(`${API_BASE_URL}/Tasks/${id}/status`, `"${status}"`, {
       headers: { 'Content-Type': 'application/json' }
     });
+  }
+  updateSchedule(id: number, scheduledStart: string, scheduledEnd: string): Observable<void> {
+    return this.http.put<void>(`${API_BASE_URL}/Tasks/${id}/schedule`, { scheduledStart, scheduledEnd });
   }
 
   calendar(from: string, to: string): Observable<TaskItem[]> {

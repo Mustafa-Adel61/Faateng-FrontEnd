@@ -151,13 +151,13 @@
     <p><strong>Start Date:</strong> {{selected?.StartDate }}</p>
     <p><strong>End Date:</strong> {{ selected?.EndDate }}</p>
     <p><strong>Terms:</strong> {{ selected?.Terms }}</p>
-    <!-- <p><strong>Unit Type:</strong> {{ selected?.Units }}</p> -->
-    <div *ngIf="detailsPhotos?.length" style="margin-top:12px;">
-      <h3>Contract Photos</h3>
-      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px;">
-        <img *ngFor="let img of detailsPhotos" [src]="img" alt="contract photo" (click)="openInNewTab(img)"
-          style="width:100%;height:100px;object-fit:cover;border-radius:6px;border:1px solid #eee;" />
-      </div>
+    <div *ngIf="selected?.raw?.Units?.length" style="margin-top:12px;">
+      <h3>Linked Units</h3>
+      <ul>
+        <li *ngFor="let u of selected.raw.Units">
+          {{ u.serial }} - {{ u.model }} ({{ u.type }})
+        </li>
+      </ul>
     </div>
   </div>
 </div>

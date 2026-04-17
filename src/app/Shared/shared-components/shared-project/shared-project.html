@@ -81,69 +81,43 @@
               <input type="checkbox" [checked]="allSelected" (change)="allSelected = $event.target.checked; toggleAll()"
                 (click)="$event.stopPropagation()" />
             </th>
-            <th class="faded">Project </th>
-            <th class="faded">Client</th>
-            <th class="faded">City</th>
-            <th class="faded">Scopes</th>
-            <th class="faded">Units</th>
-            <th class="faded">Open Tasks</th>
-            <th class="faded">Booked Value</th>
-            <th class="faded">Action</th>
+            <th class="faded">PROJECT</th>
+            <th class="faded">CLIENT</th>
+            <th class="faded">CITY</th>
+            <th class="faded">SCOPES</th>
+            <th class="faded">UNITS</th>
+            <th class="faded">OPEN TASKS</th>
+            <th class="faded">BOOKED VALUE</th>
+            <th class="faded">ACTION</th>
           </tr>
         </thead>
         <tbody>
-          <!-- <tr *ngFor="let task of pagedTasks">
-             <td>
-        <input type="checkbox" [(ngModel)]="task.selected" (change)="updateAllSelected()"/>
-      </td>
-            <td class="faded">{{task.clientOrCompanyName}}</td>
-            <td class="faded">{{task.projectName}}</td>
-            <td class="faded">{{task.ProjectType}}</td>
-            <td class="faded">{{task.PrimeContactName}}</td>
-            <td class="faded">{{task.jopTitle}}</td>
-            <td class="faded">{{task.phoneNumber}}</td>
-            <td ><a class="update-link" href="#">
-              <img src="/assets/images/P1.png" alt="">
-              <img src="/assets/images/PP2.png" alt="">
-              <img src="/assets/images/PP3.png" alt="">
-              <img src="/assets/images/P4.png" alt="">
-
-            </a></td>
-          </tr> -->
-
-
-
           <tr *ngFor="let task of pagedTasks" (click)="openDetails(task)">
             <td data-label="Select">
               <input type="checkbox" [(ngModel)]="task.selected" (change)="updateAllSelected()"
                 (click)="$event.stopPropagation()" />
             </td>
-            <td class="faded" data-label="Project">{{task.Project}}</td>
-            <td class="faded" data-label="Client">{{task.Client}}</td>
-            <td class="faded" data-label="siteAddress">{{task.siteAddress}}</td>
+            <td class="faded" data-label="Project">
+              <div class="project-info-cell">
+                <span class="project-name-text" [title]="task.Project">{{task.Project}}</span>
+                <span class="project-id-subtext">{{task.ProjectIdStr || 'PRJ-' + task.id}}</span>
+              </div>
+            </td>
+            <td class="faded" data-label="Client">
+              <span class="text-ellipsis" [title]="task.Client">{{task.Client}}</span>
+            </td>
+            <td class="faded" data-label="City">
+              <div class="location-cell">
+                <span class="city-text">{{task.siteAddress}}</span>
+                <span class="text-ellipsis location-ellipsis address-subtext" [title]="task.siteAddress">{{task.siteAddress}}</span>
+              </div>
+            </td>
             <td class="faded" data-label="Scopes">{{task.Scopes}}</td>
             <td class="faded" data-label="Units">{{task.Units}}</td>
             <td class="faded" data-label="OpenTasks">{{task.OpenTasks}}</td>
-            <td class="faded" data-label="BookedValue">{{task.BookedValue}}</td>
-            <!-- <td data-label="Action">
-        <a class="update-link" href="#">
-          <img src="/assets/images/P1.png" alt="">
-          <img src="/assets/images/PP2.png" alt="">
-          <img src="/assets/images/PP3.png" alt="">
-          <img src="/assets/images/P4.png" alt="">
-        </a>
-      </td> -->
+            <td class="faded" data-label="BookedValue">{{task.BookedValue }}</td>
             <td (click)="$event.stopPropagation()">
-              <select class="action-row" (change)="onSelectChange(task, $event)">
-                <option value="">Actions</option>
-                <option value="view">View Details</option>
-                <!-- <option value="edit">Edit</option> -->
-                <option value="delete" *ngIf="role === 'admin'">Delete</option>
-                <option value="approve" *ngIf="(role === 'admin' || role === 'manager') && task.Status !== 'Approved'">
-                  Approve</option>
-                <option value="reject" *ngIf="(role === 'admin' || role === 'manager') && task.Status !== 'Rejected'">
-                  Reject</option>
-              </select>
+              <button class="open-btn" (click)="openDetails(task)">Open</button>
             </td>
           </tr>
         </tbody>

@@ -23,6 +23,10 @@
     
     <li class="section-title">Compliance</li>
     <li><a routerLink="/client/reports-compliance" routerLinkActive="active"(click)="scrollToTop()">Reports & Compliance</a></li>
+    
+    <li class="section-title">CHECKLIST</li>
+    <li><a [routerLink]="getChecklistLink()" routerLinkActive="active" (click)="scrollToTop()">Checklist</a></li>
+
     <li class="section-title">Logout</li>
     <li><a (click)="logout()">Log Out</a></li>
     <li class="divider"></li>

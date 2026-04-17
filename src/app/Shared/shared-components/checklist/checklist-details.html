@@ -1,0 +1,39 @@
+<div class="details-container" *ngIf="submission">
+  <div class="header">
+    <button [routerLink]="[getDashboardPath(), 'checklist-list']" class="btn-back">← Back to List</button>
+    <h2>Checklist Details</h2>
+  </div>
+
+  <div class="info-card">
+    <div class="info-grid">
+      <div class="info-item"><label>Site</label> <span>{{ submission.site }}</span></div>
+      <div class="info-item"><label>Unit ID</label> <span>{{ submission.unitId }}</span></div>
+      <div class="info-item"><label>Technician</label> <span>{{ submission.technicianName }}</span></div>
+      <div class="info-item"><label>Date</label> <span>{{ formatDate(submission.date) }}</span></div>
+      <div class="info-item"><label>System</label> <span>{{ submission.systemType }}</span></div>
+      <div class="info-item"><label>Frequency</label> <span>{{ submission.frequency }}</span></div>
+      <div class="info-item"><label>Client</label> <span>{{ submission.clientName }}</span></div>
+    </div>
+  </div>
+
+  <div class="answers-section">
+    <h3>Answers</h3>
+    <div *ngFor="let a of submission.answers" class="answer-card">
+      <div class="answer-header">
+        <p class="question-text">{{ submission.language === 'Arabic' ? a.questionTextAr : a.questionTextEn }}</p>
+        <span class="status-badge" [class]="a.status.toLowerCase()">{{ a.status }}</span>
+      </div>
+      <p class="category">Category: {{ a.category }}</p>
+      <div class="answer-content">
+        <p *ngIf="a.numericValue !== null" class="numeric"><strong>Numeric Value:</strong> {{ a.numericValue }}</p>
+        <p *ngIf="a.notes" class="notes"><strong>Notes:</strong> {{ a.notes }}</p>
+        <div *ngIf="a.photoUrl" class="photo-preview">
+          <strong>Attached Photo:</strong>
+          <img [src]="a.photoUrl" alt="Answer Photo">
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div *ngIf="isLoading" class="loading">Loading details...</div>

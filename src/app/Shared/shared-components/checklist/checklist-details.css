@@ -1,0 +1,110 @@
+.details-container {
+  padding: 20px;
+  max-width: 1200px;
+  margin: auto;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.btn-back {
+  background: #f8f9fa;
+  border: 1px solid #e0e0e0;
+  padding: 8px 15px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.info-card {
+  background: #fff;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  margin-bottom: 30px;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 20px;
+}
+
+.info-item label {
+  display: block;
+  font-size: 0.8rem;
+  color: #777;
+  margin-bottom: 5px;
+}
+
+.info-item span {
+  font-weight: 600;
+  color: #333;
+}
+
+.answers-section {
+  margin-top: 30px;
+}
+
+.answer-card {
+  background: #fff;
+  border: 1px solid #f0f0f0;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 15px;
+}
+
+.answer-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.question-text {
+  font-weight: 600;
+  color: #333;
+  margin: 0;
+}
+
+.status-badge {
+  padding: 5px 12px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: bold;
+}
+
+.status-badge.pass { background: #e8f5e9; color: #2e7d32; }
+.status-badge.fail { background: #ffebee; color: #c62828; }
+.status-badge.na { background: #eeeeee; color: #616161; }
+
+.category {
+  font-size: 0.8rem;
+  color: #777;
+  margin: 0 0 10px 0;
+}
+
+.answer-content {
+  margin-top: 15px;
+  border-top: 1px solid #f9f9f9;
+  padding-top: 15px;
+}
+
+.notes {
+  margin-bottom: 15px;
+}
+
+.photo-preview img {
+  max-width: 300px;
+  display: block;
+  margin-top: 10px;
+  border-radius: 4px;
+}
+
+.loading {
+  text-align: center;
+  padding: 50px;
+}

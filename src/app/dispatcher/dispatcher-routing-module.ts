@@ -12,6 +12,9 @@ import { Training } from './pages/training/training';
 import { UnitManuals } from './pages/unit-manuals/unit-manuals';
 import { Units } from './pages/units/units';
 import { ServiceRequests } from './pages/service-requests/service-requests';
+import { ChecklistFlow } from '../Shared/shared-components/checklist/checklist-flow';
+import { ChecklistList } from '../Shared/shared-components/checklist/checklist-list';
+import { ChecklistDetails } from '../Shared/shared-components/checklist/checklist-details';
 
 const routes: Routes = [
  
@@ -19,6 +22,9 @@ const routes: Routes = [
       { path: 'archive', component: Archive },
       { path: 'calendar', component: Calendar },
       {path:'checklists',component:Checklists},
+      {path:'checklist',component:ChecklistFlow},
+      {path:'checklist-list',component:ChecklistList},
+      {path:'checklist-details/:id',component:ChecklistDetails},
       {path:'dispatcher-view',component:DispatcherView},
       {path:'fault-codes',component:FaultCodes},
       {path:'inventory',component:Inventory},

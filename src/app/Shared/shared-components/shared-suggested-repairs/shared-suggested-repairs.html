@@ -8,6 +8,8 @@
 
 </app-create-new-suggested-repair>
 
+<app-loading [loading]="loadingList || loadingSave || loadingDetails"></app-loading>
+
 
 <div class="task-list">
 
@@ -123,14 +125,12 @@
             <input type="checkbox" [checked]="allSelected" (change)="allSelected = $event.target.checked; toggleAll()"
               (click)="$event.stopPropagation()" />
           </th>
-          <th class="faded">Code</th>
           <th class="faded">Project Name</th>
-          <th class="faded">Technical Name</th>
+          <th class="faded">Technician Name</th>
           <th class="faded">Unit Type</th>
           <th class="faded">Location</th>
           <th class="faded">Issue Description</th>
           <th class="faded">Suggested Repair</th>
-          <th class="faded">AI</th>
           <!-- ضيفت اتنين -->
           <th class="faded">Priority</th>
           <th class="faded">Status</th>
@@ -163,19 +163,23 @@
             <input type="checkbox" [(ngModel)]="task.selected" (change)="updateAllSelected()"
               (click)="$event.stopPropagation()" />
           </td>
-          <td class="faded" data-label="Code">{{task.Code}}</td>
-          <td class="faded" data-label="Project Name">{{task.ProjectName}}</td>
-          <td class="faded" data-label="Technical Name">{{task.TechnicalName}}</td>
-          <td class="faded" data-label="Unit Type">{{task.UnitType}}</td>
-          <td class="faded" data-label="Location">{{task.Location}}</td>
-          <td class="faded" data-label="Issue Description">{{task.IssueDescription}}</td>
-          <td class="faded" data-label="Suggested Repair">{{task.SuggestedRepair}}</td>
-          <td class="faded">
-            <div class="progress-container">
-              <div class="progress-bar" [style.width.%]="task.Score" [ngClass]="getProgressColor(task.Score)">
-              </div>
-            </div>
-            <span class="progress-label">{{ task.Score }}%</span>
+          <td class="faded" data-label="Project Name">
+            <span class="text-ellipsis project-name-ellipsis" [title]="task.ProjectName">{{task.ProjectName}}</span>
+          </td>
+          <td class="faded" data-label="Technician Name">
+            <span class="text-ellipsis" [title]="task.TechnicalName">{{task.TechnicalName}}</span>
+          </td>
+          <td class="faded" data-label="Unit Type">
+            <span class="text-ellipsis" [title]="task.UnitType">{{task.UnitType}}</span>
+          </td>
+          <td class="faded" data-label="Location">
+            <span class="text-ellipsis location-ellipsis" [title]="task.Location">{{task.Location}}</span>
+          </td>
+          <td class="faded" data-label="Issue Description">
+            <span class="text-ellipsis objective-ellipsis" [title]="task.IssueDescription">{{task.IssueDescription}}</span>
+          </td>
+          <td class="faded" data-label="Suggested Repair">
+            <span class="text-ellipsis objective-ellipsis" [title]="task.SuggestedRepair">{{task.SuggestedRepair}}</span>
           </td>
           <!-- <td data-label="Priority">
     <span [ngClass]="getPriorityClass(i)" class="priority-pill">
@@ -227,10 +231,9 @@
 
 <!-- details panel (simple modal-ish) -->
 <div class="details-overlay" *ngIf="showDetails">
-  <div class="details-panel">
+  <div class="details-panel">openDetails
     <button class="close-btn" (click)="closeDetails()">×</button>
     <h3>{{ selectedTask?.ProjectName }}</h3>
-
     <span class="details-span" [ngClass]="{
                 'status-UnderReview': selectedTask?.Status === 'Under Review',
                 'status-Approved': selectedTask?.Status === 'Approved',
@@ -260,24 +263,22 @@
     <p><strong>Date:</strong> {{ selectedTask?.IssueDescription }}</p>
     <p><strong>Score:</strong> {{ selectedTask?.Score }}%</p>
     <p><strong>Photo:</strong></p>
-    <!-- photo -->
-    <!-- <div class="thumbnail-row" *ngIf="selectedTask?.images">
-        <img 
-          *ngFor="let photo of selectedTask?.images" 
-          [src]="photo" 
-          alt="Thumbnail" 
-        >
-      </div> -->
+    <!-- photo
+    <div class="thumbnail-row" *ngIf="selectedTask?.images?.length">
+      <img *ngFor="let photo of selectedTask?.images" [src]="photo" alt="Thumbnail" (click)="setMainImage(photo)"
+        [class.active-thumbnail]="photo === mainImage">
+    </div> -->
 
 
     <div class="photoGallery">
 
-      <div class="thumbnail-row" *ngIf="selectedTask?.images">
-        <img *ngFor="let photo of selectedTask?.images" [src]="photo" alt="Thumbnail" (click)="setMainImage(photo)"
+      <!-- <div class="thumbnail-row" *ngIf="selectedTask?.images?.length">
+        <img *ngFor="let photo of selectedTask?.images" [src]="photo" alt="Thumbnail" (click)="onThumbnailClick(photo)"
           [class.active-thumbnail]="photo === mainImage">
-      </div>
-      <div class="main-photo-area">
-        <img [src]="mainImage" alt="Main Work Photo" *ngIf="mainImage" class="main-report-photo" (click)="openInNewTab(mainImage)">
+      </div> -->
+      <h1> {{ selectedTask?.images?.[0] }}</h1>
+      <div class="main-photo-area" *ngFor="let s of selectedTask?.images">
+        <img [src]="s" alt="Main Work Photo" class="main-report-photo" (click)="openInNewTab(mainImage)">
       </div>
     </div>
   </div>

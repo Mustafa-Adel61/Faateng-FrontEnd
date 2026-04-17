@@ -6,3 +6,26 @@ html, body {
   width: 100%;
   height: 100%;
 }
+
+/* Global Ellipsis for Table Cells */
+.text-ellipsis {
+  max-width: 150px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+/* Specific for Long Objectives/Descriptions */
+.objective-ellipsis {
+  max-width: 200px;
+}
+
+.project-name-ellipsis {
+  max-width: 180px;
+}
+
+.location-ellipsis {
+  max-width: 150px;
+}

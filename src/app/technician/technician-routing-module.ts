@@ -9,12 +9,18 @@ import { SuggestedRepairs } from './pages/suggested-repairs/suggested-repairs';
 import { TaskList } from './pages/task-list/task-list';
 import { Training } from './pages/training/training';
 import { UnitManuals } from './pages/unit-manuals/unit-manuals';
+import { ChecklistFlow } from '../Shared/shared-components/checklist/checklist-flow';
+import { ChecklistList } from '../Shared/shared-components/checklist/checklist-list';
+import { ChecklistDetails } from '../Shared/shared-components/checklist/checklist-details';
 
 const routes: Routes = [
   
         { path: '', redirectTo: 'task-list', pathMatch: 'full' },
         { path: 'calendar', component: Calendar },
         {path:'checklists',component:Checklists},
+        {path:'checklist',component:ChecklistFlow},
+        {path:'checklist-list',component:ChecklistList},
+        {path:'checklist-details/:id',component:ChecklistDetails},
         {path:'fault-codes',component:FaultCodes},
         {path:'inventory',component:Inventory},
         {path:'suggested-repairs',component:SuggestedRepairs},

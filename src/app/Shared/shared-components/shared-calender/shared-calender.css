@@ -7,8 +7,9 @@
   color: #606060;
   font-family: 'Roboto', sans-serif;
 }
+
 .todayButton {
-  cursor: pointer; 
+  cursor: pointer;
   border: none;
   color: #606060;
   box-shadow: 0px 1px 2px rgba(34, 34, 34, 0.2);
@@ -17,55 +18,63 @@
   top: 1px;
   left: 1px;
   margin-left: 30px;
-opacity: 1;
-border-radius: 6px;
-border-width: 2px;
-padding-top: 10px;
-padding-right: 20px;
-padding-bottom: 10px;
-padding-left: 20px;
-gap: 10px;
-background: #FFFFFF;
-  font-weight: bold;   /* هنا خلي الخط Bold */
+  opacity: 1;
+  border-radius: 6px;
+  border-width: 2px;
+  padding-top: 10px;
+  padding-right: 20px;
+  padding-bottom: 10px;
+  padding-left: 20px;
+  gap: 10px;
+  background: #FFFFFF;
+  font-weight: bold;
+  /* هنا خلي الخط Bold */
 }
+
 .ChangeDay {
   background: #FFFFFF;
   box-shadow: 0px 0px 2px rgba(34, 34, 34, 0.2);
   margin: 10px;
-  cursor: pointer; 
+  cursor: pointer;
   border: none;
   width: 100;
-height: 100;
-top: 1px;
-left: 652px;
-opacity: 1;
-border-radius: 100%;
-padding: 12px;
-  }
-  .ChangeDay img {
-    width: 6.15px;
-    height: 10.42px;
-    top: 8.4px;
-    left: 11.2px;
-  }
+  height: 100;
+  top: 1px;
+  left: 652px;
+  opacity: 1;
+  border-radius: 100%;
+  padding: 12px;
+}
+
+.ChangeDay img {
+  width: 6.15px;
+  height: 10.42px;
+  top: 8.4px;
+  left: 11.2px;
+}
+
 .calendar-range {
   font-weight: bold;
   font-size: 15px;
-opacity: 1;
-top: 11px;
-left: 726px;
+  opacity: 1;
+  top: 11px;
+  left: 726px;
 }
+
 .calendar-navigation {
   display: flex;
   align-items: center;
-  justify-content: center; /* يخلي العناصر في النص بالعرض */
+  justify-content: center;
+  /* يخلي العناصر في النص بالعرض */
   gap: 8px;
   /* بعير فيها عشان اغير مكانه في النص  */
-  width: 59% ;
+  width: 59%;
 }
+
 .view-switch {
   margin-left: auto;
 }
+
 .view-switch button {
   /* cursor: pointer;  */
   border: none;
@@ -75,31 +84,36 @@ left: 726px;
   height: 40px;
   top: 1px;
   left: 1px;
-opacity: 1;
-border-width: 2px;
-padding-top: 10px;
-padding-right: 20px;
-padding-bottom: 10px;
-padding-left: 15px;
-gap: 10px;
-background: #FFFFFF;
-font-family: Roboto;
-font-weight: bold;   /* هنا خلي الخط Bold */
+  opacity: 1;
+  border-width: 2px;
+  padding-top: 10px;
+  padding-right: 20px;
+  padding-bottom: 10px;
+  padding-left: 15px;
+  gap: 10px;
+  background: #FFFFFF;
+  font-family: Roboto;
+  font-weight: bold;
+  /* هنا خلي الخط Bold */
 
 }
+
 .view-switch button.active {
   /* background: ; */
   color: #050101;
 }
-.yearButton{
 
-border-top-left-radius: 6px;
-border-bottom-left-radius: 6px;
+.yearButton {
+
+  border-top-left-radius: 6px;
+  border-bottom-left-radius: 6px;
 }
-.dayButton{
-border-top-right-radius: 6px;
-border-bottom-right-radius: 6px;
+
+.dayButton {
+  border-top-right-radius: 6px;
+  border-bottom-right-radius: 6px;
 }
+
 .calendar-table {
   width: 100%;
   background: #fff;
@@ -107,24 +121,29 @@ border-bottom-right-radius: 6px;
   overflow: visible;
   box-shadow: 0 1px 3px #0001;
   margin-left: 10px;
-  border-top: 1px solid #F5F6F7;   /* 🔹 حد من فوق */
-  border-bottom: 1px solid #F5F6F7; /* 🔹 حد من تحت */
+  border-top: 1px solid #F5F6F7;
+  /* 🔹 حد من فوق */
+  border-bottom: 1px solid #F5F6F7;
+  /* 🔹 حد من تحت */
   border-left: none;
   border-right: none;
 
 
 
-   margin-left: 0 !important; /* يشيل أي مسافة ناحية الشمال */
+  margin-left: 0 !important;
+  /* يشيل أي مسافة ناحية الشمال */
   border-collapse: collapse;
 }
 
 .calendar-row {
   display: flex;
 }
+
 .calendar-header-row {
   font-weight: bold;
-  height: 60px;  
+  height: 60px;
 }
+
 .calendar-cell {
   flex: 1;
   border-right: 1px solid #f0f0f0;
@@ -134,15 +153,19 @@ border-bottom-right-radius: 6px;
   position: relative;
   color: #606060;
   display: flex;
-  align-items: center;           /* يخلي النص في النص بالطول */
-  justify-content: center;       /* يخلي النص في النص بالعرض */
-  padding: 0;                    /* تلغي البادينج */
+  align-items: center;
+  /* يخلي النص في النص بالطول */
+  justify-content: center;
+  /* يخلي النص في النص بالعرض */
+  padding: 0;
+  /* تلغي البادينج */
   /*min-height: unset;             /* تشيل الوراثة من باقي الصفوف */
   font-size: 14px;
 }
 
- .time-cell {
-  flex: 0 0 30px;   /* يمنع التمدد ويثبت العرض */
+.time-cell {
+  flex: 0 0 30px;
+  /* يمنع التمدد ويثبت العرض */
   width: 40px;
   text-align: right;
   padding-right: 10px;
@@ -151,7 +174,8 @@ border-bottom-right-radius: 6px;
   color: #BBBBBB;
   /* border-right: 1px solid #e0e0e0; */
 }
-.time-cell img{
+
+.time-cell img {
   width: 16px;
   height: 16px;
   /* margin-top: 18px;
@@ -159,20 +183,23 @@ border-bottom-right-radius: 6px;
   padding-left: 8px;
   padding-right: 1px;
   padding-top: 6px;
-justify-content: center;
+  justify-content: center;
 }
 
 .calendar-task {
-    margin: 2px 0;
-  background: #eafbe7; 
+  margin: 2px 0;
+  background: #eafbe7;
   border-radius: 8px;
-  padding: 8px 10px;        /* قللت البادينج */
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  padding: 8px 10px;
+  /* قللت البادينج */
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   font-family: 'Roboto', sans-serif;
-  font-size: 12px;          /* صغرت الخط الأساسي */
+  font-size: 12px;
+  /* صغرت الخط الأساسي */
   display: flex;
   flex-direction: column;
-  gap: 4px;                 /* قللت المسافات */
+  gap: 4px;
+  /* قللت المسافات */
   cursor: pointer;
 }
 
@@ -181,31 +208,37 @@ justify-content: center;
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  gap: 1px;                /* قللت المسافة بين اليمين والشمال */
+  gap: 1px;
+  /* قللت المسافة بين اليمين والشمال */
 }
 
 .task-left {
   display: flex;
   flex-direction: column;
-  gap: 2px;                 /* مسافات أصغر بين العناصر */
+  gap: 2px;
+  /* مسافات أصغر بين العناصر */
 }
-.task-right{
+
+.task-right {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
   padding-top: 15px;
-  gap: 2px;                 /* مسافات أصغر بين العناصر */
+  gap: 2px;
+  /* مسافات أصغر بين العناصر */
 }
 
 .task-left .label,
 .task-right .label {
-  font-size: 11px;          /* خط أصغر */
+  font-size: 11px;
+  /* خط أصغر */
   color: #777;
 }
 
 .task-left .value,
 .task-right .value {
-  font-size: 12px;          /* متوافق مع حجم الخلية */
+  font-size: 12px;
+  /* متوافق مع حجم الخلية */
   font-weight: 600;
   color: #333;
 }
@@ -213,13 +246,15 @@ justify-content: center;
 .time-tags {
   display: flex;
   gap: 5px;
- margin-top: 2px;
+  margin-top: 2px;
 }
 
 .time-tag {
-  background: rgba(0,0,0,0.15); /* يبان أغمق من لون الباكجراوند */
+  background: rgba(0, 0, 0, 0.15);
+  /* يبان أغمق من لون الباكجراوند */
   color: #000;
-  font-size: 10px;          /* أصغر */
+  font-size: 10px;
+  /* أصغر */
   font-weight: bold;
   padding: 5px 7px;
   border-radius: 4px;
@@ -231,10 +266,13 @@ justify-content: center;
 /* Button */
 /* مكان الخلية لازم relative */
 .calendar-cell {
-  position: relative;      /* مهم جداً */
+  position: relative;
+  /* مهم جداً */
   z-index: 0;
-  overflow: visible;       /* لو كان hidden — ممكن يخفي overlay */
-  pointer-events: auto;    /* تأكد إن الخلية تستقبل pointer events */
+  overflow: visible;
+  /* لو كان hidden — ممكن يخفي overlay */
+  pointer-events: auto;
+  /* تأكد إن الخلية تستقبل pointer events */
 }
 
 /* overlay شفاف لكن يسمح للزر باستقبال الكليك */
@@ -244,15 +282,19 @@ justify-content: center;
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;           /* أعلى من محتويات الخلية */
-  pointer-events: none;    /* لخلي الخلفية لا تمنع الكليك — الزر سيستلم الكليك */
-  background: rgba(0,0,0,0.18); /* optional لتظليل بسيط عند hover */
+  z-index: 1000;
+  /* أعلى من محتويات الخلية */
+  pointer-events: none;
+  /* لخلي الخلفية لا تمنع الكليك — الزر سيستلم الكليك */
+  background: rgba(0, 0, 0, 0.18);
+  /* optional لتظليل بسيط عند hover */
   border-radius: 6px;
 }
 
 /* الزر نفسه يستقبل الكليك */
 .add-task-cell-btn {
-  pointer-events: auto;    /* الزر يستقبل الكليك فعلاً */
+  pointer-events: auto;
+  /* الزر يستقبل الكليك فعلاً */
   z-index: 1001;
   background-color: #ffcc00;
   border: none;
@@ -262,11 +304,12 @@ justify-content: center;
   font-size: 20px;
   cursor: pointer;
   font-weight: 700;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.18);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
 }
 
 /* لو في عناصر فوق الجدول ممكن تقلل z-index تبعهم */
-.calendar-table, .calendar-row {
+.calendar-table,
+.calendar-row {
   z-index: 0;
   pointer-events: auto;
 }
@@ -281,12 +324,13 @@ justify-content: center;
   background: #f1c000;
   transform: scale(1.05);
 }
+
 /* ال form الاخيره  */
 /* ✅ Popup Style */
 .create-form-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.5);
+  background: rgba(0, 0, 0, 0.5);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -297,7 +341,7 @@ justify-content: center;
   background: #fff;
   padding: 20px 30px;
   border-radius: 12px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
   width: 320px;
   display: flex;
   flex-direction: column;
@@ -322,7 +366,8 @@ justify-content: center;
   margin-top: 10px;
 }
 
-.save-btn, .cancel-btn {
+.save-btn,
+.cancel-btn {
   padding: 8px 16px;
   border: none;
   border-radius: 6px;
@@ -338,10 +383,12 @@ justify-content: center;
 .cancel-btn {
   background: #ccc;
 }
+
 /* ظظظظظظظظظظظظظظظظظظظظظظظظظظ */
 .calendar-cell {
   position: relative;
-  overflow: visible ; /* مهم عشان الزرار ما يختفيش */
+  overflow: visible;
+  /* مهم عشان الزرار ما يختفيش */
   z-index: 1;
 }
 
@@ -351,19 +398,23 @@ justify-content: center;
   display: flex;
   justify-content: center;
   align-items: center;
-  pointer-events: none; /* overlay نفسه مش يستقبل الكليك */
+  pointer-events: none;
+  /* overlay نفسه مش يستقبل الكليك */
   z-index: 10;
 }
 
 .add-task-btn {
-  position: absolute; /* يفضل جوه مكانه في الصفحة */
-  left: 55%; /* يجي في نص العرض */
-  transform: translateX(-50%); /* علشان يكون في النص بالضبط */
-  
+  position: absolute;
+  /* يفضل جوه مكانه في الصفحة */
+  left: 55%;
+  /* يجي في نص العرض */
+  transform: translateX(-50%);
+  /* علشان يكون في النص بالضبط */
+
   display: flex;
   justify-content: center;
   align-items: center;
-  
+
   pointer-events: auto;
   background: #ffcc00;
   border: none;
@@ -386,14 +437,14 @@ justify-content: center;
 /* ====== شبكة التقويم الأساسية ====== */
 .calendar-row {
   display: grid;
-  grid-template-columns: 60px repeat(7, 1fr);
+  /* grid-template-columns set dynamically in HTML */
   border-bottom: 1px solid #f0f0f0;
   min-height: 80px;
 }
 
 .calendar-header-row {
   display: grid;
-  grid-template-columns: 60px repeat(7, 1fr);
+  /* grid-template-columns set dynamically in HTML */
   background: #fafafa;
   font-weight: 600;
   border-bottom: 1px solid #ddd;
@@ -405,25 +456,40 @@ justify-content: center;
   border-right: 1px solid #f0f0f0;
   border-bottom: 1px solid #f0f0f0;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden; /* يمنع أي خروج للتاسك */
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  overflow-y: auto;
+  /* يمنع أي خروج للتاسك */
   min-height: 80px;
   box-sizing: border-box;
+  padding: 2px;
+}
+
+.calendar-dropzone {
+  position: absolute;
+  inset: 0;
+}
+
+.calendar-dropzone.dragover {
+  outline: 2px dashed #4c9aff;
+  outline-offset: -2px;
 }
 
 /* كل الخلايا متساوية تمامًا */
-.calendar-row > .calendar-cell {
-  height: 80px;
+.calendar-row>.calendar-cell {
+  min-height: 80px;
+  height: auto;
 }
 
 /* ====== شكل التاسك الأساسي ====== */
 .calendar-task {
   width: 100%;
-  height: 100%;
+  min-height: 70px;
+  margin-bottom: 2px;
   background: #eafbe7;
   border-radius: 6px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -440,133 +506,31 @@ justify-content: center;
   pointer-events: auto;
   user-select: none;
 }
+
 .calendar-task:focus {
   outline: 2px solid #4a90e2;
   outline-offset: 2px;
 }
+
 .calendar-task:hover {
   transform: scale(1.01);
 }
 
-/* النصوص داخل التاسك */
-.task-left .label,
-.task-right .label {
-  font-size: 10px;
-  color: #777;
-  line-height: 1;
+.calendar-task,
+.calendar-task * {
+  cursor: pointer;
 }
 
-.task-left .value,
-.task-right .value {
-  font-size: 11px;
-  font-weight: 600;
-  line-height: 1.1;
+.drag-ghost {
+  position: fixed;
+  pointer-events: none;
+  opacity: 0.85;
+  transform: scale(0.98);
+  z-index: 10000;
+  cursor: move;
 }
 
-.time-tag {
-  font-size: 9px;
-  padding: 3px 5px;
-  border-radius: 4px;
-}
-
-.calendar-row,
-.calendar-header-row {
-  grid-template-columns: 45px repeat(7, 1fr); /* 🔹 قللنا عرض أول عمود */
-}
-
-/* ضبط خلية الوقت */
-.time-cell {
-  flex: 0 0 45px !important;
-  width: 45px !important;
-  text-align: center; /* 🔹 وسط الرقم بدل ما يكون يمين */
-  padding: 0 !important;
-}
-
-/* تأكد أن كل الخلايا متساوية بالمللي */
-.calendar-cell {
-  min-height: 80px;
-  box-sizing: border-box;
-}
-
-
-
-/* ====== تصغير تدريجي على الشاشات الأصغر بدون scroll ====== */
-/* ✅ تصغير الجدول بالكامل في الموبايل بدون فقدان محتوى */
-@media (max-width: 768px) {
-  .calendar-wrapper {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  .calendar-table {
-    transform: scale(0.75);
-    transform-origin: top left;
-    width: 133%; /* تعويض التصغير عشان الجدول يبان كامل */
-  }
-
-  .calendar-task {
-    font-size: 10px;
-    padding: 4px 6px;
-    line-height: 1.1;
-  }
-
-  .calendar-cell {
-    min-height: 60px;
-  }
-}
-
-@media (max-width: 480px) {
-
-  .calendar-table {
-    transform: scale(0.58);
-    transform-origin: top left;
-    width: 177%; /* تعويض أكبر للتصغير */
-  }
-
-  .calendar-task {
-    font-size: 5px;
-    padding: 4px 6px;
-  }
-
-  .calendar-cell {
-    min-height: 55px;
-  }
-}
-/* ✅ تصغير إضافي للموبايلات الصغيرة جدًا (416px وأقل) */
-@media (max-width: 416px) {
-  .calendar-wrapper {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  .calendar-table {
-    transform: scale(0.48); /* 🔹 تصغير أكثر */
-    transform-origin: top left;
-    width: 190%; /* تعويض التصغير علشان الجدول يبان كامل */
-  }
-
-  .calendar-cell {
-    min-height: 50px;
-  }
-
-  .calendar-task {
-    font-size: 4.5px; /* 🔹 خط أصغر */
-    padding: 3px 4px;
-    line-height: 1.05;
-  }
-
-  .task-left .label,
-  .task-right .label {
-    font-size: 4px;
-  }
-
-  .task-left .value,
-  .task-right .value {
-    font-size: 4.5px;
-  }
-
-  .time-tag {
-    font-size: 4px;
-    padding: 2px 3px;
-  }
+.calendar-cell.drag-target {
+  outline: 2px dashed #4c9aff;
+  outline-offset: -2px;
 }

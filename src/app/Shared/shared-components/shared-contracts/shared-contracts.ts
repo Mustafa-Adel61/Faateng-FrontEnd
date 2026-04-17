@@ -56,10 +56,7 @@ export class SharedContracts implements OnInit {
   }
 
   loadContracts() {
-    const params: Record<string, string> = {};
-    if (this.role) params['role'] = this.role;
-    
-    this.resourceService.getAll('Contracts', params).subscribe({
+    this.resourceService.getAll('Contracts').subscribe({
       next: (items: any[]) => {
         this.contracts = items.map(c => ({
           id: c.id,
@@ -70,8 +67,8 @@ export class SharedContracts implements OnInit {
           Value: c.value || 0,
           StartDate: c.startDate ? new Date(c.startDate).toLocaleDateString() : '',
           EndDate: c.endDate ? new Date(c.endDate).toLocaleDateString() : '',
-          Client: c.client?.fullName || 'Unknown Client',
-          Units: c.unit.type || 'Unknown Units',
+          Client: c.clientName || 'Unknown Client',
+          Units: c.units ? c.units.map((u: any) => u.type).join(', ') : 'No Units',
           Terms: c.terms,
           raw: c
         }));
@@ -137,7 +134,7 @@ export class SharedContracts implements OnInit {
         Value: c.value ?? item?.Value ?? 0,
         StartDate: c.startDate ? new Date(c.startDate).toLocaleDateString() : item?.StartDate || '',
         EndDate: c.endDate ? new Date(c.endDate).toLocaleDateString() : item?.EndDate || '',
-        Client: c.client?.name || item?.Client || 'Unknown Client',
+        Client: c.clientName || item?.Client || 'Unknown Client',
         Terms: c.terms ?? item?.Terms,
         raw: c
       };
@@ -273,28 +270,30 @@ export class SharedContracts implements OnInit {
   }
  addTask(newVisit: any) {
     const payload: any = {
-      clientId: newVisit.ClientId,
-      title: newVisit.LinkedProject || 'New Contract',
+      title: newVisit.Title || `${newVisit.ClientId} Contract`,
       type: newVisit.Type || 'AMC',
-     startDate: newVisit.Start ? new Date(newVisit.Start).toISOString() : new Date().toISOString(),
-     endDate: newVisit.End ? new Date(newVisit.End).toISOString() : new Date().toISOString(),
-     status: 'Active',
-     value: Number(newVisit.AmountperCycle ?? 0) || 0,
-     terms: newVisit.BillingCycle || '',
-     photos: Array.isArray(newVisit.Photos) ? JSON.stringify(newVisit.Photos) : null
-   };
-   this.resourceService.create('Contracts', payload).subscribe({
-     next: () => {
-       this.loadContracts();
-       this.showCreate = false;
-       document.body.style.overflow = 'auto';
-     },
-     error: () => {
-       this.loadContracts();
-       this.showCreate = false;
-       document.body.style.overflow = 'auto';
-     }
-   });
+      projectId: newVisit.ProjectId,
+      clientId: newVisit.ClientId,
+      unitIds: newVisit.UnitIds || [],
+      startDate: newVisit.Start ? new Date(newVisit.Start).toISOString() : new Date().toISOString(),
+      endDate: newVisit.End ? new Date(newVisit.End).toISOString() : new Date().toISOString(),
+      visitFrequency: newVisit.BillingCycle || 'Monthly',
+      value: Number(newVisit.AmountperCycle ?? 0) || 0,
+      terms: newVisit.BillingCycle || '',
+      photos: Array.isArray(newVisit.Photos) ? JSON.stringify(newVisit.Photos) : null
+    };
+    this.resourceService.create('Contracts', payload).subscribe({
+      next: () => {
+        this.loadContracts();
+        this.showCreate = false;
+        document.body.style.overflow = 'auto';
+      },
+      error: () => {
+        this.loadContracts();
+        this.showCreate = false;
+        document.body.style.overflow = 'auto';
+      }
+    });
  }
 
 }

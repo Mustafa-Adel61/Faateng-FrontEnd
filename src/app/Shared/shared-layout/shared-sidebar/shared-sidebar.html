@@ -40,9 +40,11 @@
       <li><a [routerLink]="['fault-code']" routerLinkActive="active" (click)="scrollToTop()">Fault Code</a></li>
       <li><a [routerLink]="['manual']" routerLinkActive="active" (click)="scrollToTop()">Unit Manual</a></li>
       <li><a [routerLink]="['training']" routerLinkActive="active" (click)="scrollToTop()">Training</a></li>
+      <li><a [routerLink]="getChecklistLink()" routerLinkActive="active" (click)="scrollToTop()">Checklist</a></li>
 
-      <li class="section-title">Add User</li>
-      <li><a [routerLink]="['/register']" routerLinkActive="active" (click)="scrollToTop()">ADD USER</a></li>
+      <li class="section-title">USERS</li>
+      <li><a [routerLink]="['/register']" routerLinkActive="active" (click)="scrollToTop()">Add User</a></li>
+      <li><a [routerLink]="['contacts']" routerLinkActive="active" (click)="scrollToTop()">Contacts</a></li>
     </ng-container>
     <!-- CLIENT -->
     <ng-container *ngIf="role === 'client'">
@@ -71,6 +73,9 @@
       <li class="section-title">Compliance</li>
       <li><a [routerLink]="['reports-compliance']" routerLinkActive="active" (click)="scrollToTop()">Reports &
           Compliance</a></li>
+
+      <li class="section-title">CHECKLIST</li>
+      <li><a [routerLink]="getChecklistLink()" routerLinkActive="active" (click)="scrollToTop()">Checklist</a></li>
     </ng-container>
 
     <!-- MANAGER -->
@@ -146,7 +151,9 @@
         <a [routerLink]="['training']" routerLinkActive="active" (click)="scrollToTop()">Training</a>
       </li>
 
-
+      <li>
+        <a [routerLink]="getChecklistLink()" routerLinkActive="active" (click)="scrollToTop()">Checklist</a>
+      </li>
     </ng-container>
 
     <!-- DISPATCHER -->
@@ -169,6 +176,7 @@
       <li><a [routerLink]="['fault-codes']" routerLinkActive="active" (click)="scrollToTop()">Fault Codes</a></li>
       <li><a [routerLink]="['unit-manuals']" routerLinkActive="active" (click)="scrollToTop()">Unit Manuals</a></li>
       <li><a [routerLink]="['training']" routerLinkActive="active" (click)="scrollToTop()">Training</a></li>
+      <li><a [routerLink]="getChecklistLink()" routerLinkActive="active" (click)="scrollToTop()">Checklist</a></li>
     </ng-container>
 
     <!-- TECHNICIAN -->
@@ -226,8 +234,8 @@
       </li>
 
       <li>
-        <a [routerLink]="['checklists']" routerLinkActive="active" (click)="scrollToTop()">
-          Checklists
+        <a [routerLink]="getChecklistLink()" routerLinkActive="active" (click)="scrollToTop()">
+          Checklist
         </a>
       </li>
 

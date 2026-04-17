@@ -17,6 +17,10 @@ import { TaskList } from './pages/task-list/task-list';
 import { Training } from './pages/training/training';
 import { UnitManuals } from './pages/unit-manuals/unit-manuals';
 import { Units } from './pages/units/units';
+import { ChecklistFlow } from '../Shared/shared-components/checklist/checklist-flow';
+import { ChecklistList } from '../Shared/shared-components/checklist/checklist-list';
+import { ChecklistDetails } from '../Shared/shared-components/checklist/checklist-details';
+import { ChecklistAddQuestion } from '../Shared/shared-components/checklist/checklist-add-question';
 
 const routes: Routes = [
    
@@ -24,6 +28,10 @@ const routes: Routes = [
         { path: 'archive', component: Archive },
         {path:'calendar',component:Calendar},
         {path:'checklists',component:Checklists},
+        {path:'checklist',component:ChecklistFlow},
+        {path:'checklist-list',component:ChecklistList},
+        {path:'checklist-details/:id',component:ChecklistDetails},
+        {path:'checklist-add',component:ChecklistAddQuestion},
         {path:'clients-contacts',component:ClientsContacts},
         {path:'contracts',component:Contracts},
         {path:'dashboard',component:Dashboard},

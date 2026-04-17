@@ -30,6 +30,12 @@ export class Sidebar {
    scrollToTop() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
+
+  getChecklistLink(): string {
+    const role = this.auth.getRole();
+    return role === 'admin' || role === 'manager' ? '/admin/checklist-list' : '/admin/checklist';
+  }
+
   @Output() closeSidebar = new EventEmitter<void>();
 
   closeSidebarOnMobile() {

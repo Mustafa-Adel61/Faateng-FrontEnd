@@ -1,11 +1,14 @@
 import { SharedPageHeader } from './../../shared-layout/shared-page-header/shared-page-header';
 import { NgIf, NgFor, NgClass, CommonModule } from '@angular/common';
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit, inject } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CreateNewSuggestedRepair } from "../../../technician/pages/create-new-suggested-repair/create-new-suggested-repair";
 import { ResourceService } from '../../../core/resource.service';
+import { API_BASE_URL } from '../../../core/api.config';
+import { Loading } from '../loading/loading';
+import { ToastService } from '../../services/toast.service';
 interface MaintenanceReport {
   selected: boolean;
   Code: string;
@@ -24,7 +27,7 @@ interface MaintenanceReport {
 @Component({
   selector: 'app-shared-suggested-repairs',
   standalone: true,
-  imports: [NgIf, NgFor, FormsModule, NgClass, CommonModule, SharedPageHeader, CreateNewSuggestedRepair],
+  imports: [NgIf, NgFor, FormsModule, NgClass, CommonModule, SharedPageHeader, CreateNewSuggestedRepair, Loading],
   templateUrl: './shared-suggested-repairs.html',
   styleUrl: './shared-suggested-repairs.css'
 })
@@ -38,6 +41,9 @@ export class SharedSuggestedRepairs {
   // details panel
   showDetails = false;
   selectedTask: MaintenanceReport | null = null;
+  loadingList = false;
+  loadingSave = false;
+  loadingDetails = false;
 
   // Selection
   allSelected = false;
@@ -55,29 +61,75 @@ export class SharedSuggestedRepairs {
   ];
   @Input() role: 'admin' | 'technician' | 'manager' | null = null;
 
+  private toast: ToastService = inject(ToastService);
   constructor(private resource: ResourceService, private routerNav: Router) { }
   ngOnInit(): void {
     this.loadTask();
+  }
+  onThumbnailClick(photo: string) {
+    this.setMainImage(photo);
+    this.openInNewTab(photo);
+  }
+  private hostBase = API_BASE_URL.replace(/\/api\/?$/, '');
+  private normalizePhotoUrl(url: string): string {
+    if (!url) return '';
+    const trimmed = url.trim();
+    const isData = /^data:/i.test(trimmed);
+    const isHttp = /^https?:\/\//i.test(trimmed);
+    if (isData || isHttp) return trimmed;
+    if (trimmed.startsWith('/')) return `${this.hostBase}${trimmed}`;
+    return `${this.hostBase}/${trimmed}`;
+  }
+  private parsePhotos(raw: any): string[] {
+    if (!raw) return [];
+    if (Array.isArray(raw)) return raw;
+    const s = String(raw).trim();
+    if (!s) return [];
+    if (s.startsWith('[')) {
+      try {
+        const arr = JSON.parse(s);
+        return Array.isArray(arr) ? arr : [];
+      } catch {
+        return [];
+      }
+    }
+    if (s.includes('data:')) {
+      const parts = s.split(/,data:/i);
+      if (parts.length > 1) {
+        const first = parts[0];
+        const rest = parts.slice(1).map(p => 'data:' + p);
+        return [first, ...rest];
+      }
+      return [s];
+    }
+    if (s.includes('||')) return s.split('||');
+    if (s.includes(';')) return s.split(';');
+    if (s.includes(',http')) {
+      const pieces = s.split(',http').map((p, i) => (i === 0 ? p : 'http' + p));
+      return pieces;
+    }
+    return [s];
   }
   tasks: MaintenanceReport[] = [];
   loadTask() {
     const params: Record<string, string> = {};
     if (this.role) params['role'] = this.role;
+    this.loadingList = true;
     this.resource.getAll('SuggestedRepairs', params).subscribe({
       next: (items) => {
         this.tasks = (items || []).map((t: any) => ({
           selected: false,
           Code: t.id ? `#${t.id}` : '',
-          ProjectName: t.taskItem?.unit?.client?.name || 'Unknown Project',
+          ProjectName: t.projectName || t.taskItem?.unit?.client?.name || 'Unknown Project',
           TechnicalName: t.technicianName || t.taskItem?.assigneeUser?.fullName || 'Unknown Tech',
-          UnitType: t.taskItem?.unit?.model || 'Unknown Unit',
-          Location: t.taskItem?.unit?.client?.address || 'Unknown Location',
+          UnitType: t.unitModel || t.taskItem?.unit?.model || 'Unknown Unit',
+          Location: t.location || t.taskItem?.unit?.client?.address || 'Unknown Location',
           IssueDescription: t.description || '',
           SuggestedRepair: t.title || '',
-          Score: t.cost || 0, // Using Cost as Score/Value
-          Priority: t.taskItem?.priority || 'Medium',
+          Score: (t.score ?? t.cost) || 0,
+          Priority: t.priority || t.taskItem?.priority || 'Medium',
           Status: t.status || 'Pending',
-          images: t.photos ? t.photos.split(',') : []
+          images: this.parsePhotos(t.photos).map((p: string) => this.normalizePhotoUrl(p))
         }));
       },
       error: () => {
@@ -96,7 +148,7 @@ export class SharedSuggestedRepairs {
           ];
         }
       }
-    });
+    , complete: () => { this.loadingList = false; }});
   }
 
   approve(task: MaintenanceReport | null) {
@@ -290,14 +342,13 @@ export class SharedSuggestedRepairs {
     const value = selectElement.value;
 
     this.performAction(task, value);
+    selectElement.selectedIndex = 0;
+    selectElement.value = '';
   }
-
-
   // ---------------- details panel ----------------
   openDetails(task: MaintenanceReport) {
-    if (task.images && task.images.length > 0) {
-      this.mainImage = task.images[0];
-    }
+    console.log(task);
+    
     this.selectedTask = task;
     this.showDetails = true;
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -318,17 +369,50 @@ export class SharedSuggestedRepairs {
             Score: t.cost ?? task.Score ?? 0,
             Priority: t.taskItem?.priority || task.Priority || 'Medium',
             Status: t.status || task.Status || 'Pending',
-            images: Array.isArray(t.photos) ? t.photos : (typeof t.photos === 'string' && t.photos ? t.photos.split(',') : (task.images || []))
+            images: this.parsePhotos(t.photos).map((p: string) => this.normalizePhotoUrl(p))
           };
           this.selectedTask = mapped;
           if (this.selectedTask.images && this.selectedTask.images.length > 0) {
-            this.mainImage = this.selectedTask.images[0];
+            this.mainImage = this.normalizePhotoUrl(this.selectedTask.images[0]);
+          } else {
+            this.mainImage = '';
           }
         }
       });
     }
+    // const code = String(task.Code || '').replace('#', '');
+    // if (code) {
+    //   this.resource.getById('SuggestedRepairs', code).subscribe({
+    //     next: (t: any) => {
+    //       const mapped: MaintenanceReport = {
+    //         selected: false,
+    //         Code: t.id ? `#${t.id}` : task.Code,
+    //         ProjectName: t.taskItem?.unit?.client?.name || t.projectName || task.ProjectName,
+    //         TechnicalName: t.technicianName || t.taskItem?.assigneeUser?.fullName || task.TechnicalName,
+    //         UnitType: t.taskItem?.unit?.model || t.unitType || task.UnitType,
+    //         Location: t.taskItem?.unit?.client?.address || t.location || task.Location,
+    //         IssueDescription: t.description || task.IssueDescription,
+    //         SuggestedRepair: t.title || task.SuggestedRepair,
+    //         Score: t.cost ?? task.Score ?? 0,
+    //         Priority: t.taskItem?.priority || task.Priority || 'Medium',
+    //         Status: t.status || task.Status || 'Pending',
+    //         // images: 
+    //         images: t.images,
+    //       };
+    //       // console.log("map",mapped);
+    //       this.selectedTask = mapped;
+    //       if (this.selectedTask.images && this.selectedTask.images.length > 0) {
+    //         this.mainImage = this.normalizePhotoUrl(this.selectedTask.images[0]);
+    //       } else {
+    //         this.mainImage = '';
+    //       }
+    //     }
+        
+    //   });
+    // }
 
   }
+
 
   closeDetails() {
     this.selectedTask = null;
@@ -402,31 +486,10 @@ export class SharedSuggestedRepairs {
     this.showCreateReportModal = false;
     document.body.style.overflow = 'auto'; // يرجع scroll الصفحة
   }
-  ///////////////////////////////////////////////////////////////////////
-
-  // interface MaintenanceReport {
-  //   selected:boolean;
-  //   Code:string;
-  //   ProjectName:string;
-  //   TechnicalName:string;
-  //   UnitType:string;
-  //   Location  :string;
-  //   IssueDescription:string;
-  //   SuggestedRepair:string;
-  //   Score:number;
-  //   Priority: 'Critical' | 'High' | 'Medium' | string;
-  //   Status:'Under Review' | 'Draft' | 'Approved' | string;
-  //   images?:string[];
-
-  // }
-  ///////////////////////////////////////////////////////////////////////
-
   saveNewReport(newReportData: any) {
     const payload = {
       projectName: newReportData.ProjectName,
-      technicianName: newReportData.TechnicalName,
-      unitType: newReportData.UnitType,
-      location: newReportData.Location,
+      unitId: newReportData.UnitId,
       issueDescription: newReportData.IssueDescription,
       suggestedRepair: newReportData.SuggestedRepair,
       score: newReportData.Score,
@@ -440,9 +503,9 @@ export class SharedSuggestedRepairs {
           selected: false,
           Code: created?.code || `MR-${this.tasks.length + 1}`,
           ProjectName: created?.projectName || payload.projectName,
-          TechnicalName: created?.technicianName || payload.technicianName,
-          UnitType: created?.unitType || payload.unitType,
-          Location: created?.location || payload.location,
+          TechnicalName: created?.technicianName || '',
+          UnitType: created?.unitType || newReportData.UnitType,
+          Location: created?.location || '',
           IssueDescription: created?.issueDescription || payload.issueDescription,
           SuggestedRepair: created?.suggestedRepair || payload.suggestedRepair,
           Score: created?.score ?? payload.score ?? 0,
@@ -451,6 +514,7 @@ export class SharedSuggestedRepairs {
           images: created?.images || payload.images || []
         };
         this.tasks.unshift(newReport);
+        this.toast.show('تم حفظ الإصلاح المقترح بنجاح', 'success');
         this.closeCreateReport();
         document.body.style.overflow = 'auto';
       },
@@ -459,9 +523,9 @@ export class SharedSuggestedRepairs {
           selected: false,
           Code: `MR-${this.tasks.length + 1}`,
           ProjectName: payload.projectName,
-          TechnicalName: payload.technicianName,
-          UnitType: payload.unitType,
-          Location: payload.location,
+          TechnicalName: '',
+          UnitType: newReportData.UnitType,
+          Location: '',
           IssueDescription: payload.issueDescription,
           SuggestedRepair: payload.suggestedRepair,
           Score: payload.score ?? 0,
@@ -470,6 +534,7 @@ export class SharedSuggestedRepairs {
           images: payload.images || []
         };
         this.tasks.unshift(newReport);
+        this.toast.show('فشل حفظ الإصلاح المقترح، تم إضافة عنصر محليًا', 'error');
         this.closeCreateReport();
         document.body.style.overflow = 'auto';
       }

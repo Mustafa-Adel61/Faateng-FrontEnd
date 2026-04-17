@@ -120,6 +120,7 @@ export class SharedInvoice {
   loadTasks() {
     const params: Record<string, string> = {};
     if (this.role) params['role'] = this.role as string;
+    this.loading = true;
     this.resource.getAll('Invoices', params).subscribe({
       next: (items) => {
         this.tasks = (items || []).map((inv: any) => ({
@@ -219,7 +220,8 @@ export class SharedInvoice {
             }
           ];
         }
-      }
+      },
+      complete: () => { this.loading = false; }
     });
   }
 
@@ -394,7 +396,7 @@ export class SharedInvoice {
       if (idx >= 0) this.tasks.splice(idx, 1);
       // adjust pagination if needed
       if (this.page > this.totalPages) this.page = this.totalPages;
-      this.toastService.show('تم حذف الفاتورة بنجاح', 'success');
+      this.toastService.show('Invoice deleted successfully', 'success');
       this.loading = false;
     } else if (action === 'pay') {
       if (confirm(`Pay invoice ${task.Invoice} for $${task.Amount}?`)) {
@@ -402,7 +404,7 @@ export class SharedInvoice {
         this.resource.update('Invoices', task.Invoice, { status: 'Paid' }).subscribe({
           next: () => {
             task.Status = 'Paid';
-            this.toastService.show('تم الدفع بنجاح', 'success');
+            this.toastService.show('Payment completed successfully', 'success');
             this.loading = false;
           },
           error: () => {
@@ -418,6 +420,8 @@ export class SharedInvoice {
     const value = selectElement.value;
 
     this.performAction(task, value);
+    selectElement.selectedIndex = 0;
+    selectElement.value = '';
   }
 
 
@@ -455,7 +459,7 @@ export class SharedInvoice {
     this.loading = true;
     this.resource.update('Invoices', task.Invoice, { status: task.Status }).subscribe({
       next: () => {
-        this.toastService.show('تم تحديث حالة الفاتورة', 'success');
+        this.toastService.show('Invoice status updated', 'success');
         this.loading = false;
       },
       error: () => {

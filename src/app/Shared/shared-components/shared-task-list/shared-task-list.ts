@@ -11,6 +11,7 @@ import { CreateNewSuggestedRepair } from '../../../technician/pages/create-new-s
 import { ResourceService } from '../../../core/resource.service';
 import { CreateNewInvoice } from '../../../admin/pages/create-new-invoice/create-new-invoice';
 import { ToastService } from '../../services/toast.service';
+import { Loading } from "../loading/loading";
 
 interface Task {
   id?: number;
@@ -19,7 +20,8 @@ interface Task {
   name: string;
   units: string;
   address: string;
-  due: string;         // date string
+  start: string;         // ScheduledStart
+  end: string;           // ScheduledEnd
   objective: string;
   team: string;
   slaDue: string;      // SLA due date string
@@ -33,7 +35,7 @@ interface Task {
 @Component({
   selector: 'app-shared-task-list',
   standalone: true,
-  imports: [NgFor, NgIf, FormsModule, NgClass, CreateNewVisit, SharedPageHeader, MapComponent, CreateNewSuggestedRepair, CreateNewInvoice, SharedTaskDetails],
+  imports: [NgFor, NgIf, FormsModule, NgClass, CreateNewVisit, SharedPageHeader, MapComponent, CreateNewSuggestedRepair, CreateNewInvoice, SharedTaskDetails, Loading],
   templateUrl: './shared-task-list.html',
   styleUrl: './shared-task-list.css'
 })
@@ -61,18 +63,9 @@ export class SharedTaskList implements OnInit {
   // Pagination
   page = 1;
   pageSize = 10;
-  statuses = [
-    'Scheduled',
-    'Dispatched',
-    'On-Site',
-    'Waiting-Parts',
-    'Backlog',
-    'QA/Review',
-    'Done',
-    'Closed'
-  ];
+  statuses = ['Scheduled','On-Site','Waiting for Parts','Closed'];
 
-  @Input() role: 'admin' | 'dispatcher' | 'manager' | 'technician' | 'finance' | null = null;
+  @Input() role: 'admin' | 'dispatcher' | 'manager' | 'technician' | 'finance'|'client' | null = null;
 
   private toast: ToastService = inject(ToastService);
   constructor(private sanitizer: DomSanitizer, private taskService: TaskService, private resource: ResourceService) {
@@ -83,6 +76,11 @@ export class SharedTaskList implements OnInit {
 
   currentUserId: string | null = null;
   ngOnInit(): void {
+    if (this.role === 'technician') {
+      this.statuses = ['Start', 'Suggest Repair', 'Close'];
+    } else {
+      this.statuses = ['Draft', 'Scheduled', 'Waiting for Parts', 'On-Site', 'Closed'];
+    }
     this.resource.getAll('Auth/me').subscribe({
       next: (me: any) => {
         this.currentUserId = me?.id || null;
@@ -92,28 +90,50 @@ export class SharedTaskList implements OnInit {
     });
   }
   tasks: Task[] = [];
+  loadingList = false;
 
   loadTask() {
-    this.taskService.getAll().subscribe(data => {
-      this.tasks = data.map(t => ({
+    this.loadingList = true;
+    this.taskService.getAll().subscribe({
+      next: (data) => {
+      console.log("Task",data);
+      
+      this.tasks = data.map(t => {
+      const startIso = t.scheduledStart ? String(t.scheduledStart) : (t.scheduledEnd ? String(t.scheduledEnd) : '');
+      const startDate = startIso ? new Date(startIso) : null;
+      const now = new Date();
+      let slaStatus: 'OK'|'Overdue'|'Pending' = 'Pending';
+      if (startDate) {
+        const startY = startDate.getFullYear(), startM = startDate.getMonth(), startD = startDate.getDate();
+        const nowY = now.getFullYear(), nowM = now.getMonth(), nowD = now.getDate();
+        const isSameDay = startY === nowY && startM === nowM && startD === nowD;
+        if (isSameDay) slaStatus = 'OK';
+        else if (startDate < now) slaStatus = 'Overdue';
+        else slaStatus = 'Pending';
+      }
+      return ({
         id: t.id,
         selected: false,
         status: t.status,
         name: (t as any).projectName || t.title,
         units: (t as any).unitInfo || 'Unknown Unit',
         address: (t as any).address || '',
-        due: (t.slaDue || t.scheduledEnd) ? String(t.slaDue || t.scheduledEnd).toString().split('T')[0] : '',
+        start: t.scheduledStart ? String(t.scheduledStart).toString() : '',
+        end: t.scheduledEnd ? String(t.scheduledEnd).toString() : '',
         objective: t.description || '',
         team: t.team || 'Ops',
-        slaDue: (t.slaDue || t.scheduledEnd) ? String(t.slaDue || t.scheduledEnd).toString() : '',
-      slaStatus: t.slaStatus || 'Pending',
+        slaDue: startIso || '',
+      slaStatus: slaStatus,
       priority: t.priority,
       assignee: (t as any).assigneeName || t.assigneeUserId || '',
       assigneeId: t.assigneeUserId || '',
       visitType: t.status,
       notes: t.notes || ''
-      }));
-    });
+      })});
+      },
+      error: () => {},
+      complete: () => { this.loadingList = false; }
+    });    
   }
   selectedCount = 0;
   // ---------------- selection ----------------
@@ -156,7 +176,8 @@ export class SharedTaskList implements OnInit {
     }
 
     if (this.role === 'technician' && this.currentUserId) {
-      result = result.filter(t => String(t.assigneeId || '') === this.currentUserId);
+      const id = String(this.currentUserId);
+      result = result.filter(t => String(t.assigneeId || '') === id);
     }
     return result;
   }
@@ -237,8 +258,17 @@ export class SharedTaskList implements OnInit {
   performAction(task: Task, action: string) {
     if (action === 'view') {
       this.openDetails(task);
+    } else if (action === 'assign') {
+      this.detailsFocus = 'assignees';
+      this.openDetails(task);
+    } else if (action === 'priority') {
+      this.detailsFocus = 'priority';
+      this.openDetails(task);
+    } else if (action === 'editObjective') {
+      this.detailsFocus = 'objective';
+      this.openDetails(task);
     } else if (action === 'edit') {
-      this.toast.show('تم فتح شاشة التعديل', 'info');
+      this.toast.show('Edit screen opened', 'info');
     } else if (action === 'delete') {
       if (!confirm(`Delete ${task.name}?`)) return;
            const id = String(task.id).replace('#', '');
@@ -247,10 +277,10 @@ export class SharedTaskList implements OnInit {
           const idx = this.tasks.indexOf(task);
           if (idx >= 0) this.tasks.splice(idx, 1);
           if (this.page > this.totalPages) this.page = this.totalPages;
-          this.toast.show('تم حذف المهمة بنجاح', 'success');
+          this.toast.show('Task deleted successfully', 'success');
         },
         error: (err) => {
-          this.toast.show('غير مصرح أو فشل الحذف', 'error');
+          this.toast.show('Not authorized or delete failed', 'error');
           console.error('Delete SuggestedRepair failed', err);
         }
       });
@@ -266,11 +296,14 @@ export class SharedTaskList implements OnInit {
     const value = selectElement.value;
 
     this.performAction(task, value);
+    selectElement.selectedIndex = 0;
+    selectElement.value = '';
   }
 
 
   // ---------------- details panel ----------------
   openDetails(task: Task) {
+    this.detailsFocus = this.detailsFocus || null;
     this.selectedTask = task;
     this.showDetails = true;
     // scroll to top so details visible (optional)
@@ -285,6 +318,11 @@ export class SharedTaskList implements OnInit {
     document.body.style.overflow = 'auto'; // يرجع scroll الصفحة
 
   }
+  get selectedTaskId(): number | null {
+    const id = this.selectedTask?.id;
+    return typeof id === 'number' ? id : null;
+  }
+  detailsFocus: 'assignees'|'priority'|'objective'|null = null;
   getSortedStatuses(current: any) {
     // الحالة الحالية تبقى أول وحدة
     return [current, ...this.statuses.filter(s => s !== current)];
@@ -296,9 +334,39 @@ export class SharedTaskList implements OnInit {
       const index = this.tasks.findIndex(t => t?.id === task.id);
       if (index !== -1) {
         this.tasks[index].status = task.status;
-        this.toast.show('تم تحديث الحالة بنجاح', 'success');
+        this.toast.show('Status updated successfully', 'success');
       }
     });
+  }
+  onDetailsStatusChange(newStatus: string) {
+    if (!this.selectedTask || !this.selectedTask.id) return;
+    const id = this.selectedTask.id;
+    this.selectedTask.status = newStatus;
+    this.taskService.updateStatus(id, newStatus).subscribe({
+      next: () => {
+        const index = this.tasks.findIndex(t => t?.id === id);
+        if (index !== -1) {
+          this.tasks[index].status = newStatus;
+        }
+        this.toast.show('Status updated successfully', 'success');
+      }
+    });
+  }
+  onDetailsUpdated(patch: any) {
+    if (!patch) return;
+    const id = patch.id ?? this.selectedTask?.id;
+    if (!id) return;
+    const idx = this.tasks.findIndex(t => t?.id === id);
+    if (idx >= 0) {
+      this.tasks[idx] = { ...this.tasks[idx], ...patch };
+      this.tasks = [...this.tasks];
+    }
+    if (this.selectedTask && this.selectedTask.id === id) {
+      this.selectedTask = { ...this.selectedTask, ...patch };
+    }
+  }
+  onDetailsNotify(msg: string) {
+    this.toast.show(msg || 'Saved', 'success');
   }
   // ---------------- create visit modal (simple) ----------------
   openCreate() {
@@ -358,6 +426,7 @@ export class SharedTaskList implements OnInit {
         next: (p: any) => {
           const dto: CreateTaskDto = {
             ...baseDto,
+            projectId: projId,
             title: p?.name || `Project ${projId}`,
             lat: baseDto.lat ?? (p?.siteLat ?? undefined),
             lng: baseDto.lng ?? (p?.siteLng ?? undefined),
@@ -412,7 +481,7 @@ export class SharedTaskList implements OnInit {
         this.toast.show('تم إنشاء الإصلاح المقترح بنجاح', 'success');
         // Optionally update the task status to 'Waiting-Parts' or something
         if (this.selectedTaskForSuggestedRepair && this.selectedTaskForSuggestedRepair.id) {
-          this.updateTaskStatus({ id: this.selectedTaskForSuggestedRepair.id, status: 'Waiting-Parts' });
+          this.updateTaskStatus({ id: this.selectedTaskForSuggestedRepair.id, status: 'Waiting for Parts' });
         }
         this.closeCreateSuggestedRepair();
       },

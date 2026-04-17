@@ -1,0 +1,167 @@
+<div class="add-question-container">
+  <div class="header">
+    <button [routerLink]="[getDashboardPath(), 'checklist-list']" class="btn-back">← Back</button>
+    <h2>Add New Question</h2>
+  </div>
+
+  <div class="form-card">
+    <div class="form-title">
+      <h3>{{ isEditing ? 'Update Question' : 'Create New Question' }}</h3>
+      <button *ngIf="isEditing" class="btn-cancel" (click)="resetForm()">Cancel Edit</button>
+    </div>
+    <div class="form-grid">
+      <!-- System Selection -->
+      <div class="form-group">
+        <label>System Type</label>
+        <select [(ngModel)]="question.systemType" (change)="onSystemChange()">
+          <option value="">Select System</option>
+          <option *ngFor="let s of systems" [value]="s.name">{{ s.name }}</option>
+        </select>
+      </div>
+
+      <!-- Variant Selection (Conditional) -->
+      <div class="form-group" *ngIf="question.systemType === 'Elevator'">
+        <label>Variant</label>
+        <select [(ngModel)]="question.variant">
+          <option value="">Select Variant</option>
+          <option *ngFor="let v of systems[0].variants" [value]="v">{{ v }}</option>
+        </select>
+      </div>
+
+      <!-- Frequency Selection -->
+      <div class="form-group">
+        <label>Frequency</label>
+        <select [(ngModel)]="question.frequency">
+          <option value="">Select Frequency</option>
+          <option *ngFor="let f of frequencies" [value]="f">{{ f }}</option>
+        </select>
+      </div>
+
+      <!-- Category Selection -->
+      <div class="form-group">
+        <label>Category</label>
+        <select [(ngModel)]="question.category">
+          <option *ngFor="let c of categories" [value]="c">{{ c }}</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Question Text English -->
+    <div class="form-group full-width">
+      <label>Question Text (English)</label>
+      <input type="text" [(ngModel)]="question.textEn" placeholder="Enter question in English">
+    </div>
+
+    <!-- Question Text Arabic -->
+    <div class="form-group full-width" dir="rtl">
+      <label>نص السؤال (بالعربية)</label>
+      <input type="text" [(ngModel)]="question.textAr" placeholder="ادخل السؤال بالعربية">
+    </div>
+
+    <!-- Checkboxes -->
+    <div class="checkbox-grid">
+      <div class="checkbox-item" (click)="question.requirePhoto = !question.requirePhoto">
+        <div class="custom-checkbox" [class.active]="question.requirePhoto">
+          <i class="fas fa-check" *ngIf="question.requirePhoto"></i>
+        </div>
+        <label>Require Photo Upload</label>
+      </div>
+
+      <div class="checkbox-item" (click)="question.requireNotes = !question.requireNotes">
+        <div class="custom-checkbox" [class.active]="question.requireNotes">
+          <i class="fas fa-check" *ngIf="question.requireNotes"></i>
+        </div>
+        <label>Include Notes Input</label>
+      </div>
+
+      <div class="checkbox-item" (click)="question.requireNumeric = !question.requireNumeric">
+        <div class="custom-checkbox" [class.active]="question.requireNumeric">
+          <i class="fas fa-check" *ngIf="question.requireNumeric"></i>
+        </div>
+        <label>Require Numeric Value</label>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="btn-save" [disabled]="!isValid()" (click)="save()">
+        {{ isEditing ? 'Update Question' : 'Add Question' }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Questions Table Section -->
+  <div class="table-section">
+    <div class="section-header">
+      <h3>Existing Questions</h3>
+      <span class="badge">{{ totalQuestions }} Total</span>
+    </div>
+
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>System</th>
+            <th>Frequency</th>
+            <th>Question (EN)</th>
+            <th>Question (AR)</th>
+            <th>Photo</th>
+            <th>Note</th>
+            <th>Num</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let q of paginatedQuestions">
+            <td>
+              <strong>{{ q.systemType }}</strong>
+              <div class="variant-text" *ngIf="q.variant">{{ q.variant }}</div>
+            </td>
+            <td>{{ q.frequency }}</td>
+            <td class="text-truncate" [title]="q.textEn">{{ q.textEn }}</td>
+            <td class="text-truncate text-right" [title]="q.textAr">{{ q.textAr }}</td>
+            <td class="text-center">
+              <span class="status-badge-box" [class.bg-success]="q.requirePhoto" [class.bg-danger]="!q.requirePhoto">
+                {{ q.requirePhoto ? 'True' : 'False' }}
+              </span>
+            </td>
+            <td class="text-center">
+              <span class="status-badge-box" [class.bg-success]="q.requireNotes" [class.bg-danger]="!q.requireNotes">
+                {{ q.requireNotes ? 'True' : 'False' }}
+              </span>
+            </td>
+            <td class="text-center">
+              <span class="status-badge-box" [class.bg-success]="q.requireNumeric"
+                [class.bg-danger]="!q.requireNumeric">
+                {{ q.requireNumeric ? 'True' : 'False' }}
+              </span>
+            </td>
+            <td>
+              <div class="table-actions">
+                <button class="btn-edit-sm" (click)="editQuestion(q)" title="Edit">
+                  <i class="fas fa-edit"></i> Update
+                </button>
+                <button class="btn-delete-sm" (click)="deleteQuestion(q.id!)" title="Delete">
+                  <i class="fas fa-trash-alt"></i> Delete
+                </button>
+              </div>
+            </td>
+          </tr>
+          <tr *ngIf="allQuestions.length === 0">
+            <td colspan="8" class="no-data">No questions found.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    <div class="pagination" *ngIf="totalQuestions > pageSize">
+      <button class="btn-page" [disabled]="currentPage === 1" (click)="prevPage()">
+        <i class="fas fa-chevron-left"></i> Previous
+      </button>
+      <span class="page-info">Page {{ currentPage }} of {{ Math.ceil(totalQuestions / pageSize) }}</span>
+      <button class="btn-page" [disabled]="currentPage * pageSize >= totalQuestions" (click)="nextPage()">
+        Next <i class="fas fa-chevron-right"></i>
+      </button>
+    </div>
+  </div>
+</div>

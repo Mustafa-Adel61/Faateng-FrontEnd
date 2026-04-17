@@ -12,76 +12,133 @@ import { Loading } from '../../../Shared/shared-components/loading/loading';
 })
 export class CreateNewContact implements OnInit {
 
-    @Output() close = new EventEmitter<void>();
-  @Output() save = new EventEmitter<any>(); // لإرسال بيانات الـ Report الجديدة
+   @Output() close = new EventEmitter<void>();
+  @Output() save = new EventEmitter<any>();
 
-  clients: { id: string, name: string }[] = [];
+  clients: { id: string, name: string, email?: string }[] = [];
   selectedClientId: string | null = null;
 
-  maxFileSize = 10; // MB
-  allowedFileTypes = ['image/jpeg','image/jpg','image/png','image/gif','image/webp','application/pdf'];
+  projects: { id: number, name: string, projectIdStr?: string }[] = [];
+  selectedProjectId: number | null = null;
 
-  // ServiceTypes=['Installation', 'Maintenance', 'Update'];
-  Types=['Maintenance', 'Turnkey','Supply','Service'];
-  BillingCycles=['Monthly', 'Quarterly', 'Annual','One-off'];
-  // متغيرات الـ Form لتمثيل الحقول في الصورة
-  form = {
-    Client: '',
-    Type: '',
-    LinkedProject: '',
-    Start: '',
-    End: '',
-    BillingCycle: '',
-    AmountperCycle:0,
+  availableUnits: { id: number, serial: string, model: string, type: string }[] = [];
+  selectedUnitIds: number[] = [];
+
+  maxFileSize = 10;
+  allowedFileTypes = ['image/jpeg','image/jpg','image/png','image/gif','image/webp','application/pdf'];
+  Types=['Maintenance', 'Turnkey', 'Supply','Service'];
+  // Types=['AMC', 'Warranty', 'OnDemand'];
+  BillingCycles=['Monthly', 'Quarterly', 'Annual', 'One-off'];
+  form = {
+    Title: '',
+    Type: '',
+    Start: '',
+    End: '',
+    BillingCycle: '',
+    AmountperCycle: 0,
     Photos: [] as string[],
     Files: [] as { name: string; type: string; url: string }[]
- };
+  };
 
   constructor(private resource: ResourceService) {}
   loading: boolean = false;
 
  ngOnInit() {
+    this.loadClients();
+ }
+
+ loadClients() {
     this.loading = true;
-    this.resource.getAll('Users/clients').subscribe({
-      next: (list) => {
-        this.clients = (list || []).map((c: any) => ({ id: c.id, name: c.name }));
+    this.resource.getAll('Contracts/clients').subscribe({
+      next: (list: any) => {
+        this.clients = (list || []).map((c: any) => ({ id: c.id, name: c.fullName || c.name, email: c.email }));
       },
       error: () => { this.clients = []; },
       complete: () => { this.loading = false; }
     });
  }
 
-//  //دي الي كانت في الاول قبل تعديل ال client
-//   form = {
-//     ClientCompanyName: '',
-//     phoneNumber: '',
-//     emailAddress: '',
-//     location: '',
-//     serviceType: '',
-//  };
+ onClientChange() {
+    this.projects = [];
+    this.selectedProjectId = null;
+    this.availableUnits = [];
+    this.selectedUnitIds = [];
 
+    if (!this.selectedClientId) return;
 
-  // الدوال
-  doClose() {
-    this.close.emit();
-  }
-submitted = false;
-
-  doSave() {
-      this.submitted = true;
-  if(
-      !this.selectedClientId||
-      !this.form.Type||
-      !this.form.Start||
-      !this.form.End||
-      !this.form.BillingCycle||
-      !this.form.LinkedProject
-  ){
-    return; // ❌ يمنع الحفظ
-  }
-    // إرسال بيانات الـ Report الجديدة
     this.loading = true;
-    this.save.emit({ ...this.form, ClientId: this.selectedClientId });
+    this.resource.getAll(`Contracts/projects/by-client/${this.selectedClientId}`).subscribe({
+      next: (list: any) => {
+        this.projects = (list || []).map((p: any) => ({
+          id: p.id,
+          name: p.name,
+          projectIdStr: p.projectIdStr
+        }));
+      },
+      error: () => { this.projects = []; },
+      complete: () => { this.loading = false; }
+    });
+ }
+
+ onProjectChange() {
+    this.availableUnits = [];
+    this.selectedUnitIds = [];
+
+    if (!this.selectedProjectId) return;
+
+    this.loading = true;
+    this.resource.getAll(`Contracts/units/by-project/${this.selectedProjectId}`).subscribe({
+      next: (list: any) => {
+        this.availableUnits = (list || []).map((u: any) => ({
+          id: u.id,
+          serial: u.serial,
+          model: u.model,
+          type: u.type
+        }));
+      },
+      error: () => { this.availableUnits = []; },
+      complete: () => { this.loading = false; }
+    });
+ }
+
+ onUnitToggle(unitId: number) {
+    const idx = this.selectedUnitIds.indexOf(unitId);
+    if (idx >= 0) {
+      this.selectedUnitIds.splice(idx, 1);
+    } else {
+      this.selectedUnitIds.push(unitId);
+    }
+ }
+
+  doClose() {
+    this.close.emit();
+  }
+
+ submitted = false;
+
+  doSave() {
+      this.submitted = true;
+      if(
+      !this.selectedClientId ||
+      !this.form.Type ||
+      !this.form.Start ||
+      !this.form.End ||
+      !this.form.BillingCycle ||
+      !this.selectedProjectId
+  ) {
+    return;
+  }
+
+    this.form.Title = this.form.Title || `${this.clients.find(c => c.id === this.selectedClientId)?.name || 'Contract'} - ${this.projects.find(p => p.id === this.selectedProjectId)?.name || ''}`;
+
+    this.loading = true;
+    const payload = {
+      ...this.form,
+      ClientId: this.selectedClientId,
+      ProjectId: this.selectedProjectId,
+      UnitIds: this.selectedUnitIds.length > 0 ? this.selectedUnitIds : [0]
+    };
+    this.save.emit(payload);
   }
 
   forceDatePicker(event: Event) {

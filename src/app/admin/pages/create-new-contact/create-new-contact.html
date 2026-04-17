@@ -2,59 +2,64 @@
 <div class="cnv-backdrop">
   <div class="cnv-modal report-modal">
       <button class="cnv-close" (click)="doClose()">✕</button>
-      
+
       <h2>Create Contract</h2>
 
       <div class="report-form-grid">
-      
-     
+
       <label class="full-width">Client <span class="required">*</span>
         <select [(ngModel)]="selectedClientId" name="Client"
         [ngClass]="{'input-error': submitted && !selectedClientId}"
-        >
+        (change)="onClientChange()">
           <option [ngValue]="null" disabled selected>Select Client</option>
           <option *ngFor="let c of clients" [ngValue]="c.id">{{ c.name }}</option>
         </select>
       </label>
-      
-      <label>Type <span class="required">*</span>
+
+      <label class="full-width">Linked Project <span class="required">*</span>
+        <select [(ngModel)]="selectedProjectId" name="LinkedProject"
+        [ngClass]="{'input-error': submitted && !selectedProjectId}"
+        (change)="onProjectChange()"
+        [disabled]="!selectedClientId">
+          <option [ngValue]="null" disabled selected>Select Project</option>
+          <option *ngFor="let p of projects" [ngValue]="p.id">{{ p.projectIdStr }} - {{ p.name }}</option>
+        </select>
+      </label>
+
+      <label class="full-width">Type <span class="required">*</span>
           <select [(ngModel)]="form.Type" name="Type"
-          [ngClass]="{'input-error': submitted && !form.Type}"
-          >
+          [ngClass]="{'input-error': submitted && !form.Type}">
           <option *ngFor="let t of Types" [value]="t">{{t}}</option>
           </select>
       </label>
 
-      <label>Linked Project <span class="required">*</span>
-          <input type="text" [(ngModel)]="form.LinkedProject" name="LinkedProject"
-          [ngClass]="{'input-error': submitted && !form.LinkedProject}"
-          />
+      <label class="full-width">Title (Optional)
+          <input type="text" [(ngModel)]="form.Title" name="Title" placeholder="Auto-generated if empty"/>
       </label>
 
         <label>Start <span class="required">*</span>
-            <input type="date" 
-               [(ngModel)]="form.Start" 
-               name="Start" 
-               (click)="forceDatePicker($event)" 
+            <input type="date"
+               [(ngModel)]="form.Start"
+               name="Start"
+               (click)="forceDatePicker($event)"
                class="styled-date-input"
                [ngClass]="{'input-error': submitted && !form.Start}"
-               /> 
-      </label>
+               />
+      </label>
 
         <label>End <span class="required">*</span>
-            <input type="date" 
-               [(ngModel)]="form.End" 
-               name="End" 
-               (click)="forceDatePicker($event)" 
+            <input type="date"
+               [(ngModel)]="form.End"
+               name="End"
+               (click)="forceDatePicker($event)"
                class="styled-date-input"
                [ngClass]="{'input-error': submitted && !form.End}"
-               /> 
-      </label>
+               />
+      </label>
 
       <label>Billing Cycles <span class="required">*</span>
           <select [(ngModel)]="form.BillingCycle" name="BillingCycle"
-          [ngClass]="{'input-error': submitted && !form.BillingCycle}"
-          >
+          [ngClass]="{'input-error': submitted && !form.BillingCycle}">
           <option *ngFor="let t of BillingCycles" [value]="t">{{t}}</option>
           </select>
       </label>
@@ -63,30 +68,27 @@
           <input type="number" [(ngModel)]="form.AmountperCycle" name="AmountperCycle"/>
       </label>
 
-      <label class="full-width">Contract Photos & Files
-        <div class="custom-file-upload" (click)="openFilePicker()">
-          <i class="pin-icon">
-              <img src="/assets/images/imgIcon.png" alt="">
-          </i>
-          <span class="upload-text">Upload File</span>
+      <label class="full-width">Select Units
+        <div class="units-list" *ngIf="availableUnits.length">
+          <div *ngFor="let u of availableUnits" class="unit-item"
+            [class.selected]="selectedUnitIds.includes(u.id)"
+            (click)="onUnitToggle(u.id)">
+            <input type="checkbox" [checked]="selectedUnitIds.includes(u.id)" readonly/>
+            <span>{{ u.serial }} - {{ u.model }} ({{ u.type }})</span>
+          </div>
+        </div>
+        <div *ngIf="!availableUnits.length && selectedProjectId" class="no-units">
+          No units available for this project
+        </div>
+        <div *ngIf="!selectedProjectId" class="no-units">
+          Select a project to see available units
         </div>
       </label>
-      <div class="selected-files">
-        <div class="thumbnail-item" *ngFor="let img of form.Photos; let i = index">
-          <img [src]="img" alt="contract photo" (click)="openUrl(img)">
-          <button type="button" class="delete-icon" (click)="removePhoto(i)">✕</button>
-        </div>
-      </div>
-      <div class="selected-files" *ngIf="form.Files.length">
-        <div class="thumbnail-item" *ngFor="let f of form.Files; let i = index">
-          <button type="button" (click)="openUrl(f.url, f.name)">{{ f.name }}</button>
-          <button type="button" class="delete-icon" (click)="removeFile(i)">✕</button>
-        </div>
-      </div>
 
     </div>
     <div class="cnv-actions report-actions">
     <button type="button" class="cancel-button" (click)="doClose()">Cancel</button>
     <button type="button" class="save-button-large yellow-bg" (click)="doSave()">Save</button>
     </div>
+</div>
 </div>

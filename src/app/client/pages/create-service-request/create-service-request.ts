@@ -2,11 +2,12 @@ import { Component, EventEmitter, Input, Output, OnInit } from '@angular/core';
 import { CommonModule, NgFor, NgIf } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ResourceService } from '../../../core/resource.service';
+import { Loading } from '../../../Shared/shared-components/loading/loading';
 
 @Component({
   selector: 'app-create-service-request',
   standalone: true,
-  imports: [CommonModule, FormsModule, NgIf, NgFor],
+  imports: [CommonModule, FormsModule, NgIf, NgFor, Loading],
   templateUrl: './create-service-request.html',
   styleUrl: './create-service-request.css'
 })
@@ -27,6 +28,7 @@ export class CreateServiceRequest implements OnInit {
   faultCodes = ['FC-001 (Power Loss)', 'FC-002 (Leak)', 'FC-003 (Noise)', 'FC-004 (Stopped)'];
 
   submitted = false;
+  loading: boolean = false;
 
   constructor(private resource: ResourceService) {}
 
@@ -35,32 +37,58 @@ export class CreateServiceRequest implements OnInit {
   selectedProjectId: number | null = null;
   selectedUnitId: number | null = null;
   selectedUnit: any = null;
+  selectedProject: any = null;
 
   ngOnInit() {
-    this.loadProjects();
-    this.loadUnits();
-  }
-
-  loadProjects() {
-    this.resource.getAll('Projects').subscribe({
-      next: (p) => { this.availableProjects = Array.isArray(p) ? p : []; },
-      error: () => { this.availableProjects = []; }
+    this.loading = true;
+    this.loadProjects(() => {
+      this.loadUnits(() => {
+        this.loading = false;
+      });
     });
   }
 
-  loadUnits() {
+  loadProjects(done?: () => void) {
+    this.resource.getAll('Projects').subscribe({
+      next: (p) => {
+        const list = Array.isArray(p) ? p : [];
+        this.availableProjects = list.map((x: any) => ({
+          id: x.Id ?? x.id,
+          Name: x.Name ?? x.name,
+          ClientName: x.ClientName ?? x.clientName
+        }));
+      },
+      error: () => { this.availableProjects = []; },
+      complete: () => { if (done) done(); }
+    });
+  }
+
+  loadUnits(done?: () => void) {
     const params: any = {};
     if (this.selectedProjectId) params['projectId'] = this.selectedProjectId;
     this.resource.getAll('Units', params).subscribe({
-      next: (u) => { this.availableUnits = Array.isArray(u) ? u : []; },
-      error: () => { this.availableUnits = []; }
+      next: (u) => {
+        const list = Array.isArray(u) ? u : [];
+        this.availableUnits = list.map((x: any) => ({
+          id: x.Id ?? x.id,
+          Serial: x.Serial ?? x.serial,
+          Model: x.Model ?? x.model,
+          Type: x.Type ?? x.type,
+          Price: x.Price ?? x.price,
+          Quantity: x.Quantity ?? x.quantity
+        }));
+      },
+      error: () => { this.availableUnits = []; },
+      complete: () => { if (done) done(); }
     });
   }
 
   onProjectChange() {
     this.selectedUnitId = null;
     this.selectedUnit = null;
-    this.loadUnits();
+    this.selectedProject = this.availableProjects.find(p => String(p.id) === String(this.selectedProjectId)) || null;
+    this.loading = true;
+    this.loadUnits(() => { this.loading = false; });
   }
 
   onUnitChange() {
@@ -97,6 +125,8 @@ export class CreateServiceRequest implements OnInit {
     const payload = {
       UnitId: chosenUnitId,
       UnitName: chosenUnitName || null,
+      ProjectId: this.selectedProjectId ?? null,
+      ProjectName: this.selectedProject?.Name ?? null,
       ServiceType: this.form.serviceType,
       Description: this.form.description,
       FaultCode: this.form.faultCode || null,
@@ -104,17 +134,17 @@ export class CreateServiceRequest implements OnInit {
       Images: this.form.images
     };
 
+    this.loading = true;
     this.resource.create('ServiceRequests', payload).subscribe({
       next: (res) => {
-        console.log('Service Request Created', res);
         this.save.emit(res);
         this.close.emit();
+        this.loading = false;
       },
       error: (err) => {
-        console.error('Error creating service request', err);
-        // Fallback for demo
         this.save.emit(payload);
         this.close.emit();
+        this.loading = false;
       }
     });
   }

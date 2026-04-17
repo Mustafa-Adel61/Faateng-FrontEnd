@@ -1,0 +1,197 @@
+<div class="checklist-container">
+
+  <!-- Step 1: Selection -->
+  <div *ngIf="step === 1" class="step-selection">
+    <h2>MEPSOL Maintenance</h2>
+    <p>Select the system, variant (if Elevator), and frequency to begin.</p>
+
+    <div class="system-grid">
+      <div *ngFor="let sys of systems" class="system-card" [class.active]="selectedSystem === sys.name"
+        (click)="selectSystem(sys)">
+        <div class="card-content">
+          <h3>{{ sys.name }}</h3>
+          <p>{{ sys.name === 'Elevator' ? 'Gearless / Geared variants' : 'Standard' }}</p>
+        </div>
+        <div class="card-icon">
+          <img src="/assets/images/checklist-icon.png" alt="">
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="selectedSystem === 'Elevator'" class="variant-selection">
+      <h4>Variant</h4>
+      <div class="freq-buttons">
+        <button *ngFor="let v of systems[0].variants" [class.active]="selectedVariant === v"
+          (click)="selectedVariant = v">{{ v }}</button>
+      </div>
+    </div>
+
+    <div class="frequency-selection">
+      <h4>Frequency</h4>
+      <div class="freq-buttons">
+        <button *ngFor="let f of frequencies" [class.active]="selectedFrequency === f"
+          (click)="selectFrequency(f)">{{ f }}</button>
+      </div>
+    </div>
+
+    <div class="action-buttons">
+      <button class="primary" [disabled]="!canGoToLanguage()" (click)="goToLanguage()">Choose Language <i
+          class="fas fa-chevron-right"></i></button>
+      <button class="secondary" (click)="resetSelection()">Reset</button>
+    </div>
+  </div>
+
+  <!-- Step 2: Language -->
+  <div *ngIf="step === 2" class="step-language">
+    <h2>Choose Language</h2>
+    <p>Select the language for this checklist run.</p>
+
+    <div class="lang-buttons">
+      <button [class.active]="selectedLanguage === 'English'" (click)="selectLanguage('English')">English</button>
+      <button [class.active]="selectedLanguage === 'Arabic'" (click)="selectLanguage('Arabic')">العربية</button>
+    </div>
+
+    <div class="action-buttons">
+      <button class="primary" (click)="startChecklist()">Start Checklist <i class="fas fa-chevron-right"></i></button>
+      <button class="secondary" (click)="step = 1">Back</button>
+    </div>
+  </div>
+
+  <!-- Step 3: Questions -->
+  <div *ngIf="step === 3" class="step-questions" [dir]="selectedLanguage === 'Arabic' ? 'rtl' : 'ltr'">
+    <div class="header-info">
+      <span>{{ selectedSystem }} • {{ selectedFrequency }}</span>
+      <div class="header-actions">
+        <button (click)="step = 2">{{ translations[selectedLanguage].changeLanguage }}</button>
+        <button (click)="step = 1">{{ translations[selectedLanguage].changeSelection }}</button>
+      </div>
+    </div>
+
+    <div class="form-header-inputs">
+      <input type="text" [placeholder]="translations[selectedLanguage].site" [(ngModel)]="site">
+      <input type="text" [placeholder]="translations[selectedLanguage].unitId" [(ngModel)]="unitId">
+      <input type="text" [placeholder]="translations[selectedLanguage].technician" [(ngModel)]="technician">
+      <input type="date" [(ngModel)]="date">
+    </div>
+
+    <div class="progress-bar">
+      <div class="progress" [style.width.%]="(currentPage + 1) / totalPages * 100"></div>
+    </div>
+
+    <div *ngIf="isAdmin" class="admin-add-question">
+      <h4>{{ editingQuestionId ? 'Edit Question' : 'Add Question' }}</h4>
+      <input type="text" [(ngModel)]="newQuestionText" placeholder="Question Text">
+      <select [(ngModel)]="newQuestionCategory">
+        <option value="General & IAQ">General & IAQ</option>
+        <option value="Mechanical">Mechanical</option>
+        <option value="Electrical">Electrical</option>
+      </select>
+      <button class="btn-add"
+        (click)="editingQuestionId ? updateQuestion() : addQuestion()">{{ editingQuestionId ? 'Update' : 'Add' }}</button>
+      <button *ngIf="editingQuestionId" (click)="editingQuestionId = null; newQuestionText = ''">Cancel</button>
+    </div>
+
+    <div class="category-section">
+      <h3>{{ paginatedQuestions[0]?.category }}</h3>
+
+      <div *ngFor="let q of paginatedQuestions; let i = index" class="question-card"
+        [class.invalid]="answers[currentPage * questionsPerPage + i].isDirty && (!answers[currentPage * questionsPerPage + i].status || (q.requireNumeric && answers[currentPage * questionsPerPage + i].numericValue === null))">
+        <div class="question-header">
+          <p>{{ selectedLanguage === 'Arabic' ? q.textAr : q.textEn }}</p>
+          <div class="status-buttons">
+            <button [class.pass]="answers[currentPage * questionsPerPage + i].status === 'Pass'"
+              (click)="answers[currentPage * questionsPerPage + i].status = 'Pass'">{{ translations[selectedLanguage].pass }}</button>
+            <button [class.fail]="answers[currentPage * questionsPerPage + i].status === 'Fail'"
+              (click)="answers[currentPage * questionsPerPage + i].status = 'Fail'">{{ translations[selectedLanguage].fail }}</button>
+            <button [class.na]="answers[currentPage * questionsPerPage + i].status === 'N/A'"
+              (click)="answers[currentPage * questionsPerPage + i].status = 'N/A'">{{ translations[selectedLanguage].na }}</button>
+          </div>
+        </div>
+
+        <div *ngIf="q.requireNumeric" class="numeric-input">
+          <label>{{ selectedLanguage === 'Arabic' ? 'القيمة الرقمية' : 'Numeric Value' }} (Required)</label>
+          <input type="number" [(ngModel)]="answers[currentPage * questionsPerPage + i].numericValue"
+            [placeholder]="selectedLanguage === 'Arabic' ? 'ادخل قيمة' : 'Enter value'">
+        </div>
+
+        <textarea *ngIf="q.requireNotes" [(ngModel)]="answers[currentPage * questionsPerPage + i].notes"
+          [placeholder]="selectedLanguage === 'Arabic' ? 'ملاحظات (اختياري)' : 'Notes (optional)'"></textarea>
+
+        <div *ngIf="q.requirePhoto || answers[currentPage * questionsPerPage + i].status === 'Fail'"
+          class="file-upload-section">
+          <label class="file-label">{{ selectedLanguage === 'Arabic' ? 'الصور' : 'Photos' }}</label>
+          <div class="custom-file-upload" (click)="openFilePicker(i)">
+            <i class="pin-icon">
+              <img src="/assets/images/imgIcon.png" alt="">
+            </i>
+            <span class="upload-text">{{ selectedLanguage === 'Arabic' ? 'ارفق صورة' : 'Attach Photo' }}</span>
+          </div>
+
+          <div class="file-status" *ngIf="answers[currentPage * questionsPerPage + i].photoFile">
+            <i class="fas fa-check-circle"></i> {{ answers[currentPage * questionsPerPage + i].photoFile.name }}
+          </div>
+          <span class="upload-hint red" *ngIf="!answers[currentPage * questionsPerPage + i].photoFile">
+            {{ selectedLanguage === 'Arabic' ? 'الصورة مطلوبة في حالة الفشل' : 'Photo required if Fail' }}
+          </span>
+        </div>
+
+        <div *ngIf="isAdmin" class="admin-q-actions">
+          <button (click)="editQuestion(q)">Edit</button>
+          <button (click)="deleteQuestion(q.id!)">Delete</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="navigation-buttons">
+      <button class="secondary" (click)="prevPage()">{{ translations[selectedLanguage].back }}</button>
+      <button class="primary" (click)="nextPage()">{{ translations[selectedLanguage].next }}</button>
+    </div>
+  </div>
+
+  <!-- Step 4: Summary -->
+  <div *ngIf="step === 4" class="step-summary">
+    <h2>{{ translations[selectedLanguage].summary }}</h2>
+    <div class="summary-info">
+      <span>{{ selectedSystem }} • {{ selectedFrequency }}</span>
+      <span>{{ translations[selectedLanguage].site }}: {{ site }} • {{ translations[selectedLanguage].unitId }}:
+        {{ unitId }} • {{ translations[selectedLanguage].technician }}: {{ technician }} • {{ date }}</span>
+    </div>
+
+    <button class="btn-export">
+      <i class="fas fa-file-download"></i>
+      Export JSON Summary
+    </button>
+
+    <div class="summary-stats">
+      <div class="stat-card">
+        <label>{{ translations[selectedLanguage].passed }}</label>
+        <span class="count green">{{ getSummary().passed }}</span>
+      </div>
+      <div class="stat-card">
+        <label>{{ translations[selectedLanguage].failed }}</label>
+        <span class="count red">{{ getSummary().failed }}</span>
+      </div>
+      <div class="stat-card">
+        <label>{{ translations[selectedLanguage].na }}</label>
+        <span class="count gray">{{ getSummary().na }}</span>
+      </div>
+    </div>
+
+    <div class="suggested-repairs">
+      <h4>{{ translations[selectedLanguage].suggestedRepairs }}</h4>
+      <p *ngIf="getSummary().failed === 0">{{ translations[selectedLanguage].noFailures }}</p>
+      <!-- List failed questions here if any -->
+    </div>
+
+    <div class="action-buttons">
+      <button class="secondary" (click)="step = 3"
+        [disabled]="isSubmitting">{{ translations[selectedLanguage].back }}</button>
+      <button class="primary" (click)="finish()" [disabled]="isSubmitting">
+        <span *ngIf="!isSubmitting">{{ translations[selectedLanguage].finish }}</span>
+        <span *ngIf="isSubmitting">
+          <i class="fas fa-spinner fa-spin"></i> Submitting...
+        </span>
+      </button>
+    </div>
+  </div>
+</div>

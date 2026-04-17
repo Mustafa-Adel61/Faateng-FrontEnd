@@ -1,9 +1,10 @@
-import { Component, EventEmitter, Output } from '@angular/core';
+import { Component, EventEmitter, Output, Input, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { UnitService } from '../../../core/unit.service';
 import { Loading } from '../../../Shared/shared-components/loading/loading';
+import { ResourceService } from '../../../core/resource.service';
 
 @Component({
   selector: 'app-create-new-unit',
@@ -12,11 +13,20 @@ import { Loading } from '../../../Shared/shared-components/loading/loading';
   templateUrl: './create-new-unit.html',
   styleUrl: './create-new-unit.css'
 })
-export class CreateNewUnit {
+export class CreateNewUnit implements OnInit {
+  @Input() projectId: number | null = null;
+  @Input() clientId: string | null = null;
+  @Input() projectName: string | null = null;
+  @Input() clientName: string | null = null;
+  
   @Output() close = new EventEmitter<void>();
   @Output() save = new EventEmitter<any>();
 
-  unitTypes = ['Lifts', 'Escalators', 'HVAC', 'Accessories'];
+  unitTypes = [
+    'Elevator', 'Escalator', 'Moving Walk',
+    'AHU', 'FCU', 'VRF / DX', 'Chiller', 'Cooling Tower',
+    'Pump', 'Exhaust/Supply Fan', 'Package / Rooftop Unit'
+  ];
 
   form = {
     Serial: '',
@@ -32,8 +42,13 @@ export class CreateNewUnit {
   maxFileSize = 10; // MB
   allowedFileTypes = ['image/jpeg','image/jpg','image/png','image/gif','image/webp','application/pdf'];
 
-  constructor(private unitService: UnitService, private http: HttpClient) {}
+  constructor(private unitService: UnitService, private http: HttpClient, private resource: ResourceService) {}
   loading: boolean = false;
+
+  ngOnInit(): void {
+    // If names are not provided but IDs are, fetch them?
+    // For now assume they are passed from project-details
+  }
 
   doClose() {
     this.close.emit();
@@ -51,7 +66,9 @@ export class CreateNewUnit {
       type: this.form.Type,
       price: Number(this.form.Price),
       quantity: Number(this.form.Quantity),
-      photos: this.form.attachments.map(a => a.url)
+      photos: this.form.attachments.map(a => a.url),
+      projectId: this.projectId,
+      clientId: this.clientId
     };
 
     this.loading = true;

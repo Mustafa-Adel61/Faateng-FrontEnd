@@ -86,6 +86,12 @@
     }
   }
 }
+.text-truncate {
+  max-width: 120px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 
 /* task-toolbar */
 /* Toolbar */
@@ -540,12 +546,12 @@ input[type="checkbox"] {
 /*main photo in details */
 .photoGallery {
   display: flex;
-  flex: 2;
+  /* flex: 2; */
 }
 
 .main-photo-area {
-  flex: 1;
-  width: 100%;
+  /* flex: 1; */
+  width: 50%;
   /* تأخذ العرض المتاح */
 }
 
@@ -554,7 +560,7 @@ input[type="checkbox"] {
   width: 100%;
   height: 100px;
   /* التعديل هنا: استخدام 'contain' لعرض الصورة بالكامل داخل الإطار */
-  object-fit: cover;
+  object-fit: fill;
   /* <--- التعديل الرئيسي */
 
   /* إضافة لون خلفية لرؤية حدود الإطار بوضوح عندما تكون الصورة أصغر */

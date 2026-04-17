@@ -5,6 +5,7 @@ import { SharedPageHeader } from '../../../Shared/shared-layout/shared-page-head
 import { CreateNewReport } from "../create-new-report/create-new-report";
 import { ResourceService } from '../../../core/resource.service';
 import { ToastService } from '../../../Shared/services/toast.service';
+import { Loading } from '../../../Shared/shared-components/loading/loading';
 interface Task {
     id?: number;
     selected: boolean;
@@ -21,7 +22,7 @@ interface Task {
 }
 @Component({
   selector: 'app-reports-review-queue',
-  imports: [FormsModule, NgIf, NgFor, NgClass, SharedPageHeader, CreateNewReport],
+  imports: [FormsModule, NgIf, NgFor, NgClass, SharedPageHeader, CreateNewReport, Loading],
   templateUrl: './reports-review-queue.html',
   styleUrl: './reports-review-queue.css'
 })
@@ -53,6 +54,7 @@ export class ReportsReviewQueue {
 
   // sample tasks data (enriched with SLA fields etc)
   tasks: Task[] = [];
+  loading = false;
 
   // constructor: init map url
  
@@ -64,9 +66,12 @@ export class ReportsReviewQueue {
   constructor(private resource: ResourceService) {}
   
   private loadReports() {
+    this.loading = true;
     this.resource.getAll('Reports').subscribe({
       next: (items) => {
-        this.tasks = (items || []).map((r: any) => ({
+        this.tasks = (items || [])
+        .filter((r: any) => String(r.status || '').toLowerCase() !== 'approved')
+        .map((r: any) => ({
           id: r.id,
           selected: false,
           Report: r.reportId,
@@ -83,7 +88,8 @@ export class ReportsReviewQueue {
       },
       error: () => {
         this.tasks = [];
-      }
+      },
+      complete: () => { this.loading = false; }
     });
   }
   selectedCount=0;
@@ -247,6 +253,8 @@ applyFilter() {
   const value = selectElement.value;
 
   this.performAction(task, value);
+  selectElement.selectedIndex = 0;
+  selectElement.value = '';
 }
 
 
@@ -275,6 +283,8 @@ applyFilter() {
       this.resource.update('Reports', task.id + '/approve', {}).subscribe(() => {
         this.tasks[index].Status = 'Approved';
         this.toast.show('تم تحديث الحالة بنجاح', 'success')
+        // أخفِ التقرير من قائمة المراجعة بعد الموافقة
+        this.tasks = this.tasks.filter(t => t.Report !== task.Report);
 
       });
     } else if (selected === 'Returned' && task.id) {
@@ -314,6 +324,7 @@ applyFilter() {
       unitId: newReportData.systemId ? Number(newReportData.systemId) : null,
       comments: newReportData.comments || '',
       workPerformed: newReportData.workPerformed || '',
+      status: newReportData.status || 'Submitted',
       photos: Array.isArray(newReportData.photos) ? newReportData.photos : [],
       maintenanceVisits: newReportData.maintenanceVisits ? [newReportData.maintenanceVisits] : []
     };

@@ -11,6 +11,8 @@
 /* priority */
 .priority-high { background:oklch(92.937% 0.0317 65.821); color:oklch(55.5% 0.163 48.998); }
 .priority-low { background:oklch(96.7% 0.003 264.542); color:oklch(44.6% 0.03 256.802); }
+.priority-normal { background:#eef4ff; color:#1e40af; }
+.priority-urgent { background:#fde8e8; color:#b91c1c; }
 /* status */
 .status-Scheduled { background:oklch(92.238% 0.01692 271.239); color:oklch(48.8% 0.243 264.376); }
 .status-Dispatched { background:oklch(92.892% 0.01942 312.59); color:oklch(49.6% 0.265 301.924); }
@@ -18,6 +20,8 @@
 .status-Waiting-Parts { background:oklch(93.532% 0.02405 67.431); color:oklch(66.6% 0.179 58.318); }
 .status-Backlog { background:oklch(97.343% 0.00143 285.217); color:oklch(37.3% 0.034 259.733); }
 .status-QA-Review { background:oklch(97.3% 0.071 103.193); color:oklch(60.376% 0.11225 103.782); }
+.status-Closed { background:#f3f4f6; color:#111827; }
+.status-Draft { background:#fffbeb; color:#92400e; }
 
 .status-select select {
   appearance: none;
@@ -43,4 +47,71 @@
   transform: translateY(-50%);
   color: #666;
   pointer-events: none;
+}
+
+.time-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+.time-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.time-label {
+  font-size: 13px;
+  color: #555;
+  font-weight: 600;
+}
+.time-field input[type="datetime-local"] {
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  background: #fff;
+  font-size: 14px;
+  color: #333;
+  outline: none;
+}
+.time-field input[type="datetime-local"]:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.15);
+}
+.save-btn {
+  background: #1B1616;
+  color: #F5D11C;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.save-btn[disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.input-modern, .select-modern {
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  background: #fff;
+  font-size: 14px;
+  color: #111827;
+  outline: none;
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+.input-modern:focus, .select-modern:focus {
+  border-color: #1B1616;
+  box-shadow: 0 0 0 2px rgba(27, 22, 22, 0.15);
+}
+.icon-edit {
+  background: #e5e7eb;
+  color: #111827;
+  border: none;
+  padding: 4px 8px;
+  border-radius: 6px;
+  cursor: pointer;
 }

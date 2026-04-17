@@ -40,6 +40,13 @@ export class SharedSidebar {
    scrollToTop() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
+
+  getChecklistLink(): any[] {
+    const role = this.auth.getRole();
+    const target = role === 'admin' || role === 'manager' ? 'checklist-list' : 'checklist';
+    return ['/dashboard', role, target];
+  }
+
   @Output() closeSidebar = new EventEmitter<void>();
 
   closeSidebarOnMobile() {

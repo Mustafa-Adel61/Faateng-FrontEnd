@@ -1,3 +1,4 @@
+<app-loading [loading]="loading"></app-loading>
 <div class="modal-backdrop" (click)="close.emit()">
   <div class="modal-content" (click)="$event.stopPropagation()">
     <div class="modal-header">
@@ -6,8 +7,10 @@
     </div>
 
   <div class="modal-body">
-      <div class="unit-info" *ngIf="unit">
-        <strong>Unit:</strong> {{ unit.unitName }} ({{ unit.Building }})
+      <div class="unit-info" *ngIf="selectedProject || selectedUnit || unit">
+        <div *ngIf="selectedProject"><strong>Project:</strong> {{ selectedProject.Name }}</div>
+        <div *ngIf="selectedUnit"><strong>Unit:</strong> {{ selectedUnit.Serial }} - {{ selectedUnit.Model }} ({{ selectedUnit.Type }})</div>
+        <div *ngIf="!selectedUnit && unit"><strong>Unit:</strong> {{ unit.unitName }} ({{ unit.Building }})</div>
       </div>
 
       <div class="form-row">

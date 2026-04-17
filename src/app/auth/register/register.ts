@@ -5,6 +5,7 @@ import { AuthService } from '../../core/auth';
 import { Router } from '@angular/router';
 import { ToastService } from '../../Shared/services/toast.service';
 
+
 @Component({
   selector: 'app-register',
   imports: [CommonModule, ReactiveFormsModule],
@@ -16,12 +17,9 @@ export class Register {
   error = '';
   success = '';
   private toast: ToastService = inject(ToastService);
-
   constructor(
     private fb: FormBuilder,
-    private auth: AuthService,
-    private router: Router
-  ) {
+    private auth: AuthService ) {
     // ✅ هنا بقى الـ fb جاهز
     this.form = this.fb.group({
       fullName: ['', Validators.required],
@@ -56,7 +54,9 @@ export class Register {
         this.error = '';
         this.success = 'Account created successfully!';
         this.toast.show(this.success, 'success');
-
+        this.form.reset({
+            role: 'client' // لو عايز role يفضل بقيمة افتراضية
+        });
       },
       error: (err) => {
         this.error = (err?.error || 'Registration failed');

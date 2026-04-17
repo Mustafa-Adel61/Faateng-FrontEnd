@@ -254,6 +254,7 @@ input[type="checkbox"] {
 .status-Active { background:#e6f9ea; color:#1f7a3a; padding:4px 8px; border-radius:12px; font-weight:500;; }
 .status-Pending { background:oklch(93.532% 0.02405 67.431); color:oklch(66.6% 0.179 58.318); padding:4px 8px; border-radius:12px; font-weight:500; }
 .status-Expired { background:oklch(97.343% 0.00143 285.217); color:oklch(37.3% 0.034 259.733); padding:4px 8px; border-radius:12px; font-weight:500; }
+.status-Inactive { background:#fdeeee; color:#c73a3a; padding:4px 8px; border-radius:12px; font-weight:500; }
 
 
 

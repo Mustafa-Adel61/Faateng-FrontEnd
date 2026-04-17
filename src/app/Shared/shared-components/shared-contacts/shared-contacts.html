@@ -1,23 +1,35 @@
-
-<app-shared-page-header
- [createButtonLabel]="'CREATE NEW CONTRACT'" 
-  [showCreateVisitButton]="true"
-  (createVisit)="openCreate()"
->
-  <span breadcrumb>CRM &gt; Contract</span>
+<app-shared-page-header [createButtonLabel]="'CREATE NEW CONTACT'" [showCreateVisitButton]="true"
+  (createVisit)="openCreate()">
+  <span breadcrumb>CRM &gt; Contacts</span>
 </app-shared-page-header>
 
 <!-- modal create -->
-<app-create-new-contact
-  *ngIf="showCreate"
-  (close)="closeCreate()"
-  (save)="addTask($event)">
+<app-create-new-contact *ngIf="showCreate" (close)="closeCreate()" (save)="addTask($event)">
 </app-create-new-contact>
 
-  <h2>MEPSOL – Contracts</h2>
-
-  <!-- 📊 Status Summary Cards -->
+<h2>Users</h2>
+<app-loading [loading]="loadingUsers"></app-loading>
 <div class="status-summary">
+  <div class="summary-card">
+    <span class="label">Client</span>
+    <span class="count">{{ getRoleCount('client') }}</span>
+  </div>
+  <div class="summary-card">
+    <span class="label">Dispatcher</span>
+    <span class="count">{{ getRoleCount('dispatcher') }}</span>
+  </div>
+  <div class="summary-card">
+    <span class="label">Technician</span>
+    <span class="count">{{ getRoleCount('technician') }}</span>
+  </div>
+  <div class="summary-card">
+    <span class="label">Finance</span>
+    <span class="count">{{ getRoleCount('finance') }}</span>
+  </div>
+</div>
+
+<!-- 📊 Status Summary Cards -->
+<!-- <div class="status-summary">
   <div class="summary-card">
     <span class="label">Active</span>
     <span class="count">{{ getStatusCount('Active') }}</span>
@@ -38,201 +50,138 @@
     <span class="label">Next 30d Billings</span>
     <span class="count">$12,400.00</span>
   </div>
-</div>
+</div> -->
 
-  <div class="task-toolbar">
+<div class="task-toolbar">
   <!-- Left side: actions -->
   <div class="toolbar-left">
 
     <button class="icon-btn">+</button>
-    <button class="icon-btn" (click)="toggleFilterBuilder()">
+    <button class="icon-btn" (click)="toggleUserFilterBuilder()">
       <img src="/assets/images/Vector3.png" alt="">
     </button> <!-- هنا تحط أيقونة الفلتر -->
     <button class="icon-btn">⇅</button> <!-- هنا أيقونة sort -->
   </div>
 
- <!-- Right side: search -->
+  <!-- Right side: search -->
   <div class="toolbar-right">
-     <div class="search-input">
-            <button><img class="search-icon" src="/assets/images/search.png" alt=""></button>
-            <input type="text"
-             class="forSearch"
-             [(ngModel)]="searchText" 
-             placeholder="Search" />
-          </div>
+    <div class="search-input">
+      <button><img class="search-icon" src="/assets/images/search.png" alt=""></button>
+      <input type="text" class="forSearch" [(ngModel)]="userSearchText" placeholder="Search" />
+    </div>
   </div>
 </div>
- <!-- Filter Builder -->
-      <div class="filter-builder" *ngIf="showFilterBuilder">
-        <h4>Add filter</h4>     
-    <div class="filter-row">
-    <select [(ngModel)]="newFilter.field">
-    <option value="">Select Field</option>
-    <option value="Contract">Contract</option>
-    <option value="Client">Client</option>
-    <option value="Project">Project</option>
-    <option value="Start">Start</option>
-    <option value="End">End</option>
-    <option value="DaysLeft">DaysLeft</option>
-    <option value="Cycle">Cycle</option>
-    <option value="Value">Value</option>
-    <option value="NextBill">NextBill</option>
-    <option value="Status">Status</option>
-  </select>
+<!-- Filter Builder -->
+<div class="filter-builder" *ngIf="userFilterBuilder">
+  <h4>Add filter</h4>
+  <div class="filter-row">
+    <select [(ngModel)]="userNewFilter.field">
+      <option value="">Select Field</option>
+      <option value="name">Name</option>
+      <option value="role">Role</option>
+      <option value="email">Email</option>
+      <option value="phone">Phone</option>
+      <option value="position">Position</option>
+    </select>
 
-  <!-- ✅ لو الفيلد Date يظهر اتنين input -->
-<div *ngIf="newFilter.field === 'Start'||newFilter.field === 'End'||newFilter.field === 'NextBill'" class="date-range-inputs">
-  <div class="date-field">
-    <label>From</label>
-    <input type="date" [(ngModel)]="newFilter.dateFrom"  (click)="forceDatePicker($event)" />
-  </div>
-  <div class="date-field">
-    <label>To</label>
-    <input type="date" [(ngModel)]="newFilter.dateTo" (click)="forceDatePicker($event)"  />
+    <!-- باقي الفيلدات العادية -->
+    <select *ngIf="userNewFilter.field && getUserFilterValues(userNewFilter.field).length"
+      [(ngModel)]="userNewFilter.value">
+      <option *ngFor="let v of getUserFilterValues(userNewFilter.field)" [value]="v">{{ v }}</option>
+    </select>
+
+    <button class="add-btn" (click)="applyUserFilter()">Apply</button>
+    <button class="add-btn" (click)="userFilterBuilder=false" style="background:#ccc;color:#000">Close</button>
   </div>
 </div>
-
-  <!-- باقي الفيلدات العادية -->
-  <select *ngIf="newFilter.field !== 'Start'&& newFilter.field !== 'End'&& newFilter.field !== 'NextBill'&& getFilterValues(newFilter.field).length"
-          [(ngModel)]="newFilter.value">
-    <option *ngFor="let v of getFilterValues(newFilter.field)" [value]="v">{{ v }}</option>
-  </select>
-
-  <button class="add-btn" (click)="applyFilter()">Apply</button>
-  <button class="add-btn" (click)="showFilterBuilder=false" style="background:#ccc;color:#000">Close</button>
-</div>
-      </div>
-      <!-- Active filters -->
-      <div class="active-filters" *ngIf="activeFilters.length">
-     <span class="filter-chip" *ngFor="let f of activeFilters; let i = index">
-  <ng-container *ngIf="f.field !== 'Start'&&f.field !== 'End'&&f.field !== 'NextBill'">
+<!-- Active filters -->
+<div class="active-filters" *ngIf="userActiveFilters.length">
+  <span class="filter-chip" *ngFor="let f of userActiveFilters; let i = index">
     {{ f.field }}: <strong>{{ f.value }}</strong>
-  </ng-container>
-  <ng-container *ngIf="f.field === 'Start'||f.field === 'End'||f.field === 'NextBill'">
-    {{ f.field }}: <strong>{{ f.dateFrom || '...' }} → {{ f.dateTo || '...' }}</strong>
-  </ng-container>
-  <button (click)="removeFilter(i)">×</button>
-</span>
+    <button (click)="removeUserFilter(i)">×</button>
+  </span>
 
-        <button class="clear-btn" (click)="clearAllFilters()">Clear All</button>
-      </div>
+  <button class="clear-btn" (click)="clearAllUserFilters()">Clear All</button>
+</div>
 <!-- selected count -->
 <div class="selected-count" *ngIf="selectedCount > 0">
   {{ selectedCount }} row(s) selected
 </div>
 
-      <table>
-        <thead>
-          <tr>
-             <th>
-              <input 
-               type="checkbox" 
-               [checked]="allSelected" 
-               (change)="allSelected = $event.target.checked; toggleAll()" 
-               (click)="$event.stopPropagation()"/> 
-            <th class="faded">Contract</th>
-            <th class="faded">Client</th>
-            <th class="faded">Project(s)</th>
-            <th class="faded">Start</th>
-            <th class="faded">End</th>
-            <th class="faded">Days Left</th>
-            <th class="faded">Cycle</th>
-            <th class="faded">Value</th>
-            <th class="faded">Next Bill</th>
-            <th class="faded">Status</th>
-            <th class="faded">Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let task of pagedTasks" (click)="openDetails(task)">
-  <td>
-              <!-- <input type="checkbox" [(ngModel)]="task.selected" (change)="updateAllSelected()" /> -->
-              <input 
-      type="checkbox" 
-      [(ngModel)]="task.selected" 
-      (change)="updateAllSelected()" 
-      (click)="$event.stopPropagation()"
-        />
-        </td>
-  <td class="faded" data-label="Project Name">{{task.Contract}}</td>
-  <td class="faded" data-label="Client">{{task.Client}}</td>
-  <td class="faded" data-label="Address">{{task.Project}}</td>
-  <td class="faded" data-label="Due Date">{{task.Start}}</td>
-  <td class="faded" data-label="Visit Objective">{{task.End}}</td>
-  <td class="faded" data-label="Team On Site">{{task.DaysLeft}}</td>
-  <td class="faded" data-label="Team On Site">{{task.Cycle}}</td>
-  <td class="faded" data-label="Team On Site">{{task.Value}}</td>
-  <td class="faded" data-label="Team On Site">{{task.NextBill}}</td>
-   <td class="faded">
-              <span [ngClass]="{
-                'status-Active': task.Status === 'Active',
-                'status-Pending': task.Status === 'Pending',
-                'status-Expired': task.Status === 'Expired',
-              }">{{ task.Status }}</span>
-            </td> 
-             <td (click)="$event.stopPropagation()">
-                <select class="action-row" (change)="onSelectChange(task, $event)">
-                <option value="">Actions</option>
-                <option value="view">ReView</option>
-                <!-- <option value="edit">Edit</option> -->
-                <option value="delete">Delete</option>
-                </select>
-           </td>
-</tr>
-        </tbody>
-      </table>
+<table>
+  <thead>
+    <tr>
+      <th>
+        <input type="checkbox" [checked]="userAllSelected"
+          (change)="userAllSelected = $event.target.checked; toggleUserAll()" (click)="$event.stopPropagation()" />
+      <th class="faded">Name</th>
+      <th class="faded">Role</th>
+      <th class="faded">Email</th>
+      <th class="faded">Phone</th>
+      <th class="faded">Position</th>
+      <th class="faded">Status</th>
+      <th class="faded">Action</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let u of pagedUsers" (click)="openUserDetails(u)">
+      <td>
+        <input type="checkbox" [(ngModel)]="u.selected" (change)="updateUserAllSelected()"
+          (click)="$event.stopPropagation()" />
+      </td>
+      <td class="faded" data-label="Name">{{u.name}}</td>
+      <td class="faded" data-label="Role">{{u.role}}</td>
+      <td class="faded" data-label="Email">{{u.email}}</td>
+      <td class="faded" data-label="Phone">{{u.phone}}</td>
+      <td class="faded" data-label="Position">{{u.position}}</td>
+      <td class="faded" data-label="Status">
+        <span [ngClass]="u.isActive ? 'status-Active' : 'status-Inactive'">
+          {{ u.isActive ? 'Active' : 'Inactive' }}
+        </span>
+      </td>
+      <td (click)="$event.stopPropagation()">
+        <select class="action-row" (change)="onUserSelectChange(u, $event)">
+          <option value="">Actions</option>
+          <option value="view">View Details</option>
+        </select>
+      </td>
+    </tr>
+  </tbody>
+</table>
 
-      <!-- Pagination -->
-      <div class="pagination" *ngIf="totalPages > 1">
-        <button class="page-btn" [disabled]="page === 1" (click)="setPage(page-1)">&lt;</button>
+<!-- Pagination -->
+<div class="pagination" *ngIf="userTotalPages > 1">
+  <button class="page-btn" [disabled]="userPage === 1" (click)="setUserPage(userPage-1)">&lt;</button>
 
-        <ng-container *ngFor="let p of visiblePages">
-          <button class="page-btn" [class.active]="p === page" (click)="setPage(p)">{{p}}</button>
-        </ng-container>
+  <ng-container *ngFor="let p of userVisiblePages">
+    <button class="page-btn" [class.active]="p === userPage" (click)="setUserPage(p)">{{p}}</button>
+  </ng-container>
 
-        <button class="page-btn" [disabled]="page === totalPages" (click)="setPage(page+1)">&gt;</button>
-      </div>
+  <button class="page-btn" [disabled]="userPage === userTotalPages" (click)="setUserPage(userPage+1)">&gt;</button>
+</div>
 
-      <!-- details panel (simple modal-ish) -->
+<!-- details panel (simple modal-ish) -->
 <div class="details-overlay" *ngIf="showDetails">
   <div class="details-panel">
-    <button class="close-btn" (click)="closeDetails()">×</button>
-    <h3>{{ selectedTask?.Contract }}</h3>
-
-<!-- عملت الشرط دا عشان لو فيها null ميدخلش اصلا  -->
-   <p *ngIf="selectedTask">
-  <strong>Status</strong>
-  <select [(ngModel)]="selectedTask.Status" (change)="updateTaskStatus(selectedTask)">
-    <option *ngFor="let s of getSortedStatuses(selectedTask.Status)" [value]="s">
-      {{ s }}
-    </option>
-  </select>
-</p>
-
-    <p><strong>Client:</strong> {{ selectedTask?.Client }}</p>
-    <p><strong>Project:</strong> {{ selectedTask?.Project }}</p>
-    <p><strong>Start:</strong> {{ selectedTask?.Start }}</p>
-    <p><strong>End:</strong> {{ selectedTask?.End }}</p>
-    <p><strong>DaysLeft:</strong> {{ selectedTask?.DaysLeft }}</p>
-    <p><strong>Cycle:</strong> {{ selectedTask?.Cycle }}</p>
-    <!-- <p><strong>Value:</strong> {{ selectedTask?.Value }}</p> -->
-    <!-- <p><strong>NextBill:</strong> {{ selectedTask?.NextBill }}</p> -->
-    <p><strong>Photo:</strong></p>
-        <!-- photo -->
-      <div class="photoGallery">
-        
-      <div class="thumbnail-row" *ngIf="selectedTask?.photos">
-        <img 
-          *ngFor="let photo of selectedTask?.photos" 
-          [src]="photo" 
-          alt="Thumbnail" 
-          (click)="setMainImage(photo)" 
-          [class.active-thumbnail]="photo === mainImage"
-        >
-      </div>
-      <div class="main-photo-area">
-          <img [src]="mainImage" alt="Main Work Photo" *ngIf="mainImage" class="main-report-photo">
-        </div>
-    </div>
+    <button class="close-btn" (click)="closeUserDetails()">×</button>
+    <h3>{{ selectedUser?.name }}</h3>
+    <p><strong>Role:</strong> {{ selectedUser?.role }}</p>
+    <p><strong>Email:</strong> {{ selectedUser?.email }}</p>
+    <p><strong>Phone:</strong> {{ selectedUser?.phone }}</p>
+    <p><strong>Position:</strong> {{ selectedUser?.position }}</p>
+    <p><strong>Status:</strong>
+      <ng-container *ngIf="!canEditStatus(); else editableStatus">
+        <span [ngClass]="selectedUser?.isActive ? 'status-Active' : 'status-Inactive'">
+          {{ selectedUser?.isActive ? 'Active' : 'Inactive' }}
+        </span>
+      </ng-container>
+      <ng-template #editableStatus>
+        <select [ngModel]="selectedUser?.isActive ? 'Active' : 'Inactive'"
+                (ngModelChange)="selectedUser && updateUserStatus(selectedUser, $event)">
+          <option value="Active">Active</option>
+          <option value="Inactive">Inactive</option>
+        </select>
+      </ng-template>
+    </p>
   </div>
 </div>

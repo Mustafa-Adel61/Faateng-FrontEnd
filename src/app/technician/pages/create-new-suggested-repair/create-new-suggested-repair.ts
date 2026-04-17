@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, ElementRef, EventEmitter, Input, OnInit, Output, ViewChild } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { ResourceService } from '../../../core/resource.service';
 @Component({
   selector: 'app-create-new-suggested-repair',
   imports: [FormsModule,CommonModule,ReactiveFormsModule],
@@ -23,6 +24,10 @@ export class CreateNewSuggestedRepair implements OnInit {
 
  Priority = ['Critical', 'High','Medium'];
  Status = ['Under Review', 'Draft','Approved'];
+ projects: { id: number, name: string }[] = [];
+ units: { id: number, model: string, serial: string }[] = [];
+ selectedProjectId: number | null = null;
+ selectedUnitId: number | null = null;
  form = {
  Code: '',
  ProjectName: '',
@@ -38,14 +43,31 @@ export class CreateNewSuggestedRepair implements OnInit {
  images: [] as string[]
  };
 
+ constructor(private resource: ResourceService) {}
  ngOnInit() {
    if (this.initialData) {
      this.form.ProjectName = this.initialData.projectName || this.initialData.name || '';
-     this.form.TechnicalName = this.initialData.assignee || '';
      this.form.UnitType = this.initialData.units || '';
-     this.form.Location = this.initialData.address || '';
      this.form.IssueDescription = this.initialData.objective || '';
    }
+  this.loadProjects();
+ }
+ loadProjects() {
+  this.resource.getAll('Tasks/my-projects').subscribe({
+    next: (items) => { this.projects = Array.isArray(items) ? items : []; },
+    error: () => { this.projects = []; }
+  });
+ }
+ onProjectChange() {
+  if (!this.selectedProjectId) { this.units = []; return; }
+  this.resource.getAll('Tasks/my-units', { projectId: String(this.selectedProjectId) }).subscribe({
+    next: (items) => { this.units = Array.isArray(items) ? items : []; },
+    error: () => { this.units = []; }
+  });
+ }
+ onUnitChange() {
+  const u = this.units.find(x => x.id === this.selectedUnitId);
+  this.form.UnitType = u ? (u.model || '') : '';
  }
 
  triggerFileInput() {
@@ -61,17 +83,19 @@ submitted = false;
  doSave() {
    this.submitted = true;
 
-  if (!this.form.ProjectName || 
-      !this.form.TechnicalName ||
-      !this.form.UnitType ||
-      !this.form.Location||
-      !this.form.IssueDescription||
-      !this.form.SuggestedRepair) {
-    return; // ❌ يمنع الحفظ
-  }
+  //  if (!this.form.ProjectName ||
+  //     !this.selectedUnitId ||
+  //     !this.form.IssueDescription||
+  //     !this.form.SuggestedRepair) {
+  //   return; // ❌ يمنع الحفظ
+  // }
 
  // إرسال بيانات الـ Report الجديدة
- this.save.emit(this.form);
+ const payload = {
+   ...this.form,
+   UnitId: this.selectedUnitId
+ };
+ this.save.emit(payload);
  }
 
     // دالة لفتح محدد التاريخ/الوقت عند النقر (كما فعلنا سابقاً)
@@ -124,4 +148,9 @@ submitted = false;
   input.click();
 }
 
+ removeImage(index: number) {
+   if (index >= 0 && index < this.form.images.length) {
+     this.form.images.splice(index, 1);
+   }
+ }
 }

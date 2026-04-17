@@ -7,6 +7,18 @@
 
     <div class="report-form-grid">
 
+      <!-- Project Name (Read-only if provided) -->
+      <label class="full-width" *ngIf="projectName">
+        <span style="font-size: 11px; color: #888;">Linked Project</span>
+        <input type="text" [value]="projectName" disabled style="background: #f9f9f9;" />
+      </label>
+
+      <!-- Client Name (Read-only if provided) -->
+      <label class="full-width" *ngIf="clientName">
+        <span style="font-size: 11px; color: #888;">Client</span>
+        <input type="text" [value]="clientName" disabled style="background: #f9f9f9;" />
+      </label>
+
       <!-- Serial Number -->
       <label class="full-width">
         <input type="text" [(ngModel)]="form.Serial" name="Serial" placeholder="Serial / SKU"

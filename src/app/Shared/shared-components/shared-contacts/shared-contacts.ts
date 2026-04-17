@@ -1,8 +1,21 @@
 import { SharedPageHeader } from './../../shared-layout/shared-page-header/shared-page-header';
 import { Component, Input } from '@angular/core';
+import { Router } from '@angular/router';
 import { CommonModule, NgIf, NgFor, NgClass } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CreateNewContact } from '../../../admin/pages/create-new-contact/create-new-contact';
+import { ResourceService } from '../../../core/resource.service';
+import { Loading } from '../loading/loading';
+interface UserRow {
+  selected: boolean;
+  id: string;
+  name: string;
+  role: string;
+  email: string;
+  phone?: string;
+  position?: string;
+  isActive?: boolean;
+}
 interface Contact {
   selected: boolean;
   Contract: string;
@@ -20,7 +33,7 @@ interface Contact {
 @Component({
   selector: 'app-shared-contacts',
   standalone: true,
-  imports: [CommonModule,FormsModule,CreateNewContact,NgIf,NgFor,NgClass,SharedPageHeader],
+  imports: [CommonModule,FormsModule,CreateNewContact,NgIf,NgFor,NgClass,SharedPageHeader, Loading],
   templateUrl: './shared-contacts.html',
   styleUrl: './shared-contacts.css'
 })
@@ -58,9 +71,164 @@ export class SharedContacts {
   //   location: 'Damascus',
   // }));
   @Input() role: 'admin' | 'finance' | 'manager'|null=null;
+  users: UserRow[] = [];
+  loadingUsers = false;
   tasks: Contact[] = [];
-   ngOnInit(): void {
-    this.loadTasks();
+  constructor(private resource: ResourceService, private router: Router) {}
+  ngOnInit(): void {
+    this.loadUsers();
+  }
+  loadUsers() {
+    this.loadingUsers = true;
+    this.resource.getAll('Users').subscribe({
+      next: (items) => {
+        this.users = (items || []).map((u: any) => ({
+          selected: false,
+          id: u.id,
+          name: u.fullName || u.email || u.id,
+          role: u.role || '',
+          email: u.email || '',
+          phone: u.phone || '',
+          position: u.position || '',
+          isActive: typeof u.isActive === 'boolean' ? u.isActive : true
+        }));
+      },
+      complete: () => { this.loadingUsers = false; }
+    });
+  }
+  userAllSelected = false;
+  userSearchText: string = '';
+  userPage = 1;
+  userPageSize = 10;
+  selectedUser: UserRow | null = null;
+  userFilterBuilder = false;
+  userNewFilter = { field: '', value: '' };
+  userActiveFilters: { field: string; value: string }[] = [];
+  toggleUserFilterBuilder() {
+    this.userFilterBuilder = !this.userFilterBuilder;
+    this.userNewFilter = { field: '', value: '' };
+  }
+  getUserFilterValues(field: string): string[] {
+    if (!field) return [];
+    const values = this.users
+      .map(u => (u as any)[field])
+      .filter(v => v !== undefined && v !== null)
+      .map(v => String(v));
+    return Array.from(new Set(values));
+  }
+  applyUserFilter() {
+    if (!this.userNewFilter.field) return;
+    if (this.userNewFilter.value) {
+      this.userActiveFilters.push({ ...this.userNewFilter });
+    }
+    this.userNewFilter = { field: '', value: '' };
+    this.userFilterBuilder = false;
+    this.userPage = 1;
+  }
+  removeUserFilter(idx: number) {
+    this.userActiveFilters.splice(idx, 1);
+    if (this.userPage > this.userTotalPages) this.userPage = this.userTotalPages;
+  }
+  clearAllUserFilters() {
+    this.userActiveFilters = [];
+    this.userPage = 1;
+  }
+  get filteredUsers(): UserRow[] {
+    let result = this.users;
+    if (this.userActiveFilters.length) {
+      result = result.filter(u =>
+        this.userActiveFilters.every(f => {
+          const v = (u as any)[f.field];
+          if (v == null) return false;
+          return String(v).toLowerCase() === String(f.value).toLowerCase();
+        })
+      );
+    }
+    if (this.userSearchText.trim() !== '') {
+      const s = this.userSearchText.toLowerCase();
+      result = result.filter(u => (u.name || '').toLowerCase().includes(s) || (u.email || '').toLowerCase().includes(s));
+    }
+    return result;
+  }
+  get userTotalPages(): number {
+    return Math.max(1, Math.ceil(this.filteredUsers.length / this.userPageSize));
+  }
+  get pagedUsers(): UserRow[] {
+    const start = (this.userPage - 1) * this.userPageSize;
+    return this.filteredUsers.slice(start, start + this.userPageSize);
+  }
+  get userVisiblePages(): number[] {
+    const pages: number[] = [];
+    const maxButtons = 5;
+    if (this.userTotalPages <= maxButtons) {
+      for (let i = 1; i <= this.userTotalPages; i++) pages.push(i);
+    } else {
+      let start = this.userPage - Math.floor(maxButtons / 2);
+      let end = this.userPage + Math.floor(maxButtons / 2);
+      if (start < 1) {
+        start = 1;
+        end = maxButtons;
+      }
+      if (end > this.userTotalPages) {
+        end = this.userTotalPages;
+        start = this.userTotalPages - maxButtons + 1;
+      }
+      for (let i = start; i <= end; i++) pages.push(i);
+    }
+    return pages;
+  }
+  setUserPage(p: number) {
+    if (p >= 1 && p <= this.userTotalPages) this.userPage = p;
+  }
+  toggleUserAll() {
+    this.pagedUsers.forEach(u => (u.selected = this.userAllSelected));
+    this.selectedCount = this.pagedUsers.filter(u => u.selected).length;
+  }
+  updateUserAllSelected() {
+    this.userAllSelected = this.pagedUsers.length > 0 && this.pagedUsers.every(u => u.selected);
+    this.selectedCount = this.pagedUsers.filter(u => u.selected).length;
+  }
+  performUserAction(user: UserRow, action: string) {
+    if (action === 'view') {
+      this.openUserDetails(user);
+    }
+  }
+  onUserSelectChange(user: UserRow, event: Event) {
+    const selectElement = event.target as HTMLSelectElement;
+    const value = selectElement.value;
+    this.performUserAction(user, value);
+    selectElement.selectedIndex = 0;
+    selectElement.value = '';
+  }
+  openUserDetails(user: UserRow) {
+    this.selectedUser = user;
+    this.showDetails = true;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    document.body.style.overflow = 'hidden';
+  }
+  closeUserDetails() {
+    this.selectedUser = null;
+    this.showDetails = false;
+    document.body.style.overflow = 'auto';
+  }
+  canEditStatus(): boolean {
+    return this.role === 'admin' || this.role === 'manager';
+  }
+  updateUserStatus(user: UserRow, value: 'Active' | 'Inactive') {
+    const id = user.id;
+    const payload = value === 'Active'; // ✅ أرسل boolean لضمان Content-Type: application/json
+    this.resource.update('Users', id + '/status', payload).subscribe({
+      next: () => {
+        const u = this.users.find(x => x.id === id);
+        if (u) u.isActive = value === 'Active';
+        if (this.selectedUser && this.selectedUser.id === id) {
+          this.selectedUser.isActive = value === 'Active';
+        }
+      }
+    });
+  }
+  getRoleCount(role: string): number {
+    return this.users.filter(u => String(u.role).toLowerCase() === role.toLowerCase()).length;
   }
   loadTasks(){
     if(this.role==='admin'||'manager'){
@@ -438,10 +606,7 @@ updateTaskStatus(task: any) {
  showCreate = false;
 
   openCreate() {
-    this.showCreate = true;
-    // ارفع الصفحة لفوق عشان يبان المودال فوق الكل
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-      document.body.style.overflow = 'hidden'; // يمنع scroll الصفحة
+    this.router.navigate(['/register']);
 
   }
   closeCreate() {
@@ -502,4 +667,3 @@ updateTaskStatus(task: any) {
 //  }
   
 }
-

@@ -26,17 +26,15 @@ export class CreateNewReport {
   technicians: { id: string, name: string }[] = [];
   projects: any[] = [];
   units: any[] = [];
-  VisitType = ['Installation', 'Maintenance', 'Update'];
-  Status = ['Done', 'Pending'];
+  VisitType = ['Installation', 'Maintenance', 'Update'];
+  Status = ['Submitted', 'Returned', 'Approved', 'Rejected'];
 
   // متغيرات الـ Form لتمثيل الحقول في الصورة
   form = {
     systemId: '',
     unitType: '',
-    reportId: '',
     maintenanceVisits: '',
     date: '',
-    teamAssigned: '',
     assignedTechnician: '',
     assignedTechnicianName: '',
     visitType: '',

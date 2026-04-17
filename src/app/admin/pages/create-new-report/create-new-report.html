@@ -25,10 +25,7 @@
         </select>
       </label>
 
-      <label>Report ID <span class="required">*</span>
-          <input type="text" [(ngModel)]="form.reportId" name="reportId"
-             [ngClass]="{'input-error': submitted && !form.reportId}"/>
-      </label>
+      <!-- Report ID removed per requirements -->
 
       <label>Maintenance Visits <span class="required">*</span>
           <input type="text" [(ngModel)]="form.maintenanceVisits" name="maintenanceVisits"
@@ -73,12 +70,7 @@
         </div>
       </div>
 
-      <label>Team Assigned <span class="required">*</span>
-          <select [(ngModel)]="form.teamAssigned" name="teamAssigned"
-             [ngClass]="{'input-error': submitted && !form.teamAssigned}">
-          <option *ngFor="let t of technicians" [value]="t">{{t.name}}</option>
-          </select>
-      </label>
+      <!-- Team Assigned removed per requirements -->
 
       <label>Assigned Technician
           <select [(ngModel)]="form.assignedTechnician" name="assignedTechnician" (change)="onTechnicianChange()">

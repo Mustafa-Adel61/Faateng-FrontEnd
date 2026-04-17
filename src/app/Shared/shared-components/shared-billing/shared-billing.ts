@@ -354,6 +354,8 @@ export class SharedBilling {
     const value = selectElement.value;
 
     this.performAction(task, value);
+    selectElement.selectedIndex = 0;
+    selectElement.value = '';
   }
 
 

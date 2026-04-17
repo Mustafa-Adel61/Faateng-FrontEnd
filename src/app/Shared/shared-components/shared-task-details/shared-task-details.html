@@ -4,31 +4,27 @@
     <h3>{{ task?.name }}</h3>
 
     <div class="chips-row" *ngIf="task">
-      <span class="chip"
-        [ngClass]="{
+      <span class="chip" [ngClass]="{
           'status-Scheduled': task.status === 'Scheduled',
           'status-Dispatched': task.status === 'Dispatched',
           'status-On-Site': task.status === 'On-Site',
-          'status-Waiting-Parts': task.status === 'Waiting-Parts',
+          'status-Waiting-Parts': task.status === 'Waiting-Parts' || task.status === 'Waiting for Parts',
           'status-QA-Review': task.status === 'QA/Review',
           'status-Backlog': task.status === 'Backlog' || task.status === 'Done' || task.status === 'Closed'
-        }"
-      >{{ task.status }}</span>
+        }">{{ task.status }}</span>
 
-      <span class="chip"
-        [ngClass]="{
+      <span class="chip" [ngClass]="{
           'sla-ok': task.slaStatus === 'OK',
           'sla-overdue': task.slaStatus === 'Overdue',
           'sla-pending': task.slaStatus === 'Pending'
-        }"
-      >{{ task.slaStatus }}</span>
+        }">{{ task.slaStatus }}</span>
 
-      <span class="chip"
-        [ngClass]="{
+      <span class="chip" [ngClass]="{
           'priority-high': task.priority === 'High',
-          'priority-low': task.priority === 'Low'
-        }"
-      >{{ task.priority || 'Normal' }}</span>
+          'priority-low': task.priority === 'Low',
+          'priority-urgent': task.priority === 'Urgent',
+          'priority-normal': !task.priority || task.priority === 'Normal'
+        }">{{ task.priority || 'Normal' }}</span>
     </div>
 
     <div *ngIf="task">
@@ -40,12 +36,98 @@
           </option>
         </select>
       </div>
-    <p><strong>Assignee:</strong> {{ task?.assignee }}</p>
-    <p><strong>Team:</strong> {{ task?.team }}</p>
-    <p><strong>Units:</strong> {{ task?.units }}</p>
-    <p><strong>Address:</strong> {{ task?.address }}</p>
-    <p><strong>Due:</strong> {{ task?.due }}</p>
-    <p><strong>SLA Due:</strong> {{ task?.slaDue }}</p>
-    <p><strong>Objective:</strong> {{ task?.objective }}</p>
-  </div>
-  </div>
+      <div style="margin-top:10px;">
+        <p><strong>Priority:</strong> <span>{{ task?.priority || 'Normal' }}</span>
+          <button class="icon-edit" style="margin-left:8px;" (click)="editing.priority = !editing.priority">✎</button>
+        </p>
+        <div *ngIf="editing.priority" style="display:flex; gap:8px; align-items:center; margin-top:6px;">
+          <select class="select-modern" [(ngModel)]="priorityDraft">
+            <option value="Low">Low</option>
+            <option value="Normal">Normal</option>
+            <option value="High">High</option>
+            <option value="Urgent">Urgent</option>
+          </select>
+          <button class="save-btn" (click)="savePriority()" [disabled]="savingGeneral">Save</button>
+        </div>
+        <div style="margin-top:8px;">
+          <p><strong>Team:</strong> <span>{{ task?.team }}</span>
+            <button class="icon-edit" style="margin-left:8px;" (click)="editing.team = !editing.team">✎</button>
+          </p>
+          <div *ngIf="editing.team" style="display:flex; gap:8px; align-items:center; margin-top:6px;">
+            <input class="input-modern" type="text" [(ngModel)]="teamDraft" placeholder="Team name" style="flex:1;" />
+            <button class="save-btn" (click)="saveTeam()" [disabled]="savingGeneral">Save</button>
+          </div>
+        </div>
+      </div>
+      <div style="margin-top:8px;">
+        <p><strong>Objective:</strong> <span>{{ task?.objective }}</span>
+          <button class="icon-edit" style="margin-left:8px;" (click)="editing.objective = !editing.objective">✎</button>
+        </p>
+        <div *ngIf="editing.objective" style="display:flex; gap:8px; align-items:center; margin-top:6px;">
+          <input class="input-modern" type="text" [(ngModel)]="objectiveDraft" style="flex:1;" />
+          <button class="save-btn" (click)="saveObjective()" [disabled]="savingGeneral">Save</button>
+        </div>
+      </div>
+      <div style="margin-top:8px;">
+        <p><strong>Address:</strong> <span>{{ task?.address }}</span>
+          <button class="icon-edit" style="margin-left:8px;" (click)="editing.address = !editing.address">✎</button>
+        </p>
+        <div *ngIf="editing.address" style="display:block; margin-top:6px;">
+          <div style="display:flex; gap:8px; align-items:center;">
+            <input class="input-modern" type="text" [(ngModel)]="addressQuery"
+              (ngModelChange)="fetchAddressSuggestions($event)" placeholder="Search address" style="flex:1;" />
+            <button class="icon-edit" (click)="clearAddressSearch()">✕</button>
+          </div>
+          <div *ngIf="showAddressDropdown && addressSuggestions.length" class="active-filters"
+            style="display:block; margin-top:6px; max-height:160px; overflow:auto; border:1px solid #e5e7eb; border-radius:8px; padding:6px;">
+            <div *ngFor="let s of addressSuggestions" (click)="selectSuggestion(s)"
+              style="padding:6px; cursor:pointer; border-radius:6px;">
+              {{ s.display_name }}
+            </div>
+          </div>
+          <div style="display:flex; gap:8px; align-items:center; margin-top:6px;">
+            <input class="input-modern" type="text" [(ngModel)]="addressDraft" placeholder="Selected address"
+              style="flex:1;" />
+            <button class="save-btn" (click)="saveAddress()" [disabled]="savingGeneral">Save</button>
+          </div>
+        </div>
+        <div style="margin-top:8px;">
+          <p><strong>Assignee:</strong> <span>{{ task?.assignee }}</span>
+            <button class="icon-edit" style="margin-left:8px;"
+              (click)="editing.assignees = !editing.assignees">✎</button>
+          </p>
+          <div *ngIf="editing.assignees" style="display:flex; gap:8px; align-items:center; margin-top:6px;">
+            <select class="select-modern" [(ngModel)]="selectedAssigneeId">
+              <option [ngValue]="''">Select Technician</option>
+              <option *ngFor="let t of technicians" [value]="t.id">{{ t.name }}</option>
+            </select>
+            <button class="save-btn" (click)="saveAssignee()" [disabled]="savingGeneral">Save</button>
+          </div>
+        </div>
+
+
+        <p style="margin-top:8px;"><strong>Units:</strong> {{ task?.units }}</p>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <p style="margin:0;"><strong>Start:</strong> <span *ngIf="!editing.timing">{{ task?.start }}</span></p>
+          <p style="margin:0;"><strong>End:</strong> <span *ngIf="!editing.timing">{{ task?.end }}</span></p>
+          <button class="icon-edit" (click)="editing.timing = !editing.timing">✎</button>
+        </div>
+        <div *ngIf="editing.timing" class="time-row" style="margin-top:6px;">
+          <div class="time-field">
+            <span class="time-label">Start</span>
+            <input class="input-modern" type="datetime-local" [(ngModel)]="dueInput"
+              (click)="openStartPicker($event)" />
+          </div>
+          <div class="time-field">
+            <span class="time-label">End</span>
+            <input class="input-modern" type="datetime-local" [(ngModel)]="slaDueInput"
+              (click)="openEndPicker($event)" />
+          </div>
+          <button class="save-btn" (click)="saveTiming()" [disabled]="savingTiming">Save</button>
+        </div>
+        <div style="margin-top:16px;">
+          <button class="save-btn" style="width:100%; padding:12px 16px; font-size:16px;"
+            (click)="confirm()">Confirm</button>
+        </div>
+      </div>
+    </div>

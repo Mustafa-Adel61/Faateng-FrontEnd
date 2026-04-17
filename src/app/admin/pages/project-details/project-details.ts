@@ -1,12 +1,13 @@
 import { NgIf, NgFor, CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, Output, OnChanges, SimpleChanges } from '@angular/core';
 import { ResourceService } from '../../../core/resource.service';
+import { CreateNewUnit } from '../create-new-unit/create-new-unit';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 
 @Component({
   selector: 'app-project-details',
-  imports: [NgIf, NgFor, CommonModule],
+  imports: [NgIf, NgFor, CommonModule, CreateNewUnit],
   templateUrl: './project-details.html',
   styleUrl: './project-details.css'
 })
@@ -27,7 +28,42 @@ export class ProjectDetails implements OnChanges {
   projectDocuments: string[] = [];
   monthlyTasks: { year: number; month: number; count: number }[] = [];
 
+  showCreateUnit = false;
+
   constructor(private resource: ResourceService) {}
+  
+  openCreateUnit() {
+    this.showCreateUnit = true;
+  }
+
+  closeCreateUnit() {
+    this.showCreateUnit = false;
+  }
+
+  saveNewUnit(newUnit: any) {
+    if (!newUnit) return;
+    
+    // Add to local list immediately for instant UI update
+    const unitLite = {
+      id: newUnit.id,
+      serial: newUnit.serial,
+      model: newUnit.model,
+      type: newUnit.type,
+      price: newUnit.price,
+      quantity: newUnit.quantity,
+      photos: newUnit.photos
+    };
+    this.units = [...this.units, unitLite];
+    
+    // Switch to Unit tab so user sees it right away
+    this.detailsTab = 'Unit';
+    
+    // Close modal
+    this.showCreateUnit = false;
+    
+    // Refresh bundle to update project counts (UnitsCount, etc.) and ensure data consistency
+    this.fetchBundle();
+  }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['taskss'] && this.taskss) {

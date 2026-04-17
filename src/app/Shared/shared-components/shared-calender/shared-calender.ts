@@ -1,11 +1,12 @@
 import { SharedPageHeader } from './../../shared-layout/shared-page-header/shared-page-header';
-import { NgIf, NgFor, DatePipe, NgStyle } from '@angular/common';
-import { Component, Input, OnInit } from '@angular/core';
+import { CommonModule, DatePipe } from '@angular/common';
+import { Component, Input, OnInit, HostListener, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CreateNewVisit } from '../../../admin/pages/create-new-visit/create-new-visit';
 import { TaskService, TaskItem } from '../../../core/task.service';
 import { SharedTaskDetails } from "../shared-task-details/shared-task-details";
 import { AuthService } from '../../../core/auth';
+import { ToastService } from '../../services/toast.service';
 
 interface CalendarTask {
   id: number;
@@ -23,7 +24,7 @@ interface CalendarTask {
 @Component({
   selector: 'app-shared-calender',
   standalone: true,
-  imports: [NgIf, NgFor, DatePipe, NgStyle, FormsModule, CreateNewVisit, SharedPageHeader, SharedTaskDetails],
+  imports: [CommonModule, FormsModule, CreateNewVisit, SharedPageHeader, SharedTaskDetails],
   templateUrl: './shared-calender.html',
   styleUrl: './shared-calender.css'
 })
@@ -33,6 +34,15 @@ export class SharedCalender implements OnInit {
   formData: any = { project: '', assignee: '', time: '', timeEnd: '', date: '' };
   @Input() role: 'admin' | 'dispatcher' | 'manager' | 'technician' | null = null;
   constructor(private taskService: TaskService, private auth: AuthService) { }
+  private draggingTaskId: number | null = null;
+  private dragGhost: HTMLElement | null = null;
+  private dropDate: string | null = null;
+  private dropHour: number | null = null;
+  private lastDragTargetCell: HTMLElement | null = null;
+  private pointerStartX: number | null = null;
+  private pointerStartY: number | null = null;
+  private isDragging: boolean = false;
+  private toast: ToastService = inject(ToastService);
 
   openCreateForm() {
     console.log('openCreateForm called for'); // ✅ check
@@ -93,11 +103,38 @@ export class SharedCalender implements OnInit {
   tasks: CalendarTask[] = [];
   hours: number[] = Array.from({ length: 24 }, (_, i) => i);
   loadTask() {
-    const start = this.weekDays[0];
-    const end = this.weekDays[6];
-    const from = `${start.getFullYear()}-${String(start.getMonth() + 1).padStart(2, '0')}-${String(start.getDate()).padStart(2, '0')}T00:00:00`;
-    const to = `${end.getFullYear()}-${String(end.getMonth() + 1).padStart(2, '0')}-${String(end.getDate()).padStart(2, '0')}T23:59:59`;
+    let start: Date;
+    let end: Date;
+
+    if (this.view === 'day') {
+      start = new Date(this.selectedDate);
+      start.setHours(0, 0, 0, 0);
+      end = new Date(this.selectedDate);
+      end.setHours(23, 59, 59, 999);
+    } else if (this.view === 'week') {
+      const days = this.weekDays;
+      start = days[0];
+      end = days[6];
+      start.setHours(0, 0, 0, 0);
+      end.setHours(23, 59, 59, 999);
+    } else if (this.view === 'month') {
+      start = new Date(this.selectedDate.getFullYear(), this.selectedDate.getMonth(), 1);
+      end = new Date(this.selectedDate.getFullYear(), this.selectedDate.getMonth() + 1, 0);
+      start.setHours(0, 0, 0, 0);
+      end.setHours(23, 59, 59, 999);
+    } else { // year
+      start = new Date(this.selectedDate.getFullYear(), 0, 1);
+      end = new Date(this.selectedDate.getFullYear(), 11, 31);
+      start.setHours(0, 0, 0, 0);
+      end.setHours(23, 59, 59, 999);
+    }
+
+    const from = start.toISOString().split('.')[0];
+    const to = end.toISOString().split('.')[0];
+
     this.taskService.calendar(from, to).subscribe(items => {
+      console.log("item", items);
+
       const effectiveRole = this.role || this.auth.currentRole();
       const currentEmail = this.auth.getUserEmail();
       const currentId = this.auth.getUserId();
@@ -138,25 +175,17 @@ export class SharedCalender implements OnInit {
 
 
   // Calendar state
-  selectedDate: Date = new Date(2025, 4, 12);
+  selectedDate: Date = new Date();
   view: 'year' | 'week' | 'month' | 'day' = 'week';
   selectedTask: CalendarTask | null = null;
   isUpdatingStatus = false;
-  statuses = [
-    'Scheduled',
-    'Dispatched',
-    'On-Site',
-    'Waiting-Parts',
-    'Backlog',
-    'QA/Review',
-    'Done',
-    'Closed'
-  ];
+  statuses = ['Draft','Scheduled','Waiting for Parts','On-Site','Closed'];
 
   get weekDays(): Date[] {
-    // Return array of 7 days for the current week
     const start = new Date(this.selectedDate);
-    start.setDate(start.getDate() - start.getDay() + 1); // Monday
+    const day = start.getDay();
+    const diff = start.getDate() - day + (day === 0 ? -6 : 1); // Adjust for Monday start
+    start.setDate(diff);
     return Array.from({ length: 7 }, (_, i) => {
       const d = new Date(start);
       d.setDate(start.getDate() + i);
@@ -165,7 +194,6 @@ export class SharedCalender implements OnInit {
   }
 
   get tasksByDay(): { [key: string]: CalendarTask[] } {
-    // Group tasks by date string
     const map: { [key: string]: CalendarTask[] } = {};
     for (const t of this.tasks) {
       if (!map[t.date]) map[t.date] = [];
@@ -174,14 +202,69 @@ export class SharedCalender implements OnInit {
     return map;
   }
 
+  get tasksByMonth(): { [key: string]: CalendarTask[] } {
+    const map: { [key: string]: CalendarTask[] } = {};
+    for (const t of this.tasks) {
+      const parts = t.date.split('-');
+      const key = `${parts[0]}-${parts[1]}`; // YYYY-MM
+      if (!map[key]) map[key] = [];
+      map[key].push(t);
+    }
+    return map;
+  }
+
   // Navigation
   prev() {
-    if (this.view === 'week') {
+    if (this.view === 'day') {
+      this.selectedDate.setDate(this.selectedDate.getDate() - 1);
+    } else if (this.view === 'week') {
       this.selectedDate.setDate(this.selectedDate.getDate() - 7);
-      this.selectedDate = new Date(this.selectedDate);
+    } else if (this.view === 'month') {
+      this.selectedDate.setMonth(this.selectedDate.getMonth() - 1);
+    } else if (this.view === 'year') {
+      this.selectedDate.setFullYear(this.selectedDate.getFullYear() - 1);
     }
-    // month/day views can be added similarly
+    this.selectedDate = new Date(this.selectedDate);
     this.loadTask();
+  }
+
+  next() {
+    if (this.view === 'day') {
+      this.selectedDate.setDate(this.selectedDate.getDate() + 1);
+    } else if (this.view === 'week') {
+      this.selectedDate.setDate(this.selectedDate.getDate() + 7);
+    } else if (this.view === 'month') {
+      this.selectedDate.setMonth(this.selectedDate.getMonth() + 1);
+    } else if (this.view === 'year') {
+      this.selectedDate.setFullYear(this.selectedDate.getFullYear() + 1);
+    }
+    this.selectedDate = new Date(this.selectedDate);
+    this.loadTask();
+  }
+
+  today() {
+    this.selectedDate = new Date();
+    this.loadTask();
+  }
+
+  setView(v: 'year' | 'week' | 'month' | 'day') {
+    this.view = v;
+    this.loadTask();
+  }
+
+  // Range Label
+  get rangeLabel(): string {
+    const pipe = new DatePipe('en-US');
+    if (this.view === 'day') {
+      return pipe.transform(this.selectedDate, 'MMMM d, yyyy') || '';
+    } else if (this.view === 'week') {
+      const days = this.weekDays;
+      return `${pipe.transform(days[0], 'MMM d')} - ${pipe.transform(days[6], 'MMM d, yyyy')}`;
+    } else if (this.view === 'month') {
+      return pipe.transform(this.selectedDate, 'MMMM yyyy') || '';
+    } else {
+      return pipe.transform(this.selectedDate, 'yyyy') || '';
+    }
   }
 
   //معموله بالشكل دا عشان يجيب التاريخ بالظبط مش بعده يوم
@@ -191,16 +274,8 @@ export class SharedCalender implements OnInit {
       String(day.getDate()).padStart(2, '0') : '';
   }
 
-  next() {
-    if (this.view === 'week') {
-      this.selectedDate.setDate(this.selectedDate.getDate() + 7);
-      this.selectedDate = new Date(this.selectedDate);
-    }
-    this.loadTask();
-  }
-  today() {
-    this.selectedDate = new Date();
-    this.loadTask();
+  getMonthKey(day: Date): string {
+    return day ? day.getFullYear() + '-' + (String(day.getMonth() + 1).padStart(2, '0')) : '';
   }
 
   // Filter by date
@@ -214,33 +289,191 @@ export class SharedCalender implements OnInit {
     this.selectedDate = new Date(d);
     this.view = 'day';
   }
+
   get displayDays(): Date[] {
-    return this.view === 'day' ? [this.selectedDate] : this.weekDays;
+    if (this.view === 'day') return [this.selectedDate];
+    if (this.view === 'week') return this.weekDays;
+    if (this.view === 'month') {
+      const start = new Date(this.selectedDate.getFullYear(), this.selectedDate.getMonth(), 1);
+      const end = new Date(this.selectedDate.getFullYear(), this.selectedDate.getMonth() + 1, 0);
+      const days = [];
+      for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+        days.push(new Date(d));
+      }
+      return days;
+    }
+    if (this.view === 'year') {
+      const months = [];
+      for (let m = 0; m < 12; m++) {
+        months.push(new Date(this.selectedDate.getFullYear(), m, 1));
+      }
+      return months;
+    }
+    return this.weekDays;
+  }
+
+  getGridTemplate(): string {
+    const cols = this.displayDays.length;
+    return `60px repeat(${cols}, minmax(150px, 1fr))`;
   }
 
   hourPrefix(hour: number): string {
     return `${String(hour).padStart(2, '0')}:`;
   }
+  onDragStart(task: CalendarTask, ev: DragEvent) {
+    ev.dataTransfer?.setData('text/plain', String(task.id));
+  }
+  onDragOver(ev: DragEvent) {
+    ev.preventDefault();
+    const t = ev.currentTarget as HTMLElement;
+    if (t) t.classList.add('dragover');
+  }
+  onDrop(day: Date, hour: number, ev: DragEvent) {
+    ev.preventDefault();
+    const t = ev.currentTarget as HTMLElement;
+    if (t) t.classList.remove('dragover');
+    const idStr = ev.dataTransfer?.getData('text/plain') || '';
+    const id = Number(idStr);
+    if (!id) return;
+    const idx = this.tasks.findIndex(x => x.id === id);
+    if (idx < 0) return;
+    const task = this.tasks[idx];
+    const [sh, sm] = (task.time || '09:00').split(':').map(Number);
+    const [eh, em] = (task.timeEnd || '10:00').split(':').map(Number);
+    const durMin = (eh * 60 + em) - (sh * 60 + sm);
+    const s = new Date(day);
+    s.setHours(hour, 0, 0, 0);
+    const e = new Date(s);
+    e.setMinutes(e.getMinutes() + Math.max(durMin, 60));
+    const pad2 = (n: number) => String(n).padStart(2, '0');
+    const dateStr = `${s.getFullYear()}-${pad2(s.getMonth() + 1)}-${pad2(s.getDate())}`;
+    const startIso = `${dateStr}T${pad2(s.getHours())}:${pad2(s.getMinutes())}:00`;
+    const endIso = `${dateStr}T${pad2(e.getHours())}:${pad2(e.getMinutes())}:00`;
+    this.taskService.updateSchedule(task.id, startIso, endIso).subscribe({
+      next: () => {
+        this.tasks[idx] = { ...task, date: dateStr, time: `${pad2(s.getHours())}:${pad2(s.getMinutes())}`, timeEnd: `${pad2(e.getHours())}:${pad2(e.getMinutes())}` };
+      }
+    });
+  }
+  onPointerDownTask(task: CalendarTask, ev: PointerEvent) {
+    ev.preventDefault();
+    this.pointerStartX = ev.clientX;
+    this.pointerStartY = ev.clientY;
+    this.isDragging = false;
+    this.draggingTaskId = task.id;
+    const card = (ev.currentTarget as HTMLElement);
+    const rect = card.getBoundingClientRect();
+    const ghost = card.cloneNode(true) as HTMLElement;
+    ghost.style.position = 'fixed';
+    ghost.style.pointerEvents = 'none';
+    ghost.style.opacity = '0.85';
+    ghost.style.transform = 'scale(0.98)';
+    ghost.style.left = `${rect.left}px`;
+    ghost.style.top = `${rect.top}px`;
+    ghost.style.width = `${rect.width}px`;
+    ghost.style.height = `${rect.height}px`;
+    ghost.style.zIndex = '10000';
+    document.body.appendChild(ghost);
+    this.dragGhost = ghost;
+  }
+  @HostListener('document:pointermove', ['$event'])
+  onGlobalPointerMove(ev: PointerEvent) {
+    if (!this.draggingTaskId || !this.dragGhost) return;
+    if (this.pointerStartX != null && this.pointerStartY != null) {
+      const dx = Math.abs(ev.clientX - this.pointerStartX);
+      const dy = Math.abs(ev.clientY - this.pointerStartY);
+      if (dx > 6 || dy > 6) this.isDragging = true;
+    }
+    this.dragGhost.style.left = `${ev.clientX - this.dragGhost.clientWidth / 2}px`;
+    this.dragGhost.style.top = `${ev.clientY - this.dragGhost.clientHeight / 2}px`;
+    const el = document.elementFromPoint(ev.clientX, ev.clientY) as HTMLElement | null;
+    if (!el) return;
+    const cell = el.closest('.calendar-cell') as HTMLElement | null;
+    if (!cell) return;
+    if (this.lastDragTargetCell && this.lastDragTargetCell !== cell) {
+      this.lastDragTargetCell.classList.remove('drag-target');
+    }
+    cell.classList.add('drag-target');
+    this.lastDragTargetCell = cell;
+    const dateAttr = cell.getAttribute('data-date');
+    const hourAttr = cell.getAttribute('data-hour');
+    this.dropDate = dateAttr || null;
+    this.dropHour = hourAttr ? Number(hourAttr) : null;
+  }
+  @HostListener('document:pointerup', ['$event'])
+  onGlobalPointerUp(ev: PointerEvent) {
+    if (!this.draggingTaskId) return;
+    if (this.dragGhost) {
+      this.dragGhost.remove();
+      this.dragGhost = null;
+    }
+    if (this.lastDragTargetCell) {
+      this.lastDragTargetCell.classList.remove('drag-target');
+      this.lastDragTargetCell = null;
+    }
+    const id = this.draggingTaskId;
+    this.draggingTaskId = null;
+    this.pointerStartX = null;
+    this.pointerStartY = null;
+    if (!this.dropDate || this.dropHour == null) {
+      this.dropDate = null;
+      this.dropHour = null;
+      if (!this.isDragging) {
+        const idx = this.tasks.findIndex(x => x.id === id);
+        if (idx >= 0) this.openTaskDetails(this.tasks[idx]);
+      }
+      this.isDragging = false;
+      return;
+    }
+    const idx = this.tasks.findIndex(x => x.id === id);
+    if (idx < 0) {
+      this.dropDate = null;
+      this.dropHour = null;
+      this.isDragging = false;
+      return;
+    }
+    const task = this.tasks[idx];
+    const [sh, sm] = (task.time || '09:00').split(':').map(Number);
+    const [eh, em] = (task.timeEnd || '10:00').split(':').map(Number);
+    const durMin = (eh * 60 + em) - (sh * 60 + sm);
+    const parts = (this.dropDate || '').split('-').map(Number);
+    const s = new Date(parts[0], parts[1] - 1, parts[2], this.dropHour, 0, 0);
+    const e = new Date(s);
+    e.setMinutes(e.getMinutes() + Math.max(durMin, 60));
+    const pad2 = (n: number) => String(n).padStart(2, '0');
+    const dateStr = `${s.getFullYear()}-${pad2(s.getMonth() + 1)}-${pad2(s.getDate())}`;
+    const startIso = `${dateStr}T${pad2(s.getHours())}:${pad2(s.getMinutes())}:00`;
+    const endIso = `${dateStr}T${pad2(e.getHours())}:${pad2(e.getMinutes())}:00`;
+    this.taskService.updateSchedule(task.id, startIso, endIso).subscribe({
+      next: () => {
+        this.tasks[idx] = { ...task, date: dateStr, time: `${pad2(s.getHours())}:${pad2(s.getMinutes())}`, timeEnd: `${pad2(e.getHours())}:${pad2(e.getMinutes())}` };
+      }
+    });
+    this.dropDate = null;
+    this.dropHour = null;
+    this.isDragging = false;
+  }
+  onClickTask(task: CalendarTask, ev: MouseEvent) {
+    if (this.isDragging) return;
+    this.openTaskDetails(task);
+  }
   openTaskDetails(task: CalendarTask) {
     this.selectedTask = task;
-  }
-  closeTaskDetails() {
-    this.selectedTask = null;
-  }
-  get selectedTaskView() {
-    if (!this.selectedTask) return null;
     const ot = this.selectedTask.originalTask;
     const assigneeUser = (ot as any)?.assigneeUser;
     const unitsText = ot?.unit ? `${ot.unit.model} (${ot.unit.serial})` : '';
     const address = (ot as any)?.locationName || (ot as any)?.unit?.project?.siteAddress || (ot as any)?.unit?.client?.address || '';
     const startStr = (ot as any)?.scheduledStart || (ot as any)?.scheduledEnd || '';
     const endStr = (ot as any)?.scheduledEnd || (ot as any)?.scheduledStart || '';
+    const slaStr = (ot as any)?.slaDue || '';
     const startDate = startStr ? new Date(startStr) : null;
     const endDate = endStr ? new Date(endStr) : null;
-    const dueStr = startDate ? `${startDate.getFullYear()}-${String(startDate.getMonth() + 1).padStart(2, '0')}-${String(startDate.getDate()).padStart(2, '0')} ${String(startDate.getHours()).padStart(2, '0')}:${String(startDate.getMinutes()).padStart(2, '0')}` : '';
-    const slaDueStr = endDate ? `${endDate.getFullYear()}-${String(endDate.getMonth() + 1).padStart(2, '0')}-${String(endDate.getDate()).padStart(2, '0')} ${String(endDate.getHours()).padStart(2, '0')}:${String(endDate.getMinutes()).padStart(2, '0')}` : '';
+    const slaDate = slaStr ? new Date(slaStr) : null;
+    const startOut = startDate ? `${startDate.getFullYear()}-${String(startDate.getMonth() + 1).padStart(2, '0')}-${String(startDate.getDate()).padStart(2, '0')} ${String(startDate.getHours()).padStart(2, '0')}:${String(startDate.getMinutes()).padStart(2, '0')}` : '';
+    const endOut = endDate ? `${endDate.getFullYear()}-${String(endDate.getMonth() + 1).padStart(2, '0')}-${String(endDate.getDate()).padStart(2, '0')} ${String(endDate.getHours()).padStart(2, '0')}:${String(endDate.getMinutes()).padStart(2, '0')}` : '';
+    const slaOut = slaDate ? `${slaDate.getFullYear()}-${String(slaDate.getMonth() + 1).padStart(2, '0')}-${String(slaDate.getDate()).padStart(2, '0')} ${String(slaDate.getHours()).padStart(2, '0')}:${String(slaDate.getMinutes()).padStart(2, '0')}` : '';
     const assigneeLabel = assigneeUser?.fullName || assigneeUser?.email || ot?.assigneeUserId || ((this.selectedTask.assignee && this.selectedTask.assignee.length) ? this.selectedTask.assignee[0] : '');
-    return {
+    this.selectedTaskViewData = {
       name: this.selectedTask.title,
       status: this.selectedTask.status || 'Scheduled',
       slaStatus: (ot as any)?.slaStatus || 'Pending',
@@ -248,12 +481,21 @@ export class SharedCalender implements OnInit {
       team: (ot as any)?.team || 'Ops',
       units: unitsText || this.selectedTask.project || '',
       address,
-      due: dueStr,
-      slaDue: slaDueStr,
+      start: startOut,
+      end: endOut,
+      slaDue: slaOut,
       objective: (ot as any)?.description || '',
       assignee: assigneeLabel
     };
   }
+  closeTaskDetails() {
+    this.selectedTask = null;
+  }
+  get selectedTaskId(): number | null {
+    const id = this.selectedTask?.id;
+    return typeof id === 'number' ? id : null;
+  }
+  selectedTaskViewData: any = null;
   updateSelectedTaskStatus(status: string) {
     if (!this.selectedTask || this.isUpdatingStatus) return;
     this.isUpdatingStatus = true;
@@ -263,9 +505,11 @@ export class SharedCalender implements OnInit {
         const idx = this.tasks.findIndex(t => t.id === this.selectedTask!.id);
         if (idx >= 0) this.tasks[idx].status = this.selectedTask!.status;
         this.isUpdatingStatus = false;
+        this.toast.show('Status updated successfully', 'success');
       },
       error: () => {
         this.isUpdatingStatus = false;
+        this.toast.show('Failed to update status', 'error');
       }
     });
   }

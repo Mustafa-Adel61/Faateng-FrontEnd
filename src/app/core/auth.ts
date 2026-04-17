@@ -21,6 +21,7 @@ interface User {
 export class AuthService {
 
   private currentUser: any = null;
+  private lastError: string | null = null;
 
   constructor(private router: Router, private http: HttpClient) {}
   private getToken(): string | null {
@@ -49,11 +50,19 @@ export class AuthService {
     return d?.sub || d?.nameid || d?.id || null;
   }
 
+  getRole(): string | null {
+    const role = localStorage.getItem('role');
+    if (role) return role;
+    const d = this.decodeJwt();
+    return d?.role || d?.Role || null;
+  }
+
   /** تسجيل دخول عبر الـ API */
   async login(email: string, password: string): Promise<boolean> {
     try {
       const res = await this.http.post<{ token: string; role: User['role'] }>(`${API_BASE_URL}/Auth/login`, { Email: email, Password: password }).toPromise();
       if (!res || !res.token) return false;
+      this.lastError = null;
       localStorage.setItem('token', res.token);
       if (res.role) {
         localStorage.setItem('role', res.role);
@@ -62,6 +71,19 @@ export class AuthService {
       this.currentUser = { email, role: res.role };
       return true;
     } catch (err) {
+      let message = 'Invalid credentials';
+      // const e = err?.error ;
+      // if (typeof e === 'string') {
+      //   message = e;
+      // } else if (e && typeof e === 'object') {
+      //   if (typeof e.message === 'string') message = e.message;
+      //   else if (typeof e.error === 'string') message = e.error;
+      // } 
+      // else if (err?.message) {
+      //   message = err.message;
+      // }
+      if (/inactive/i.test(message)) message = 'This user is inactive. Please contact admin.';
+      this.lastError = message;
       return false;
     }
   }
@@ -79,6 +101,9 @@ export class AuthService {
   }
   updateUser(data: any) {
     this.currentUser = { ...this.currentUser, ...data };
+  }
+  getLastError(): string | null {
+    return this.lastError;
   }
 
   /** إنشاء مستخدم جديد عبر الـ API (للمشرف) */

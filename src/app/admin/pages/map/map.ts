@@ -39,7 +39,7 @@ import { ToastService } from '../../../Shared/services/toast.service';
       [task]="selectedTaskView"
       [statuses]="statuses"
       (close)="selected=null"
-      (changeStatus)="onDetailsChangeStatus()"
+      (changeStatus)="onDetailsChangeStatus($event)"
     ></app-shared-task-details>
   `,
   styles: [`
@@ -145,11 +145,12 @@ export class MapComponent implements AfterViewInit {
     }
   }
 
-  onDetailsChangeStatus() {
+  onDetailsChangeStatus(newStatus: string) {
     if (!this.selected) return;
+    this.selected.status = newStatus || this.selected.status || 'Scheduled';
     this.taskService.updateStatus(this.selected.id, this.selected.status).subscribe({
-      next: () => this.toast.show('تم تحديث الحالة بنجاح', 'success'),
-      error: () => this.toast.show('فشل تحديث الحالة', 'error')
+      next: () => this.toast.show('Status updated successfully', 'success'),
+      error: () => this.toast.show('Failed to update status', 'error')
     });
   }
 }

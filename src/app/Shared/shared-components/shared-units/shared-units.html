@@ -1,6 +1,5 @@
 <app-loading [loading]="loading"></app-loading>
-<app-shared-page-header [createButtonLabel]="'CREATE UNIT'" [showCreateVisitButton]="role === 'admin'"
-  (createVisit)="openCreateUnit()">
+<app-shared-page-header [showCreateVisitButton]="false">
   <span breadcrumb>CRM &gt; Units</span>
 </app-shared-page-header>
 
@@ -12,8 +11,7 @@
 </app-create-service-request>
 
 <div class="tabs">
-  <button *ngFor="let tab of ['Lifts', 'Escalators', 'HVAC', 'Accessories']" [class.active]="activeTab === tab"
-    (click)="changeTab(tab)">
+  <button *ngFor="let tab of allTabs" [class.active]="activeTab === tab" (click)="changeTab(tab)">
     {{ tab }}
   </button>
 </div>
@@ -34,41 +32,30 @@
       *ngIf="selectedUnitIndex !== null && (i + 1) % cardsPerRow === 0 && selectedUnitIndex >= i - (cardsPerRow - 1) && selectedUnitIndex <= i">
       <div class="unit-details">
         <h3 class="unit-title">Unit Data</h3>
-        <div class="details-grid">
+        <div class="unit-details-grid">
           <div>
             <strong>Serial:</strong>
-            <span *ngIf="role !== 'admin' && role !== 'manager'">{{ filteredUnits[selectedUnitIndex].serial }}</span>
-            <input *ngIf="role === 'admin' || role === 'manager'"
-              [(ngModel)]="filteredUnits[selectedUnitIndex].serial" />
+            <span>{{ filteredUnits[selectedUnitIndex].serial }}</span>
           </div>
           <div>
             <strong>Model:</strong>
-            <span *ngIf="role !== 'admin' && role !== 'manager'">{{ filteredUnits[selectedUnitIndex].model }}</span>
-            <input *ngIf="role === 'admin' || role === 'manager'"
-              [(ngModel)]="filteredUnits[selectedUnitIndex].model" />
+            <span>{{ filteredUnits[selectedUnitIndex].model }}</span>
           </div>
           <div>
             <strong>Type:</strong>
-            <span *ngIf="role !== 'admin' && role !== 'manager'">{{ filteredUnits[selectedUnitIndex].type }}</span>
-            <select *ngIf="role === 'admin' || role === 'manager'" [(ngModel)]="filteredUnits[selectedUnitIndex].type">
-              <option value="Lifts">Lifts</option>
-              <option value="Escalators">Escalators</option>
-              <option value="HVAC">HVAC</option>
-              <option value="Accessories">Accessories</option>
-            </select>
-          </div>
-          <div>
-            <strong>Price:</strong>
-            <span
-              *ngIf="role !== 'admin' && role !== 'manager'">{{ filteredUnits[selectedUnitIndex].price | currency }}</span>
-            <input *ngIf="role === 'admin' || role === 'manager'" type="number"
-              [(ngModel)]="filteredUnits[selectedUnitIndex].price" />
+            <span>{{ filteredUnits[selectedUnitIndex].type }}</span>
           </div>
           <div>
             <strong>Quantity:</strong>
-            <span *ngIf="role !== 'admin' && role !== 'manager'">{{ filteredUnits[selectedUnitIndex].quantity }}</span>
-            <input *ngIf="role === 'admin' || role === 'manager'" type="number"
-              [(ngModel)]="filteredUnits[selectedUnitIndex].quantity" />
+            <span>{{ filteredUnits[selectedUnitIndex].quantity }}</span>
+          </div>
+          <div *ngIf="filteredUnits[selectedUnitIndex].projectName">
+            <strong>Project:</strong>
+            <span>{{ filteredUnits[selectedUnitIndex].projectName }}</span>
+          </div>
+          <div *ngIf="filteredUnits[selectedUnitIndex].clientName">
+            <strong>Client:</strong>
+            <span>{{ filteredUnits[selectedUnitIndex].clientName }}</span>
           </div>
         </div>
 
@@ -87,7 +74,7 @@
           </div>
         </div>
 
-        <div class="actions" style="margin-top: 20px; display: flex; gap: 10px; justify-content: flex-end;">
+        <!-- <div class="actions" style="margin-top: 20px; display: flex; gap: 10px; justify-content: flex-end;">
           <button *ngIf="role === 'admin' || role === 'manager'" class="delete-button"
             (click)="deleteUnit(filteredUnits[selectedUnitIndex])">Delete</button>
 
@@ -97,7 +84,7 @@
           <button *ngIf="role === 'client'" class="save-button-large yellow-bg"
             (click)="openCreateRequest(filteredUnits[selectedUnitIndex])">Create
             Service Request</button>
-        </div>
+        </div> -->
 
       </div>
     </ng-container>

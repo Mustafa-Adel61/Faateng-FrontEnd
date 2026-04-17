@@ -24,6 +24,10 @@ import { Invoices } from './pages/invoices/invoices';
 import { AdminContracts } from './pages/contracts/contracts';
 import { Register } from '../auth/register/register';
 import { authGuard } from '../core/auth-guard';
+import { ChecklistFlow } from '../Shared/shared-components/checklist/checklist-flow';
+import { ChecklistList } from '../Shared/shared-components/checklist/checklist-list';
+import { ChecklistDetails } from '../Shared/shared-components/checklist/checklist-details';
+import { ChecklistAddQuestion } from '../Shared/shared-components/checklist/checklist-add-question';
 
 export const routes: Routes = [
 
@@ -54,6 +58,10 @@ export const routes: Routes = [
   { path: 'reports-review-queue', component: ReportsReviewQueue },
   { path: 'reports/:id', component: ReportDetails },
   { path: 'suggested-repairs/:Code', component: SuggestedRepairsDetails },
+  { path: 'checklist', component: ChecklistFlow },
+  { path: 'checklist-list', component: ChecklistList },
+  { path: 'checklist-details/:id', component: ChecklistDetails },
+  { path: 'checklist-add', component: ChecklistAddQuestion },
 ];
 
 @NgModule({

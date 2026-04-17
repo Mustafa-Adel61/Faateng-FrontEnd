@@ -11,16 +11,17 @@ import { catchError } from 'rxjs/operators';
 import { Loading } from "../loading/loading";
 
 interface Task {
-  id?: number; // Added id for backend operations
+  id?: number;
+  ProjectIdStr?: string; // Added for Auto-ID
   selected: boolean;
   Project: string;
   Client: string;
   siteAddress: string;
-  Scopes: number;         // date string
+  Scopes: number;
   Units: number;
   OpenTasks: number;
-  BookedValue: number;      // SLA due date string
-  Status?: string; // Added status
+  BookedValue: number;
+  Status?: string;
 }
 @Component({
   selector: 'app-shared-project',
@@ -57,12 +58,14 @@ export class SharedProject {
   ngOnInit(): void { this.loadTasks(); }
   tasks: Task[] = [];
   loadTasks() {
+    this.loading = true;
     const params: Record<string, string> = {};
     if (this.role) params['role'] = this.role;
     this.resourceService.getAll('Projects', params).subscribe({
       next: (projects) => {
         this.tasks = (projects || []).map((p: any) => ({
           id: p.id,
+          ProjectIdStr: p.projectIdStr, // Set auto-ID
           selected: false,
           Project: p.name || 'Unknown Project',
           Client: p.clientName || '',
@@ -73,6 +76,7 @@ export class SharedProject {
           BookedValue: p.budget || 0,
           Status: p.status
         }));
+        this.loading = false;
       },
       error: () => {
         this.tasks = [];
@@ -513,96 +517,21 @@ export class SharedProject {
 
   }
 
-  addProject(newVisit: any) {
-        this.loading = true;
-    const payload = {
-      name: newVisit.projectName || 'New Project',
-      description: newVisit.Notes_SpecialInstructio || '',
-      status: 'Active',
-      startDate: newVisit.contractStartDate ? new Date(newVisit.contractStartDate).toISOString() : new Date().toISOString(),
-      endDate: newVisit.contractEndDate ? new Date(newVisit.contractEndDate).toISOString() : null,
-      budget: Number(newVisit.bookedValue ?? 0) || 0,
-      location: newVisit.siteAddress || '',
-      clientId: newVisit.clientId ?? null,
-      unitIds: Array.isArray(newVisit.unitIds) ? newVisit.unitIds.map((x: any) => Number(x)) : [],
-      selectedUnits: Array.isArray(newVisit.selectedUnits) ? newVisit.selectedUnits.map((s: any) => ({ unitId: Number(s.unitId), qty: Number(s.qty) })) : [],
-      projectType: newVisit.ProjectType || null,
-      primeContactName: newVisit.PrimeContactName || null,
-      jobTitle: newVisit.jopTitle || null,
-      phoneNumber: newVisit.phoneNumber || null,
-      emailAddress: newVisit.emailAddress || null,
-      emailAddress2: newVisit.emailAddress2 || null,
-      secondaryContact: newVisit.secondryContact || null,
-      contractStartDate: newVisit.contractStartDate ? new Date(newVisit.contractStartDate).toISOString() : null,
-      contractEndDate: newVisit.contractEndDate ? new Date(newVisit.contractEndDate).toISOString() : null,
-      maintenanceStartDate: newVisit.maintenanceStartDate ? new Date(newVisit.maintenanceStartDate).toISOString() : null,
-      contractDuration: newVisit.contractDuration || null,
-      contractType: newVisit.contractType || null,
-      paymentTerms: newVisit.paymentTerms || null,
-      files: JSON.stringify(newVisit.files || []),
-      boqShopDrawing: JSON.stringify(newVisit.BOQ_ShopDrawing || []),
-      siteAddress: newVisit.siteAddress || '',
-      siteLat: newVisit.siteLat !== '' && newVisit.siteLat !== null ? Number(newVisit.siteLat) : null,
-      siteLng: newVisit.siteLng !== '' && newVisit.siteLng !== null ? Number(newVisit.siteLng) : null,
-      siteAddressGoogleMapLocation: newVisit.siteAddressGoogleMapLocation || (newVisit.siteLat && newVisit.siteLng ? `${newVisit.siteLat},${newVisit.siteLng}` : null),
-      region: newVisit.region || null,
-      regionGoogleMapLocation: newVisit.regionGoogleMapLocation || null,
-      onSiteContact: newVisit.onSiteContact || null,
-      unitType: newVisit.unitType || null,
-      notesSpecialInstruction: newVisit.Notes_SpecialInstructio || '',
-      numberOfElevators: newVisit.numberOfElevators ? Number(newVisit.numberOfElevators) : null,
-      doorType: newVisit.doorType || null,
-      elevatorType: newVisit.type || null,
-      machineRoom: newVisit.machineRoom || null,
-      numberOfStops: newVisit.numberOfStops ? Number(newVisit.numberOfStops) : null,
-      modelOrBrand: newVisit.modelOrBrand || null,
-      controllerType: newVisit.controllerType || null,
-      serialNumber: newVisit.serialNumber || null,
-      elevatorNotes: newVisit.notes || null,
-      numberOfEscalators: newVisit.numberOfEscalators ? Number(newVisit.numberOfEscalators) : null,
-      travelHeight: newVisit.TravelHeight ? Number(newVisit.TravelHeight) : null,
-      indoorOutdoor: newVisit.indoor_outdoor || null,
-      handrailLighting: newVisit.handrailLighting || null,
-      escalatorsBrandOrModel: newVisit.EscalatorsBrandOrModel || null,
-      escalatorsSerialNumber: newVisit.EscalatorsSerialNumber || null,
-      numberOfChillers: newVisit.numberOfChillers ? Number(newVisit.numberOfChillers) : null,
-      chillersType: newVisit.Chillerstype || null,
-      capacity: newVisit.capacity || null,
-      chillerBrandOrModel: newVisit.ChillerBrandOrModel || null,
-      coolingTowerAttached: newVisit.coolingTowerAttached || null,
-      chillerSerialNumber: newVisit.ChillerserialNumber || null,
-      numberOfOutdoorUnits: newVisit.numberOfOutdoorUnits ? Number(newVisit.numberOfOutdoorUnits) : null,
-      controlType: newVisit.controlType || null,
-      totalIndoorUnits: newVisit.totalIndoorUnits ? Number(newVisit.totalIndoorUnits) : null,
-      installationType: newVisit.installationType || null,
-      outdoorUnitCapacity: newVisit.outdoorUnitCapacity || null,
-      hvacFujitsuSerialNumber: newVisit.HVAC_FujitsuserialNumber || null,
-      fireAlarmControlPanelBrandOrModel: newVisit.fireAlarmControlPanelBrandOrModel || null,
-      hanrailLighting: newVisit.hanrailLighting || null,
-      numberOfZonesOrLoops: newVisit.numberOfZonesOrLoops ? Number(newVisit.numberOfZonesOrLoops) : null,
-      firePumpType: newVisit.firePumpType || null,
-      smokeDetectorsCallPoints: newVisit.smokeDetectorsCallPoints || null,
-      hoseCabinetsExtinguishersCount: newVisit.hoseCabinets_ExtinguishersCount || null,
-      fireSystemCapacity: newVisit.FireSystemCapacity || null,
-      lastCivilDefenseApprovalDate: newVisit.lastCivilDefenseApprovalDate ? new Date(newVisit.lastCivilDefenseApprovalDate).toISOString() : null
-    };
-
+  addProject(payload: any) {
+    if (!payload) {
+      this.closeCreate();
+      return;
+    }
+    this.loading = true;
     this.resourceService.create('Projects', payload).subscribe({
-
       next: () => {
         this.loadTasks();
-        this.page = 1;
-        this.showCreate = false;
+        this.closeCreate();
         this.loading = false;
-
-        document.body.style.overflow = 'auto';
       },
       error: () => {
-        this.loadTasks();
         this.loading = false;
-        this.page = 1;
-        this.showCreate = false;
-        document.body.style.overflow = 'auto';
+        alert('Error creating project');
       }
     });
   }

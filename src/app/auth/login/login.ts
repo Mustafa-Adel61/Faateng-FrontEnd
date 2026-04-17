@@ -33,7 +33,7 @@ export class Login {
 
   const success = await this.auth.login(email, password);
   if (!success) {
-    this.error = 'Invalid credentials';
+    this.error = this.auth.getLastError() || 'Invalid credentials';
     return;
   }
 
@@ -49,4 +49,3 @@ export class Login {
     this.router.navigate(['/register']);
   }
 }
-

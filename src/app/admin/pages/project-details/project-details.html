@@ -40,6 +40,32 @@
           <span class="count">—</span>
         </div>
       </div>
+
+      <div class="overview-details">
+        <div class="detail-group">
+          <h4>Project Identity</h4>
+          <p><strong>ID:</strong> {{ project?.projectIdStr || ('PRJ-' + project?.id) }}</p>
+          <p><strong>Project Name:</strong> {{ project?.name }}</p>
+          <p><strong>Project Type:</strong> {{ project?.projectType }}</p>
+          <p><strong>Internal Notes:</strong> {{ project?.description }}</p>
+        </div>
+        <div class="detail-group">
+          <h4>Client Information</h4>
+          <p><strong>Client Name:</strong> {{ project?.client?.fullName || project?.client?.userName }}</p>
+          <p><strong>Primary Contact:</strong> {{ project?.primeContactName }}</p>
+          <p><strong>Job Title:</strong> {{ project?.jobTitle }}</p>
+          <p><strong>Phone:</strong> {{ project?.phoneNumber }}</p>
+          <p><strong>Email:</strong> {{ project?.emailAddress }}</p>
+        </div>
+        <div class="detail-group">
+          <h4>Site Location</h4>
+          <p><strong>Full Address:</strong> {{ project?.siteAddress }}</p>
+          <p><strong>Maps Link:</strong> <a
+              [href]="'https://www.google.com/maps/search/?api=1&query=' + project?.siteLat + ',' + project?.siteLng"
+              target="_blank">{{ project?.siteAddressGoogleMapLocation || 'View on Map' }}</a></p>
+        </div>
+      </div>
+
     </ng-container>
     <ng-container *ngIf="detailsTab==='Scopes'">
       <div class="table-container">
@@ -196,10 +222,18 @@
         <button class="upload-btn">Upload</button>
       </div>
     </ng-container>
+    <!-- <div class="action-buttons">
+        <button class="add-unit-btn" (click)="openCreateUnit()">+ Add Unit</button>
+      </div> -->
+    <button class="upload-btn" (click)="openCreateUnit()">Add Unit</button>
     <button class="upload-btn">Create Work Order</button>
     <button class="upload-btn">New Invoice</button>
     <button class="upload-btn">Share</button>
 
-
   </div>
 </div>
+
+<app-create-new-unit *ngIf="showCreateUnit" [projectId]="project?.id" [clientId]="project?.clientId"
+  [projectName]="project?.name" [clientName]="project?.client?.fullName || project?.client?.userName"
+  (close)="closeCreateUnit()" (save)="saveNewUnit($event)">
+</app-create-new-unit>

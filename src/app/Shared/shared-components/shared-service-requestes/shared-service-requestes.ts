@@ -1,4 +1,5 @@
 import { SharedPageHeader } from './../../shared-layout/shared-page-header/shared-page-header';
+import { Loading } from '../../shared-components/loading/loading';
 import { Component, Input, OnInit, SimpleChanges, inject } from '@angular/core';
 import { NgClass, NgFor, NgIf } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -29,7 +30,7 @@ interface Task {
 
 @Component({
   selector: 'app-shared-service-requestes',
-  imports: [NgFor, NgIf, FormsModule, NgClass, SharedPageHeader, CreateNewVisit],
+  imports: [NgFor, NgIf, FormsModule, NgClass, SharedPageHeader, CreateNewVisit, Loading],
   templateUrl: './shared-service-requestes.html',
   styleUrl: './shared-service-requestes.css'
 })
@@ -65,6 +66,13 @@ export class SharedServiceRequestes implements OnInit {
   selectedTask: Task | null = null;
   technicians: { id: string, name: string }[] = [];
   selectedTechnicianId: string | null = null;
+  selectedTechnicianIds: string[] = [];
+  loadingAssign = false;
+  loadingList = false;
+  loadingDetails = false;
+  loadingCreate = false;
+  loadingUnits = false;
+  loadingProjects = false;
 
   // Work Order Modal
   showCreateWorkOrderModal = false;
@@ -80,14 +88,9 @@ export class SharedServiceRequestes implements OnInit {
   pageSize = 10;
   statuses = [
     'New',
-    'Scheduled',
-    'Dispatched',
-    'On-Site',
-    'Waiting-Parts',
-    'Backlog',
-    'QA/Review',
-    'Done',
-    'Closed'
+    'InProgress',
+    'Assigned',
+    'Closed',
   ];
 
   @Input() role: 'client' | null = null;
@@ -102,17 +105,21 @@ export class SharedServiceRequestes implements OnInit {
   }
   tasks: Task[] = [];
   loadUnits() {
+    this.loadingUnits = true;
     const params: any = {};
     if (this.selectedProjectId) params['projectId'] = this.selectedProjectId;
     this.resource.getAll('Units', params).subscribe({
       next: (u) => { this.availableUnits = Array.isArray(u) ? u : []; },
-      error: () => { this.availableUnits = []; }
+      error: () => { this.availableUnits = []; },
+      complete: () => { this.loadingUnits = false; }
     });
   }
   loadProjects() {
+    this.loadingProjects = true;
     this.resource.getAll('Projects').subscribe({
       next: (p) => { this.availableProjects = Array.isArray(p) ? p : []; },
-      error: () => { this.availableProjects = []; }
+      error: () => { this.availableProjects = []; },
+      complete: () => { this.loadingProjects = false; }
     });
   }
   onProjectChange() {
@@ -120,17 +127,19 @@ export class SharedServiceRequestes implements OnInit {
   }
 
   loadTask() {
+    this.loadingList = true;
     this.resource.getAll('ServiceRequests').subscribe({
       next: (data: any[]) => {
         // Map backend data to frontend Task interface
+        
         this.tasks = data.map(item => ({
           id: item.id,
           selected: false,
-          name: item.unitName || 'Unknown Unit',
+          name: item.serviceType || 'Unknown serviceType',
           units: item.unitName || '',
           status: item.status || 'New',
-          assignee: item.assignedTaskItem?.assigneeUser?.fullName || 'Unassigned',
-          address: item.unit?.client?.address || 'Unknown Address',
+          assignee: (item.assignees && Array.isArray(item.assignees) && item.assignees.length) ? item.assignees.join(', ') : (item.assignedTaskItem?.assigneeUser?.fullName || 'Unassigned'),
+          address: item.address|| 'Unknown Address',
           due: item.preferredTime || '',
           objective: item.description || '',
           team: item.assignedTaskItem?.team || 'General',
@@ -154,7 +163,8 @@ export class SharedServiceRequestes implements OnInit {
         console.error('Error fetching service requests', err);
         // Fallback to mock data if backend fails (optional, but good for dev)
         this.useMockData();
-      }
+      },
+      complete: () => { this.loadingList = false; }
     });
   }
 
@@ -198,6 +208,7 @@ export class SharedServiceRequestes implements OnInit {
       if (confirm('Are you sure you want to delete this request?') && task.id) {
         this.resource.delete('ServiceRequests', task.id).subscribe(() => {
           this.loadTask();
+          this.toastService.show('Request deleted successfully', 'success');
         });
       }
     } else if (action === 'createWorkOrder') {
@@ -208,12 +219,14 @@ export class SharedServiceRequestes implements OnInit {
   openCreateRequest() {
     this.showCreateRequestModal = true;
     document.body.style.overflow = 'hidden';
+    this.loadingCreate = false;
   }
   closeCreateRequest() {
     this.showCreateRequestModal = false;
     document.body.style.overflow = 'auto';
   }
   saveNewRequest() {
+    this.loadingCreate = true;
     const payload = {
       UnitId: this.newRequest.unitId || undefined,
       UnitName: this.newRequest.unitName || undefined,
@@ -224,15 +237,37 @@ export class SharedServiceRequestes implements OnInit {
       Images: this.newRequest.imagesText ? this.newRequest.imagesText.split(',').map(s => s.trim()).filter(Boolean) : []
     };
     this.resource.create('ServiceRequests', payload).subscribe({
-      next: () => {
+      next: (created: any) => {
+        const newTask: Task = {
+          id: created?.id,
+          selected: false,
+          name: created?.unitName || 'Unknown Unit',
+          units: created?.unitName || '',
+          status: created?.status || 'New',
+          assignee: created?.assigneeUser?.fullName || 'Unassigned',
+          address: created?.address || '',
+          due: created?.preferredTime || '',
+          objective: created?.description || '',
+          team: created?.team || 'General',
+          slaDue: created?.slaDue || '',
+          slaStatus: created?.slaStatus || 'Pending',
+          priority: created?.priority || 'Low',
+          visitType: created?.serviceType || 'Maintenance',
+          notes: '',
+          originalData: created
+        };
+        this.tasks.unshift(newTask);
+        this.toastService.show('تم إنشاء الطلب بنجاح', 'success');
         this.closeCreateRequest();
         this.loadTask();
         // reset
         this.newRequest = { unitId: null, unitName: null, serviceType: '', description: '', faultCode: null, preferredTime: null, imagesText: null };
+        this.loadingCreate = false;
       },
       error: (err) => {
         console.error('Failed to create service request', err);
         this.toastService.show('فشل إنشاء الطلب', 'error');
+        this.loadingCreate = false;
       }
     });
   }
@@ -290,7 +325,10 @@ export class SharedServiceRequestes implements OnInit {
   openDetails(task: Task) {
     this.selectedTask = task;
     this.showDetails = true;
-    this.loadTechnicians();
+    this.loadingDetails = true;
+    if (this.role !== 'client') {
+      this.loadTechnicians();
+    }
     if (task?.id) {
       this.resource.getById('ServiceRequests', String(task.id)).subscribe({
         next: (item: any) => {
@@ -300,7 +338,7 @@ export class SharedServiceRequestes implements OnInit {
             name: item.unitName || task.name,
             units: item.unitName || task.units,
             status: item.status || task.status || 'New',
-            assignee: item.assignee || task.assignee || 'Unassigned',
+            assignee: (item.assignees && Array.isArray(item.assignees) && item.assignees.length) ? item.assignees.join(', ') : (item.assignee || task.assignee || 'Unassigned'),
             address: item.address || task.address || '',
             due: item.preferredTime || task.due || '',
             objective: item.description || task.objective || '',
@@ -313,8 +351,16 @@ export class SharedServiceRequestes implements OnInit {
             originalData: item
           };
           this.selectedTask = mapped;
-        }
+          if (Array.isArray(item.assignedIds) && item.assignedIds.length) {
+            this.selectedTechnicianIds = [...item.assignedIds];
+          } else {
+            this.selectedTechnicianIds = [];
+          }
+        },
+        complete: () => { this.loadingDetails = false; }
       });
+    } else {
+      this.loadingDetails = false;
     }
   }
 
@@ -324,11 +370,22 @@ export class SharedServiceRequestes implements OnInit {
   }
 
   updateTaskStatus(task: Task) {
+    if (this.role === 'client') return;
     if (!task.id) return;
-    // Map frontend status to backend if needed, or just send
-    this.resource.update('ServiceRequests', task.id, { status: task.status }).subscribe({
-      next: () => console.log('Status updated'),
-      error: (err) => console.error('Error updating status', err)
+    const backendStatus = task.status || 'New';
+    this.resource.update('ServiceRequests', task.id, { status: backendStatus }).subscribe({
+      next: () => {
+        this.toastService.show('تم تغيير الحالة بنجاح', 'success');
+        if (this.selectedTask && this.selectedTask.id === task.id) {
+          this.selectedTask.status = backendStatus;
+        }
+        const idx = this.tasks.findIndex(t => t.id === task.id);
+        if (idx >= 0) this.tasks[idx].status = backendStatus;
+      },
+      error: (err) => {
+        console.error('Error updating status', err);
+        this.toastService.show('فشل تغيير الحالة', 'error');
+      }
     });
   }
 
@@ -357,8 +414,6 @@ export class SharedServiceRequestes implements OnInit {
 
   // ---------------- pagination / filtered list getters ----------------
   get filteredTasks(): Task[] {
-    console.log("SASATASk");
-
     let result = this.tasks;
 
     // 🔹 أولاً: فلترة حسب الفلاتر النشطة (لو موجودة)
@@ -449,6 +504,43 @@ export class SharedServiceRequestes implements OnInit {
         this.loadTask();
       },
       error: (err) => console.error('Failed to assign technician', err)
+    });
+  }
+
+  addTechnician() {
+    if (!this.selectedTechnicianId) return;
+    if (!this.selectedTechnicianIds.includes(this.selectedTechnicianId)) {
+      this.selectedTechnicianIds.push(this.selectedTechnicianId);
+    }
+    this.selectedTechnicianId = null;
+  }
+  removeTechnician(i: number) {
+    this.selectedTechnicianIds.splice(i, 1);
+  }
+  getTechnicianName(id: string): string {
+    return this.technicians.find(t => t.id === id)?.name || id;
+  }
+  get filteredTechnicians(): { id: string, name: string }[] {
+    return this.technicians.filter(t => !this.selectedTechnicianIds.includes(t.id));
+  }
+  assignTechnicians() {
+    if (!this.selectedTask?.id || this.selectedTechnicianIds.length === 0) return;
+    this.loadingAssign = true;
+    this.resource.update('ServiceRequests', String(this.selectedTask.id) + '/assign', this.selectedTechnicianIds).subscribe({
+      next: () => {
+        this.loadingAssign = false;
+        this.selectedTask!.status = 'Assigned';
+        this.toastService.show('تم تعيين الفنيين بنجاح', 'success');
+        this.closeDetails();
+        this.selectedTechnicianIds = [];
+        this.selectedTechnicianId = null;
+        this.loadTask();
+      },
+      error: (err) => {
+        this.loadingAssign = false;
+        console.error('Failed to assign technicians', err);
+        this.toastService.show('فشل تعيين الفنيين', 'error');
+      }
     });
   }
 }
