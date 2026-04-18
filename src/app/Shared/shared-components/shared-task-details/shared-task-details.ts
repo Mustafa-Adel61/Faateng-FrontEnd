@@ -5,6 +5,8 @@ import { TaskService } from '../../../core/task.service';
 import { AuthService } from '../../../core/auth';
 import { ResourceService } from '../../../core/resource.service';
 import { HttpClient } from '@angular/common/http';
+import { Router } from '@angular/router';
+import { ToastService } from '../../services/toast.service';
 
 @Component({
   selector: 'app-shared-task-details',
@@ -24,10 +26,12 @@ export class SharedTaskDetails implements OnChanges {
   @Output() changeStatus = new EventEmitter<string>();
   @Output() updated = new EventEmitter<any>();
   @Output() notify = new EventEmitter<string>();
-  private taskService: TaskService = inject(TaskService);
+  private toast: ToastService = inject(ToastService);
+  private taskService: TaskService = inject(TaskService); 
   private auth: AuthService = inject(AuthService);
   private resource: ResourceService = inject(ResourceService);
   private http: HttpClient = inject(HttpClient);
+  private router: Router = inject(Router);
   dueInput: string = '';
   slaDueInput: string = '';
   savingTiming = false;
@@ -48,6 +52,66 @@ export class SharedTaskDetails implements OnChanges {
   showAddressDropdown = false;
   latDraft: number | null = null;
   lngDraft: number | null = null;
+
+  get showChecklistBtn(): boolean {
+    if (this.role !== 'technician' || !this.task) return false;
+    // Show if status is changed from Scheduled/Draft
+    const s = String(this.task.status).toLowerCase();
+    return s !== 'scheduled' && s !== 'draft';
+  }
+
+  openChecklist() {
+    if (!this.task) return;
+    
+    const allowedTypes = [
+      'Elevator', 'Escalator', 'Moving Walk',
+      'AHU', 'FCU', 'VRF / DX', 'Chiller', 'Cooling Tower',
+      'Pump', 'Exhaust/Supply Fan', 'Package / Rooftop Unit'
+    ];
+
+    // 1. Try exact match from backend unitType
+    let unitType = '';
+    if (this.task.unitType) {
+      unitType = allowedTypes.find(t => t.toLowerCase() === this.task.unitType.toLowerCase()) || '';
+    }
+    
+    // 2. Fallback to inference from units string if no exact match
+    if (!unitType) {
+      if (this.task.units) {
+        const unitsLower = this.task.units.toLowerCase();
+        if (unitsLower.includes('elevator')) unitType = 'Elevator';
+        else if (unitsLower.includes('escalator')) unitType = 'Escalator';
+        else if (unitsLower.includes('moving walk')) unitType = 'Moving Walk';
+        else if (unitsLower.includes('ahu')) unitType = 'AHU';
+        else if (unitsLower.includes('fcu')) unitType = 'FCU';
+        else if (unitsLower.includes('vrf')) unitType = 'VRF / DX';
+        else if (unitsLower.includes('chiller')) unitType = 'Chiller';
+        else if (unitsLower.includes('cooling tower')) unitType = 'Cooling Tower';
+        else if (unitsLower.includes('pump')) unitType = 'Pump';
+        else if (unitsLower.includes('fan')) unitType = 'Exhaust/Supply Fan';
+        else if (unitsLower.includes('package')) unitType = 'Package / Rooftop Unit';
+      }
+    }
+
+    // Default to Elevator if all fails
+    if (!unitType) unitType = 'Elevator';
+
+    let variant = this.task.unitVariant || 'Standard';
+    let frequency = this.task.frequency || 'Monthly';
+    
+    const queryParams = {
+      site: this.task.name || '',
+      unitId: this.task.units || '',
+      technician: this.task.assignee || '',
+      system: unitType,
+      variant: variant,
+      frequency: frequency,
+      taskId: this.taskId
+    };
+
+    this.router.navigate(['/dashboard/technician/checklist'], { queryParams });
+    this.onClose();
+  }
 
   onClose() { this.close.emit(); }
   onStatusChange() {
@@ -86,6 +150,10 @@ export class SharedTaskDetails implements OnChanges {
           priority: (t as any)?.priority || 'Normal',
           team: (t as any)?.team || 'Ops',
           units: (t as any)?.unit ? `${(t as any).unit.model} (${(t as any).unit.serial})` : '',
+          unitType: (t as any)?.unit?.type || '',
+          unitVariant: (t as any)?.unit?.variant || '',
+          frequency: (t as any)?.contract?.visitFrequency || 'Monthly',
+          isChecklistDone: (t as any)?.notes?.includes('CHECKLIST_DONE'),
           address: (t as any)?.locationName || '',
           start: dueStr,
           end: endOutStr,
@@ -159,9 +227,12 @@ export class SharedTaskDetails implements OnChanges {
         this.task.priority = v; 
         this.editing.priority = false; 
         this.updated.emit({ id: this.task.id, priority: v });
-        this.notify.emit('Priority updated');
+        this.toast.show('Priority updated successfully', 'success');
       },
-      error: () => { this.savingGeneral = false; }
+      error: () => { 
+        this.savingGeneral = false; 
+        this.toast.show('Failed to update priority', 'error');
+      }
     });
   }
   saveObjective() {
@@ -173,9 +244,12 @@ export class SharedTaskDetails implements OnChanges {
         this.task.objective = this.objectiveDraft; 
         this.editing.objective = false; 
         this.updated.emit({ id: this.task.id, objective: this.objectiveDraft });
-        this.notify.emit('Objective updated');
+        this.toast.show('Objective updated successfully', 'success');
       },
-      error: () => { this.savingGeneral = false; }
+      error: () => { 
+        this.savingGeneral = false; 
+        this.toast.show('Failed to update objective', 'error');
+      }
     });
   }
   saveAddress() {
@@ -192,9 +266,12 @@ export class SharedTaskDetails implements OnChanges {
         if (this.lngDraft != null) (this.task as any).lng = this.lngDraft;
         this.editing.address = false; 
         this.updated.emit({ id: this.task.id, address: this.addressDraft });
-        this.notify.emit('Address updated');
+        this.toast.show('Address updated successfully', 'success');
       },
-      error: () => { this.savingGeneral = false; }
+      error: () => { 
+        this.savingGeneral = false; 
+        this.toast.show('Failed to update address', 'error');
+      }
     });
   }
   fetchAddressSuggestions(query: string) {
@@ -233,9 +310,12 @@ export class SharedTaskDetails implements OnChanges {
         this.task.team = this.teamDraft; 
         this.editing.team = false; 
         this.updated.emit({ id: this.task.id, team: this.teamDraft });
-        this.notify.emit('Team updated');
+        this.toast.show('Team updated successfully', 'success');
       },
-      error: () => { this.savingGeneral = false; }
+      error: () => { 
+        this.savingGeneral = false; 
+        this.toast.show('Failed to update team', 'error');
+      }
     });
   }
   addTechnician() {
@@ -352,13 +432,13 @@ export class SharedTaskDetails implements OnChanges {
                 (this.task as any).notes = notes;
                 this.selectedTechnicianIds = [primary, ...rest];
                 this.updated.emit({ id: this.task.id, assignee: this.task.assignee, assigneeId: primary, notes });
-                this.notify.emit('Technicians updated');
+                this.toast.show('Technicians updated successfully', 'success');
                 this.editing.assignees = false;
               },
               error: () => {
                 this.selectedTechnicianIds = [primary, ...rest];
                 this.updated.emit({ id: this.task.id, assignee: this.task.assignee, assigneeId: primary });
-                this.notify.emit('Assignee updated');
+                this.toast.show('Assignee updated successfully', 'success');
                 this.editing.assignees = false;
               }
             });
@@ -367,7 +447,8 @@ export class SharedTaskDetails implements OnChanges {
         },
         error: () => { 
           this.updated.emit({ id: this.task.id, assignee: this.task.assignee, assigneeId: primary });
-          this.notify.emit('Assignee updated'); 
+          this.toast.show('Assignee updated successfully', 'success'); 
+          this.editing.assignees = false;
         }
       });
     } else {
@@ -382,13 +463,19 @@ export class SharedTaskDetails implements OnChanges {
               const start = notes.indexOf('EXTRA;');
               (this.task as any).notes = start >= 0 ? notes.substring(0, start) : notes;
               this.updated.emit({ id: this.task.id, assignee: '', assigneeId: '', notes: (this.task as any).notes });
-              this.notify.emit('Technicians cleared');
+              this.toast.show('Technicians cleared successfully', 'success');
               this.editing.assignees = false;
             },
-            error: () => { this.editing.assignees = false; }
+            error: () => { 
+              this.toast.show('Failed to clear technicians', 'error');
+              this.editing.assignees = false; 
+            }
           });
         },
-        error: () => { this.editing.assignees = false; }
+        error: () => { 
+          this.toast.show('Failed to unassign technician', 'error');
+          this.editing.assignees = false; 
+        }
       });
     }
   }
@@ -410,9 +497,12 @@ export class SharedTaskDetails implements OnChanges {
         if (this.task) { this.task.start = this.dueInput; this.task.end = this.slaDueInput; }
         this.editing.timing = false;
         this.updated.emit({ id: this.taskId, start: this.dueInput, end: this.slaDueInput });
-        this.notify.emit('Timing updated');
+        this.toast.show('Timing updated successfully', 'success');
       },
-      error: () => { this.savingTiming = false; }
+      error: () => { 
+        this.savingTiming = false; 
+        this.toast.show('Failed to update timing', 'error');
+      }
     });
   }
   confirm() {
@@ -421,14 +511,16 @@ export class SharedTaskDetails implements OnChanges {
       this.taskService.updateStatus(this.taskId, 'Scheduled').subscribe({
         next: () => {
           if (this.task) this.task.status = 'Scheduled';
-          // this.changeStatus.emit('Scheduled');
-          this.notify.emit('Task scheduled');
+          this.toast.show('Task scheduled successfully', 'success');
+          this.onClose();
         },
-        error: () => {}
+        error: () => {
+          this.toast.show('Failed to schedule task', 'error');
+        }
       });
     } else {
-      // this.changeStatus.emit(String(this.task?.status || 'Scheduled'));
-      this.notify.emit('Changes confirmed');
+      this.toast.show('Changes confirmed successfully', 'success');
+      this.onClose();
     }
   }
 }

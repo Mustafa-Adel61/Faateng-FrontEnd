@@ -12,6 +12,7 @@ import { ResourceService } from '../../../core/resource.service';
 import { CreateNewInvoice } from '../../../admin/pages/create-new-invoice/create-new-invoice';
 import { ToastService } from '../../services/toast.service';
 import { Loading } from "../loading/loading";
+import { ActivatedRoute } from '@angular/router';
 
 interface Task {
   id?: number;
@@ -68,7 +69,12 @@ export class SharedTaskList implements OnInit {
   @Input() role: 'admin' | 'dispatcher' | 'manager' | 'technician' | 'finance'|'client' | null = null;
 
   private toast: ToastService = inject(ToastService);
-  constructor(private sanitizer: DomSanitizer, private taskService: TaskService, private resource: ResourceService) {
+  constructor(
+    private sanitizer: DomSanitizer, 
+    private taskService: TaskService, 
+    private resource: ResourceService,
+    private route: ActivatedRoute
+  ) {
     this.mapUrl = this.sanitizer.bypassSecurityTrustResourceUrl(
       'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d53291.429!2d36.2165!3d33.5138!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x1518e75e1b2b1b2b%3A0x7d0b0b0b0b0b0b!2sDamascus!5e0!3m2!1sen!2ssy!4v1660000000000!5m2!1sen!2ssy'
     );
@@ -85,6 +91,23 @@ export class SharedTaskList implements OnInit {
       next: (me: any) => {
         this.currentUserId = me?.id || null;
         this.loadTask();
+        
+        // Check for openTaskId in query params
+        this.route.queryParams.subscribe(params => {
+          if (params['openTaskId']) {
+            const taskId = Number(params['openTaskId']);
+            // Wait for tasks to load then open details
+            const checkTasks = setInterval(() => {
+              const task = this.tasks.find(t => t.id === taskId);
+              if (task) {
+                this.openDetails(task);
+                clearInterval(checkTasks);
+              }
+            }, 500);
+            // Stop after 5 seconds to avoid infinite loop
+            setTimeout(() => clearInterval(checkTasks), 5000);
+          }
+        });
       },
       error: () => this.loadTask()
     });
@@ -224,11 +247,16 @@ export class SharedTaskList implements OnInit {
     this.newFilter = { field: '', value: '' };
   }
 
+  // Realistic filters for tasks
   getFilterValues(field: string): string[] {
     if (!field) return [];
     const values = this.tasks
-      .map(t => (t as any)[field])
-      .filter(v => v !== undefined && v !== null)
+      .map(task => {
+        if (field === 'assignee') return task.assignee;
+        if (field === 'priority') return task.priority || 'Normal';
+        return (task as any)[field];
+      })
+      .filter(v => v !== undefined && v !== null && v !== '')
       .map(v => String(v));
 
     return Array.from(new Set(values));
@@ -261,33 +289,21 @@ export class SharedTaskList implements OnInit {
     } else if (action === 'assign') {
       this.detailsFocus = 'assignees';
       this.openDetails(task);
-    } else if (action === 'priority') {
-      this.detailsFocus = 'priority';
-      this.openDetails(task);
-    } else if (action === 'editObjective') {
-      this.detailsFocus = 'objective';
-      this.openDetails(task);
-    } else if (action === 'edit') {
-      this.toast.show('Edit screen opened', 'info');
     } else if (action === 'delete') {
       if (!confirm(`Delete ${task.name}?`)) return;
-           const id = String(task.id).replace('#', '');
+      const id = String(task.id).replace('#', '');
       this.resource.delete('Tasks', id).subscribe({
         next: () => {
           const idx = this.tasks.indexOf(task);
           if (idx >= 0) this.tasks.splice(idx, 1);
-          if (this.page > this.totalPages) this.page = this.totalPages;
           this.toast.show('Task deleted successfully', 'success');
         },
         error: (err) => {
-          this.toast.show('Not authorized or delete failed', 'error');
-          console.error('Delete SuggestedRepair failed', err);
+          this.toast.show('Delete failed', 'error');
         }
       });
     } else if (action === 'createSuggestedRepair') {
       this.openCreateSuggestedRepair(task);
-    } else if (action === 'createInvoice') {
-      this.openCreateInvoice(task);
     }
   }
 
@@ -405,6 +421,7 @@ export class SharedTaskList implements OnInit {
         const finish = () => {
           this.loadTask();
           this.showCreate = false;
+          this.toast.show('Task created successfully', 'success');
           document.body.style.overflow = 'auto';
         };
         if (!dto.assigneeUserId && techId && res?.id) {

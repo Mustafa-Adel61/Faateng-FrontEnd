@@ -465,13 +465,13 @@ export class SharedServiceRequestes implements OnInit {
   // Filter Builder methods (keep existing or implement)
   toggleFilterBuilder() { this.showFilterBuilder = !this.showFilterBuilder; }
 
+  // Realistic filters for service requests
   getFilterValues(field: string): string[] {
     if (!field) return [];
     const values = this.tasks
       .map(t => (t as any)[field])
-      .filter(v => v !== undefined && v !== null)
+      .filter(v => v !== undefined && v !== null && v !== '')
       .map(v => String(v));
-
     return Array.from(new Set(values));
   }
 

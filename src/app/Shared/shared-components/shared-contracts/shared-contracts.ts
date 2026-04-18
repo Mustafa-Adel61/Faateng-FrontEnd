@@ -1,9 +1,10 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit, inject } from '@angular/core';
 import { CommonModule, NgFor, NgIf } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ResourceService } from '../../../core/resource.service';
 import { SharedPageHeader } from '../../shared-layout/shared-page-header/shared-page-header';
 import { CreateNewContact } from "../../../admin/pages/create-new-contact/create-new-contact";
+import { Loading } from '../loading/loading';
 
 interface Contract {
   id: number;
@@ -15,6 +16,11 @@ interface Contract {
   StartDate: string;
   EndDate: string;
   Client: string;
+  Project: string;
+  UnitsCount: number;
+  DaysLeft: string;
+  Cycle: string;
+  NextBill: string;
   Terms?: string;
   raw?: any;
 }
@@ -22,7 +28,7 @@ interface Contract {
 @Component({
   selector: 'app-shared-contracts',
   standalone: true,
-  imports: [CommonModule, FormsModule, NgIf, NgFor, SharedPageHeader, CreateNewContact],
+  imports: [CommonModule, FormsModule, NgIf, NgFor, SharedPageHeader, CreateNewContact, Loading],
   templateUrl: './shared-contracts.html',
   styleUrl: './shared-contracts.css'
 })
@@ -48,6 +54,7 @@ export class SharedContracts implements OnInit {
   // Pagination
   page = 1;
   pageSize = 10;
+  loading: boolean = false;
 
   constructor(private resourceService: ResourceService) {}
 
@@ -56,32 +63,136 @@ export class SharedContracts implements OnInit {
   }
 
   loadContracts() {
+    this.loading = true;
     this.resourceService.getAll('Contracts').subscribe({
       next: (items: any[]) => {
-        this.contracts = items.map(c => ({
-          id: c.id,
-          selected: false,
-          Title: c.title || 'Untitled Contract',
-          Type: c.type || 'Standard',
-          Status: c.status || 'Draft',
-          Value: c.value || 0,
-          StartDate: c.startDate ? new Date(c.startDate).toLocaleDateString() : '',
-          EndDate: c.endDate ? new Date(c.endDate).toLocaleDateString() : '',
-          Client: c.clientName || 'Unknown Client',
-          Units: c.units ? c.units.map((u: any) => u.type).join(', ') : 'No Units',
-          Terms: c.terms,
-          raw: c
-        }));
+        this.contracts = items.map(c => this.mapContract(c));
         this.totalCount = items.length;
         this.approvedCount = items.filter(c => c.status === 'Approved').length;
         this.rejectedCount = items.filter(c => c.status === 'Rejected').length;
         this.activeCount = items.filter(c => (c.status || '').toLowerCase() === 'active').length;
         this.totalValue = items.reduce((sum, c) => sum + (Number(c.value) || 0), 0);
+        this.loading = false;
       },
       error: (err) => {
         console.error('Failed to load contracts', err);
+        this.loading = false;
       }
     });
+  }
+
+  // Realistic filters for contracts
+  getFilterValues(field: string): string[] {
+    if (!field) return [];
+    const values = this.contracts
+      .map(c => (c as any)[field])
+      .filter(v => v !== undefined && v !== null)
+      .map(v => String(v));
+    return Array.from(new Set(values));
+  }
+
+  applyFilter() {
+    if (!this.newFilter.field || !this.newFilter.value) return;
+    this.activeFilters.push({ ...this.newFilter });
+    this.newFilter = { field: '', value: '' };
+    this.showFilterBuilder = false;
+    this.page = 1;
+  }
+
+  removeFilter(idx: number) {
+    this.activeFilters.splice(idx, 1);
+  }
+
+  clearAllFilters() {
+    this.activeFilters = [];
+    this.page = 1;
+  }
+
+  get filteredContracts(): Contract[] {
+    let result = this.contracts;
+    if (this.activeFilters.length) {
+      result = result.filter(c =>
+        this.activeFilters.every(f => {
+          const v = (c as any)[f.field];
+          return String(v).toLowerCase() === String(f.value).toLowerCase();
+        })
+      );
+    }
+    if (this.searchText.trim() !== '') {
+      const s = this.searchText.toLowerCase();
+      result = result.filter(c => 
+        c.Title.toLowerCase().includes(s) || 
+        c.Client.toLowerCase().includes(s) || 
+        c.Project.toLowerCase().includes(s)
+      );
+    }
+    return result;
+  }
+
+  get pagedContracts(): Contract[] {
+    const start = (this.page - 1) * this.pageSize;
+    return this.filteredContracts.slice(start, start + this.pageSize);
+  }
+
+  get totalPages(): number {
+    return Math.ceil(this.filteredContracts.length / this.pageSize);
+  }
+
+  get visiblePages(): number[] {
+    const total = this.totalPages;
+    if (total <= 5) return Array.from({length: total}, (_, i) => i + 1);
+    let start = Math.max(this.page - 2, 1);
+    let end = Math.min(start + 4, total);
+    if (end === total) start = Math.max(end - 4, 1);
+    return Array.from({length: end - start + 1}, (_, i) => start + i);
+  }
+
+  setPage(p: number) {
+    if (p >= 1 && p <= this.totalPages) this.page = p;
+  }
+
+  private mapContract(c: any): Contract {
+    const end = c.endDate ? new Date(c.endDate) : null;
+    const now = new Date();
+    let daysLeft = 'Expired';
+    if (end && end > now) {
+      const diff = Math.ceil((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+      daysLeft = diff + 'd';
+    }
+
+    return {
+      id: c.id,
+      selected: false,
+      Title: c.title || 'Untitled Contract',
+      Type: c.type || 'Standard',
+      Status: c.status || 'Draft',
+      Value: c.value || 0,
+      StartDate: c.startDate ? new Date(c.startDate).toLocaleDateString('en-CA') : '',
+      EndDate: c.endDate ? new Date(c.endDate).toLocaleDateString('en-CA') : '',
+      Client: c.clientName || 'Unknown Client',
+      Project: c.projectName || 'No Project',
+      UnitsCount: c.units ? c.units.length : 0,
+      DaysLeft: daysLeft,
+      Cycle: c.visitFrequency || 'One-off',
+      NextBill: this.calculateNextBill(c.startDate, c.visitFrequency),
+      Terms: c.terms,
+      raw: c
+    };
+  }
+
+  private calculateNextBill(start: string, freq: string): string {
+    if (!start || !freq || freq === 'One-off') return '--';
+    const d = new Date(start);
+    const now = new Date();
+    while (d < now) {
+      if (freq === 'Weekly') d.setDate(d.getDate() + 7);
+      else if (freq === 'Monthly') d.setMonth(d.getMonth() + 1);
+      else if (freq === 'Every 2 months') d.setMonth(d.getMonth() + 2);
+      else if (freq === 'Quarterly') d.setMonth(d.getMonth() + 3);
+      else if (freq === 'Annual') d.setFullYear(d.getFullYear() + 1);
+      else break;
+    }
+    return d.toLocaleDateString('en-CA');
   }
 
   onSelectChange(contract: Contract, event: any) {
@@ -136,7 +247,12 @@ export class SharedContracts implements OnInit {
         EndDate: c.endDate ? new Date(c.endDate).toLocaleDateString() : item?.EndDate || '',
         Client: c.clientName || item?.Client || 'Unknown Client',
         Terms: c.terms ?? item?.Terms,
-        raw: c
+        raw: c,
+        Project: '',
+        UnitsCount: 0,
+        DaysLeft: '',
+        Cycle: '',
+        NextBill: ''
       };
       this.selected = mapped;
       this.detailsPhotos = [];
@@ -160,56 +276,36 @@ export class SharedContracts implements OnInit {
     document.body.style.overflow = 'auto';
   }
   get filteredContracts(): Contract[] {
-    let result = this.contracts;
-    if (this.activeFilters.length) {
-      result = result.filter(c =>
-        this.activeFilters.every(f => {
-          const v = (c as any)[f.field];
-          if (v == null) return false;
-          return String(v).toLowerCase() === String(f.value).toLowerCase();
-        })
+    let list = this.contracts;
+    if (this.searchText) {
+      const low = this.searchText.toLowerCase();
+      list = list.filter(c =>
+        c.Title.toLowerCase().includes(low) ||
+        c.Client.toLowerCase().includes(low) ||
+        c.Project.toLowerCase().includes(low)
       );
     }
-    if (this.searchText.trim() !== '') {
-      const search = this.searchText.toLowerCase();
-      result = result.filter(c =>
-        (c.Title?.toLowerCase().includes(search)) ||
-        (c.Client?.toLowerCase().includes(search)) ||
-        (c.Type?.toLowerCase().includes(search)) ||
-        (c.Status?.toLowerCase().includes(search))
-      );
-    }
-    return result;
+    this.activeFilters.forEach(f => {
+      list = list.filter(c => String((c as any)[f.field]) === f.value);
+    });
+    return list;
   }
-  get totalPages(): number {
-    return Math.max(1, Math.ceil(this.filteredContracts.length / this.pageSize));
-  }
+
   get pagedContracts(): Contract[] {
     const start = (this.page - 1) * this.pageSize;
-    console.log(this.filteredContracts);
-    
     return this.filteredContracts.slice(start, start + this.pageSize);
   }
+
+  get totalPages(): number {
+    return Math.ceil(this.filteredContracts.length / this.pageSize);
+  }
+
   get visiblePages(): number[] {
     const pages: number[] = [];
-    const maxButtons = 5;
-    if (this.totalPages <= maxButtons) {
-      for (let i = 1; i <= this.totalPages; i++) pages.push(i);
-    } else {
-      let start = this.page - Math.floor(maxButtons / 2);
-      let end = this.page + Math.floor(maxButtons / 2);
-      if (start < 1) {
-        start = 1;
-        end = maxButtons;
-      }
-      if (end > this.totalPages) {
-        end = this.totalPages;
-        start = this.totalPages - maxButtons + 1;
-      }
-      for (let i = start; i <= end; i++) pages.push(i);
-    }
+    for (let i = 1; i <= this.totalPages; i++) pages.push(i);
     return pages;
   }
+
   setPage(p: number) {
     if (p >= 1 && p <= this.totalPages) this.page = p;
   }

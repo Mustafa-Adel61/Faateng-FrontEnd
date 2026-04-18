@@ -1,13 +1,15 @@
 import { SharedPageHeader } from './../../shared-layout/shared-page-header/shared-page-header';
 import { NgClass, NgFor, NgIf, CommonModule } from '@angular/common';
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { InventoryService, InventoryItem } from '../../../core/inventory.service';
+import { Loading } from '../loading/loading';
+import { ToastService } from '../../services/toast.service';
 
 @Component({
   selector: 'app-shared-inventory',
   standalone: true,
-  imports: [FormsModule, NgFor, NgIf, NgClass, SharedPageHeader, CommonModule],
+  imports: [FormsModule, NgFor, NgIf, NgClass, SharedPageHeader, CommonModule, Loading],
   templateUrl: './shared-inventory.html',
   styleUrl: './shared-inventory.css'
 })
@@ -27,6 +29,8 @@ export class SharedInventory implements OnInit {
   // Edit Modal
   showEditModal = false;
   selectedItem: InventoryItem | null = null;
+  loading = false;
+  private toast = inject(ToastService);
 
   constructor(private inventoryService: InventoryService) {}
 
@@ -35,12 +39,17 @@ export class SharedInventory implements OnInit {
   }
 
   loadItems() {
+    this.loading = true;
     this.inventoryService.getAll().subscribe({
       next: (data) => {
         this.items = data;
         this.filteredItems = data;
+        this.loading = false;
       },
-      error: (err) => console.error(err)
+      error: (err) => {
+        console.error(err);
+        this.loading = false;
+      }
     });
   }
 
@@ -94,15 +103,18 @@ export class SharedInventory implements OnInit {
   saveDetails() {
     if (!this.selectedItem) return;
     
+    this.loading = true;
     this.inventoryService.update(this.selectedItem.id, this.selectedItem).subscribe({
       next: () => {
-        alert('Item updated successfully');
+        this.toast.show('Item updated successfully', 'success');
         this.loadItems();
         this.closeDetails();
+        this.loading = false;
       },
       error: (err) => {
         console.error(err);
-        alert('Failed to update item');
+        this.toast.show('Failed to update item', 'error');
+        this.loading = false;
       }
     });
   }

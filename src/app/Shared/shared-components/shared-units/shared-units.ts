@@ -78,6 +78,10 @@ export class SharedUnits implements OnInit {
     this.showCreateUnitModal = false;
   }
 
+  onNotify(msg: string) {
+    this.toast.show(msg, 'success');
+  }
+
   saveNewReport(event: any) {
     this.loadUnits();
   }

@@ -167,13 +167,8 @@
           <td class="faded" data-label="Date">{{task.Date}}</td>
           <td class="faded" data-label="Due">{{task.Due}}</td>
           <td class="faded" data-label="Amount">{{task.Amount}}$</td>
-           <td class="faded">
-              <span [ngClass]="{
-                'status-Paid': task.Status === 'Paid',
-                'status-Overdue': task.Status === 'Overdue',
-                'status-Draft': task.Status === 'Draft',
-                'status-Pending': task.Status === 'Pending',
-              }">{{ task.Status }}</span>
+           <td>
+              <span class="status-pill" [ngClass]="'status-' + task.Status">{{ task.Status }}</span>
             </td>  
            <td (click)="$event.stopPropagation()">
                 <select class="action-row" (change)="onSelectChange(task, $event)">

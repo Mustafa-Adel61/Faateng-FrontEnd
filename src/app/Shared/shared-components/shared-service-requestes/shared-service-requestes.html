@@ -84,13 +84,8 @@
               <input type="checkbox" [(ngModel)]="task.selected" (change)="updateAllSelected()"
                 (click)="$event.stopPropagation()" />
             </td>
-            <td class="faded">
-              <span [ngClass]="{
-                'status-Dispatched': task.status === 'New',
-                'status-Scheduled': task.status === 'InProgress',
-                'status-On-Site': task.status === 'Assigned',
-                'status-Backlog': task.status === 'Closed',
-              }">{{ task.status }}</span>
+            <td>
+              <span class="status-pill" [ngClass]="'status-' + task.status">{{ task.status }}</span>
             </td>
             <td class="faded">{{ task.name }}</td>
             <td class="faded">{{ task.units }}</td>

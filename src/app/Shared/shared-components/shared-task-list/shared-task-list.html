@@ -79,78 +79,57 @@
             <th class="faded">STATUS</th>
             <th class="faded">PROJECT / SITE</th>
             <th class="faded">UNITS</th>
-            <th class="faded">ASSIGNEE / TEAM</th>
+            <th class="faded">ASSIGNEE</th>
             <th class="faded">PRIORITY</th>
             <!-- <th class="faded">ADDRESS</th> -->
             <!-- <th class="faded">START</th> -->
             <!-- <th class="faded">END</th> -->
             <th class="faded">SLA</th>
             <th class="faded">OBJECTIVE</th>
-            <th class="faded">Action</th>
+            <th class="faded">OPEN</th>
           </tr>
         </thead>
         <tbody>
           <tr *ngFor="let task of pagedTasks" (click)="openDetails(task)">
             <td>
-              <!-- <input type="checkbox" [(ngModel)]="task.selected" (change)="updateAllSelected()" /> -->
               <input type="checkbox" [(ngModel)]="task.selected" (change)="updateAllSelected()"
                 (click)="$event.stopPropagation()" />
             </td>
-            <td class="faded">
-              <span [ngClass]="{
-                'status-Scheduled': task.status === 'Scheduled',
-                'status-On-Site': task.status === 'On-Site',
-                'status-Waiting-Parts': task.status === 'Waiting-Parts' || task.status === 'Waiting for Parts'
-              }">{{ task.status }}</span>
+            <td>
+              <span class="status-pill" [ngClass]="'status-' + task.status?.replace(' ', '-')">{{ task.status }}</span>
             </td>
-            <td class="faded">
+            <td>
               <span class="text-ellipsis project-name-ellipsis" [title]="task.name">{{ task.name }}</span>
             </td>
-            <!-- <td class="faded">{{ task.units }}</td> -->
-            <td class="faded">
+            <td>
               <span class="text-ellipsis" [title]="task.units">{{ task.units }}</span>
             </td>
-            <td class="faded">
-              <span class="text-ellipsis" [title]="task.assignee + ' / ' + task.team">{{ task.assignee }} / {{ task.team
-                }}</span>
+            <td>
+              <span class="text-ellipsis" [title]="task.assignee">{{ task.assignee }}</span>
             </td>
 
-            <td class="faded">
-              <span [ngClass]="{
-                'priority-high': task.priority === 'High',
-                'priority-urgent': task.priority === 'Urgent',
-                'priority-low': task.priority === 'Low',
-                'priority-normal': !task.priority || task.priority === 'Normal'
-              }">{{ task.priority }}</span>
+            <td>
+              <span class="priority-pill"
+                [ngClass]="'priority-' + (task.priority || 'Normal')">{{ task.priority || 'Normal' }}</span>
             </td>
 
-            <!-- <td class="faded">{{ task.address }}</td> -->
-            <!-- <td class="faded">{{ task.start }}</td> -->
-            <!-- <td class="faded">{{ task.end }}</td> -->
-            <td class="faded">
-              <span [ngClass]="{
-                'sla-ok': task.slaStatus === 'OK',
-                'sla-overdue': task.slaStatus === 'Overdue',
-                'sla-pending': task.slaStatus === 'Pending'
-              }">{{ task.slaStatus }}</span>
+            <td>
+              <span class="sla-pill" [ngClass]="'sla-' + task.slaStatus?.toLowerCase()">{{ task.slaStatus }}</span>
             </td>
-            <td class="faded">
+            <td>
               <span class="text-ellipsis objective-ellipsis" [title]="task.objective">{{ task.objective }}</span>
             </td>
-            <!-- (click)="$event.stopPropagation()" بيمنع ال click انه ياخد ال action الي فوقيه عشان كدا لو دوست عليها مش هيفتح ال details  -->
             <td (click)="$event.stopPropagation()">
               <select class="action-row" (change)="onSelectChange(task, $event)">
                 <option value="">Actions</option>
                 <option value="view">View Details</option>
-                <option value="assign" *ngIf="role !== 'client'">Assign / Reassign Technician</option>
-                <option value="priority" *ngIf="role !== 'client'">Add Priority</option>
-                <option value="editObjective" *ngIf="role !== 'client'">Edit Objective</option>
-                <option value="createSuggestedRepair" *ngIf="role === 'technician'">Create Suggested Repair</option>
-                <option value="createInvoice"
-                  *ngIf="role === 'finance' && (task.status === 'Done' || task.status === 'Completed' || task.status === 'Closed')">
-                  Create Invoice</option>
-                <!-- <option value="edit">Edit</option> -->
-                <option value="delete" *ngIf="role === 'admin'">Delete</option>
+                <ng-container *ngIf="role === 'admin' || role === 'manager' || role === 'dispatcher'">
+                  <option value="assign">Assign / Reassign Technician</option>
+                  <option value="delete" *ngIf="role === 'admin'">Delete</option>
+                </ng-container>
+                <ng-container *ngIf="role === 'technician'">
+                  <option value="createSuggestedRepair">Create Suggested Repair</option>
+                </ng-container>
               </select>
             </td>
           </tr>

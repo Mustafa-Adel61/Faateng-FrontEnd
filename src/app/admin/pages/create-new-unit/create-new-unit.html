@@ -39,6 +39,14 @@
         </select>
       </label>
 
+      <!-- Unit Variant (Only for Elevator) -->
+      <label class="full-width" *ngIf="form.Type === 'Elevator'">
+        <select [(ngModel)]="form.Variant" name="Variant" [ngClass]="{'input-error': submitted && !form.Variant}">
+          <option value="" disabled selected>Select Variant</option>
+          <option *ngFor="let v of variants" [value]="v">{{ v }}</option>
+        </select>
+      </label>
+
       <!-- Price -->
       <label class="full-width">
         <input type="number" [(ngModel)]="form.Price" name="Price" placeholder="Price"

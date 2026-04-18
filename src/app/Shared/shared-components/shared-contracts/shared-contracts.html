@@ -9,7 +9,7 @@
 
 
 <div class="task-list">
-
+  <app-loading [loading]="loading"></app-loading>
 
   <div class="tab-content">
     <div class="status-summary" *ngIf="contracts.length">
@@ -58,7 +58,9 @@
             <option value="">Select Field</option>
             <option value="Title">Title</option>
             <option value="Client">Client</option>
+            <option value="Project">Project</option>
             <option value="Type">Type</option>
+            <option value="Cycle">Cycle</option>
             <option value="Status">Status</option>
           </select>
           <select [(ngModel)]="newFilter.value" *ngIf="getFilterValues(newFilter.field).length">
@@ -86,14 +88,18 @@
               <input type="checkbox" [checked]="allSelected" (change)="allSelected = $event.target.checked; toggleAll()"
                 (click)="$event.stopPropagation()" />
             </th>
-            <th class="faded">Title</th>
-            <th class="faded">Client</th>
-            <th class="faded">Type</th>
-            <th class="faded">Status</th>
-            <th class="faded">Value</th>
-            <th class="faded">Start Date</th>
-            <th class="faded">End Date</th>
-            <th class="faded">Action</th>
+            <th class="faded">CONTRACT</th>
+            <th class="faded">CLIENT</th>
+            <th class="faded">PROJECT</th>
+            <th class="faded">UNITS</th>
+            <th class="faded">START</th>
+            <th class="faded">END</th>
+            <th class="faded">DAYS LEFT</th>
+            <th class="faded">CYCLE</th>
+            <th class="faded">VALUE</th>
+            <th class="faded">NEXT BILL</th>
+            <th class="faded">STATUS</th>
+            <th class="faded">ACTION</th>
           </tr>
         </thead>
         <tbody>
@@ -102,28 +108,36 @@
               <input type="checkbox" [(ngModel)]="contract.selected" (change)="updateAllSelected()"
                 (click)="$event.stopPropagation()" />
             </td>
-            <td class="faded" data-label="Title">{{contract.Title}}</td>
-            <td class="faded" data-label="Client">{{contract.Client}}</td>
-            <td class="faded" data-label="Type">{{contract.Type}}</td>
-            <td class="faded" data-label="Status">
+            <td class="faded" data-label="Contract">
+              <div class="contract-info-cell">
+                <span class="contract-name-text" [title]="contract.Title">CTR-{{contract.id}}</span>
+                <span class="contract-id-subtext">{{contract.Title}}</span>
+              </div>
+            </td>
+            <td class="faded" data-label="Client">
+              <span class="text-ellipsis" [title]="contract.Client">{{contract.Client}}</span>
+            </td>
+            <td class="faded" data-label="Project">
+              <span class="text-ellipsis" [title]="contract.Project">{{contract.Project}}</span>
+            </td>
+            <td class="faded" data-label="Units">{{contract.UnitsCount}} selected</td>
+            <td class="faded" data-label="Start">{{contract.StartDate}}</td>
+            <td class="faded" data-label="End">{{contract.EndDate}}</td>
+            <td class="faded" data-label="Days Left">
               <span
-                [ngClass]="{'approved-status': contract.Status === 'Approved', 'rejected-status': contract.Status === 'Rejected', 'pending-status': contract.Status !== 'Approved' && contract.Status !== 'Rejected'}">
-                {{contract.Status}}
+                [ngClass]="{'expired-text': contract.DaysLeft === 'Expired', 'days-left-text': contract.DaysLeft !== 'Expired'}">
+                {{contract.DaysLeft}}
               </span>
             </td>
+            <td class="faded" data-label="Cycle">{{contract.Cycle}}</td>
             <td class="faded" data-label="Value">{{contract.Value | currency}}</td>
-            <td class="faded" data-label="Start Date">{{contract.StartDate}}</td>
-            <td class="faded" data-label="End Date">{{contract.EndDate}}</td>
+            <td class="faded" data-label="Next Bill">{{contract.NextBill}}</td>
+            <td data-label="Status">
+              <span class="status-pill"
+                [ngClass]="'status-' + contract.Status?.replace(' ', '-')">{{ contract.Status }}</span>
+            </td>
             <td (click)="$event.stopPropagation()">
-              <select class="action-row" (change)="onSelectChange(contract, $event)">
-                <option value="">Actions</option>
-                <option value="view">View Details</option>
-                <option value="delete" *ngIf="role === 'admin'">Delete</option>
-                <option value="approve"
-                  *ngIf="(role === 'admin' || role === 'manager') && contract.Status !== 'Approved'">Approve</option>
-                <option value="reject"
-                  *ngIf="(role === 'admin' || role === 'manager') && contract.Status !== 'Rejected'">Reject</option>
-              </select>
+              <button class="open-btn" (click)="openDetails(contract)">Open</button>
             </td>
           </tr>
         </tbody>

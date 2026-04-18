@@ -1,40 +1,49 @@
 import { SharedPageHeader } from './../../shared-layout/shared-page-header/shared-page-header';
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit, inject } from '@angular/core';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CreateNewReport } from '../../../admin/pages/create-new-report/create-new-report';
 import { FormsModule } from '@angular/forms';
 import { CommonModule, NgFor, NgIf } from '@angular/common';
 import { ResourceService } from '../../../core/resource.service';
+import { Loading } from '../loading/loading';
+import { ToastService } from '../../services/toast.service';
+
 interface MaintenanceReport {
-  id?: number; // Added id
-  selected: boolean; // للحفاظ على خاصية التحديد
+  id?: number;
+  selected: boolean;
   reportId: string;
   date: string;
   maintenanceVisits: string[];
   workPerformed: string;
   technician: string;
-  // photosCount: number; 
   comments: string;
   systemId: string;
-  photos: string[]; // <--- إضافة هذه الخاصية (Array of photo paths)
-  Status?: string; // Added status
+  photos: string[];
+  Status?: string;
 }
+
 @Component({
   selector: 'app-shared-archive',
   standalone: true,
-  imports: [FormsModule, NgIf, NgFor, CommonModule, CreateNewReport, SharedPageHeader],
+  imports: [FormsModule, NgIf, NgFor, CommonModule, CreateNewReport, SharedPageHeader, Loading],
   templateUrl: './shared-archive.html',
   styleUrl: './shared-archive.css'
 })
-export class SharedArchive {
-
+export class SharedArchive implements OnInit {
   showCreateReportModal: boolean = false;
   activeTab: 'list' | 'map' = 'list';
   mapUrl: SafeResourceUrl | undefined;
   allSelected = false;
   @Input() role: 'admin' | 'dispatcher' | 'manager' | 'client' | 'finance' | null = null;
+  loading = false;
+  private toast = inject(ToastService);
 
+  constructor(
+    private route: ActivatedRoute,
+    private resource: ResourceService,
+    private sanitizer: DomSanitizer
+  ) {}
 
   ngOnInit() {
     this.route.queryParams.subscribe(params => {
@@ -43,14 +52,22 @@ export class SharedArchive {
     });
     this.loadTask();
   }
+
   reports: MaintenanceReport[] = [];
   showDetails = false;
   selectedReport: MaintenanceReport | null = null;
+  searchText: string = '';
+  showFilterBuilder = false;
+  newFilter = { field: '', value: '' };
+  activeFilters: { field: string; value: string }[] = [];
+  page = 1;
+  pageSize = 10;
+
   loadTask() {
     const params: Record<string, string> = {};
     if (this.role) params['role'] = this.role;
+    this.loading = true;
     this.resource.getAll('Reports', params).subscribe({
-
       next: (items) => {
         this.reports = (items || [])
         .filter((r: any) => String(r.status).toLowerCase() === 'approved')
@@ -63,100 +80,141 @@ export class SharedArchive {
           workPerformed: r.workPerformed || '',
           technician: r.technicianName || '',
           comments: r.comments || '',
-          // استخدم Model + Serial إن توفروا بدلاً من name غير الموجود
           systemId: (r.unit?.model && r.unit?.serial) ? `${r.unit.model} (${r.unit.serial})` : (r.unitId ? String(r.unitId) : ''),
           photos: Array.isArray(r.photos) ? r.photos : (typeof r.photos === 'string' && r.photos ? r.photos.split(',') : []),
           Status: r.status
         }));
+        this.loading = false;
       },
       error: () => {
-        if (this.role === 'admin' || this.role === 'dispatcher' || this.role === 'manager') {
-          this.reports = [
-            {
-              reportId: 'MR-001', date: 'Jun 24, 2022', maintenanceVisits: ['MV522', 'MV435'], workPerformed: 'Replaced faulty wiring in the control panel', technician: 'Yazeed Hassan', comments: 'The unit is now functioning well, but monitor for any further issues', systemId: 'HVAC-001', selected: false,
-              photos: ['assets/images/humanIcon.jpg']
-            },
-            {
-              reportId: 'MR-001', date: 'Jun 24, 2022', maintenanceVisits: ['MV522', 'MV435'], workPerformed: 'Performed routine HVAC filter replacement and cleaned ducts.', technician: 'Mouth Abdel-Latif', comments: 'Filters were extremely clogged; recommend more frequent checks.', systemId: 'HVAC-001', selected: false,
-              photos: ['assets/images/humanIcon.jpg', 'assets/images/Ellipse 34.png', 'assets/images/humanIcon.jpg', 'assets/images/Ellipse 34.png']
-
-            },
-            {
-              reportId: 'MR-002', date: 'Jun 24, 2022', maintenanceVisits: ['MV522', 'MV435', 'MV452'], workPerformed: 'Tested fire alarm system and replaced two faulty sensors.', technician: 'Yazeed Hassan', comments: 'Filters were extremely clogged; recommend more frequent checks.', systemId: 'HVAC-001', selected: false
-
-              , photos: ['assets/images/humanIcon.jpg', 'assets/images/Ellipse 34.png', 'assets/images/humanIcon.jpg', 'assets/images/Ellipse 34.png']
-            },
-            {
-              reportId: 'MR-002', date: 'Jun 24, 2022', maintenanceVisits: ['MV522', 'MV435'], workPerformed: 'Elevator motor and lubricated moving parts.', technician: 'Marwan Taufiq', comments: 'System is fully operational after sensor replacement.', systemId: 'HVAC-002', selected: false
-              , photos: ['assets/images/humanIcon.jpg', 'assets/images/Ellipse 34.png', 'assets/images/humanIcon.jpg', 'assets/images/Ellipse 34.png']
-
-            },
-            {
-              reportId: 'MR-001', date: 'Jun 24, 2022', maintenanceVisits: ['MV522', 'MV435'], workPerformed: 'Replaced faulty wiring in the control panel', technician: 'Yazeed Hassan', comments: 'The unit is now functioning well, but monitor for any further issues', systemId: 'HVAC-001', selected: false
-              , photos: ['assets/images/humanIcon.jpg', 'assets/images/Ellipse 34.png', 'assets/images/humanIcon.jpg', 'assets/images/Ellipse 34.png']
-
-            },
-            {
-              reportId: 'MR-001', date: 'Jun 24, 2022', maintenanceVisits: ['MV522', 'MV435'], workPerformed: 'Performed routine HVAC filter replacement and cleaned ducts.', technician: 'Mouth Abdel-Latif', comments: 'Filters were extremely clogged; recommend more frequent checks.', systemId: 'HVAC-001', selected: false
-              , photos: ['assets/images/humanIcon.jpg', 'assets/images/Ellipse 34.png', 'assets/images/humanIcon.jpg', 'assets/images/Ellipse 34.png']
-
-            },
-            {
-              reportId: 'MR-002', date: 'Jun 24, 2022', maintenanceVisits: ['MV522', 'MV435', 'MV452'], workPerformed: 'Tested fire alarm system and replaced two faulty sensors.', technician: 'Yazeed Hassan', comments: 'Filters were extremely clogged; recommend more frequent checks.', systemId: 'HVAC-001', selected: false
-              , photos: ['assets/images/humanIcon.jpg', 'assets/images/Ellipse 34.png', 'assets/images/humanIcon.jpg', 'assets/images/Ellipse 34.png']
-
-            },
-            {
-              reportId: 'MR-002', date: 'Jun 24, 2022', maintenanceVisits: ['MV522', 'MV435'], workPerformed: 'Elevator motor and lubricated moving parts.', technician: 'Marwan Taufiq', comments: 'System is fully operational after sensor replacement.', systemId: 'HVAC-002', selected: false,
-              photos: ['assets/images/humanIcon.jpg', 'assets/images/Ellipse 34.png', 'assets/images/humanIcon.jpg', 'assets/images/Ellipse 34.png']
-
-            }
-          ];
-        }
-        else if (this.role === 'client' || this.role === 'finance') {
-          this.reports = [
-            {
-              reportId: 'MR-001', date: 'Jun 24, 2022', maintenanceVisits: ['MV522', 'MV435'], workPerformed: 'Replaced faulty wiring in the control panel', technician: 'Yazeed Hassan', comments: 'The unit is now functioning well, but monitor for any further issues', systemId: 'HVAC-001', selected: false,
-              photos: ['assets/images/humanIcon.jpg']
-            },
-            {
-              reportId: 'MR-001', date: 'Jun 24, 2022', maintenanceVisits: ['MV522', 'MV435'], workPerformed: 'Performed routine HVAC filter replacement and cleaned ducts.', technician: 'Mouth Abdel-Latif', comments: 'Filters were extremely clogged; recommend more frequent checks.', systemId: 'HVAC-001', selected: false,
-              photos: ['assets/images/humanIcon.jpg', 'assets/images/Ellipse 34.png', 'assets/images/humanIcon.jpg', 'assets/images/Ellipse 34.png']
-
-            },
-            {
-              reportId: 'MR-002', date: 'Jun 24, 2022', maintenanceVisits: ['MV522', 'MV435', 'MV452'], workPerformed: 'Tested fire alarm system and replaced two faulty sensors.', technician: 'Yazeed Hassan', comments: 'Filters were extremely clogged; recommend more frequent checks.', systemId: 'HVAC-001', selected: false,
-              photos: ['assets/images/humanIcon.jpg', 'assets/images/Ellipse 34.png', 'assets/images/humanIcon.jpg', 'assets/images/Ellipse 34.png']
-
-            }]
-        }
+        this.loading = false;
       }
     });
   }
+
+  getFilterValues(field: string): string[] {
+    if (!field) return [];
+    const values = this.reports
+      .map(r => (r as any)[field])
+      .filter(v => v !== undefined && v !== null && v !== '')
+      .map(v => String(v));
+    return Array.from(new Set(values));
+  }
+
+  toggleFilterBuilder() { this.showFilterBuilder = !this.showFilterBuilder; }
+
+  applyFilter() {
+    if (!this.newFilter.field || !this.newFilter.value) return;
+    this.activeFilters.push({ ...this.newFilter });
+    this.newFilter = { field: '', value: '' };
+    this.showFilterBuilder = false;
+    this.page = 1;
+  }
+
+  removeFilter(idx: number) {
+    this.activeFilters.splice(idx, 1);
+  }
+
+  clearAllFilters() {
+    this.activeFilters = [];
+    this.page = 1;
+  }
+
+  get filteredReports(): MaintenanceReport[] {
+    let result = this.reports;
+    if (this.activeFilters.length) {
+      result = result.filter(r =>
+        this.activeFilters.every(f => {
+          const v = (r as any)[f.field];
+          return String(v).toLowerCase() === String(f.value).toLowerCase();
+        })
+      );
+    }
+    if (this.searchText.trim() !== '') {
+      const s = this.searchText.toLowerCase();
+      result = result.filter(r => 
+        r.reportId.toLowerCase().includes(s) || 
+        r.technician.toLowerCase().includes(s) ||
+        r.systemId.toLowerCase().includes(s)
+      );
+    }
+    return result;
+  }
+
+  get pagedReports(): MaintenanceReport[] {
+    const start = (this.page - 1) * this.pageSize;
+    return this.filteredReports.slice(start, start + this.pageSize);
+  }
+
+  get totalPages(): number {
+    return Math.ceil(this.filteredReports.length / this.pageSize);
+  }
+
+  get visiblePages(): number[] {
+    const total = this.totalPages;
+    if (total <= 5) return Array.from({length: total}, (_, i) => i + 1);
+    let start = Math.max(this.page - 2, 1);
+    let end = Math.min(start + 4, total);
+    if (end === total) start = Math.max(end - 4, 1);
+    return Array.from({length: end - start + 1}, (_, i) => start + i);
+  }
+
+  setPage(p: number) {
+    if (p >= 1 && p <= this.totalPages) this.page = p;
+  }
+
   onSelectChange(report: MaintenanceReport, event: any) {
     const action = event.target.value;
+    if (!action) return;
+
     if (action === 'delete') {
       if (confirm('Are you sure you want to delete this report?')) {
         if (report.id) {
-          this.resource.delete('Reports', report.id).subscribe(() => this.loadTask());
+          this.loading = true;
+          this.resource.delete('Reports', report.id).subscribe({
+            next: () => {
+              this.toast.show('Report deleted successfully', 'success');
+              this.loadTask();
+              this.loading = false;
+            },
+            error: () => {
+              this.toast.show('Failed to delete report', 'error');
+              this.loading = false;
+            }
+          });
         }
       }
     } else if (action === 'approve') {
       if (report.id) {
-        this.resource.update('Reports', report.id + '/approve', {}).subscribe(() => {
-          report.Status = 'Approved';
-          alert('Report Approved');
+        this.loading = true;
+        this.resource.update('Reports', report.id + '/approve', {}).subscribe({
+          next: () => {
+            report.Status = 'Approved';
+            this.toast.show('Report Approved', 'success');
+            this.loading = false;
+          },
+          error: () => {
+            this.toast.show('Failed to approve report', 'error');
+            this.loading = false;
+          }
         });
       }
     } else if (action === 'reject') {
       if (report.id) {
-        this.resource.update('Reports', report.id + '/reject', {}).subscribe(() => {
-          report.Status = 'Rejected';
-          alert('Report Rejected');
+        this.loading = true;
+        this.resource.update('Reports', report.id + '/reject', {}).subscribe({
+          next: () => {
+            report.Status = 'Rejected';
+            this.toast.show('Report Rejected', 'success');
+            this.loading = false;
+          },
+          error: () => {
+            this.toast.show('Failed to reject report', 'error');
+            this.loading = false;
+          }
         });
       }
     }
-    // Reset select
     event.target.value = '';
   }
 

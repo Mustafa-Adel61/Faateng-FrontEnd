@@ -334,11 +334,12 @@ export class SharedInvoice {
     this.newFilter = { field: '', value: '', dateFrom: '', dateTo: '' };
   }
 
+  // Realistic filters for invoices
   getFilterValues(field: string): string[] {
     if (!field) return [];
     const values = this.tasks
       .map(t => (t as any)[field])
-      .filter(v => v !== undefined && v !== null)
+      .filter(v => v !== undefined && v !== null && v !== '')
       .map(v => String(v));
     return Array.from(new Set(values));
   }

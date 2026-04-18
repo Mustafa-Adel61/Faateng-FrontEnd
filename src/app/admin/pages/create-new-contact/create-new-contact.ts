@@ -28,7 +28,7 @@ export class CreateNewContact implements OnInit {
   allowedFileTypes = ['image/jpeg','image/jpg','image/png','image/gif','image/webp','application/pdf'];
   Types=['Maintenance', 'Turnkey', 'Supply','Service'];
   // Types=['AMC', 'Warranty', 'OnDemand'];
-  BillingCycles=['Monthly', 'Quarterly', 'Annual', 'One-off'];
+  BillingCycles=['Weekly','Monthly','Every 2 months', 'Quarterly', 'Annual', 'One-off'];
   form = {
     Title: '',
     Type: '',

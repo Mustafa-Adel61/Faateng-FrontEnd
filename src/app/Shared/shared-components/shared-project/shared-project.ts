@@ -338,34 +338,24 @@ export class SharedProject {
     // بظبط عدد المحددين
     this.selectedCount = this.pagedTasks.filter(t => t.selected).length;
   }
-  // ---------------- pagination / filtered list getters ----------------
   get filteredTasks(): Task[] {
-    console.log("SASA");
-
     let result = this.tasks;
-
-    // 🔹 أولاً: فلترة حسب الفلاتر النشطة (لو موجودة)
     if (this.activeFilters.length) {
       result = result.filter(task =>
         this.activeFilters.every(f => {
           const v = (task as any)[f.field];
-          if (v == null) return false;
           return String(v).toLowerCase() === String(f.value).toLowerCase();
         })
       );
     }
-
-    // 🔹 ثانياً: فلترة حسب البحث في الاسم (Project / Site)
     if (this.searchText.trim() !== '') {
       const search = this.searchText.toLowerCase();
-      result = result.filter(task => task.Project.toLowerCase().includes(search));
+      result = result.filter(task => 
+        task.Project.toLowerCase().includes(search) || 
+        task.Client.toLowerCase().includes(search)
+      );
     }
-
     return result;
-  }
-
-  get totalPages(): number {
-    return Math.max(1, Math.ceil(this.filteredTasks.length / this.pageSize));
   }
 
   get pagedTasks(): Task[] {
@@ -373,27 +363,18 @@ export class SharedProject {
     return this.filteredTasks.slice(start, start + this.pageSize);
   }
 
-  get visiblePages(): number[] {
-    const pages: number[] = [];
-    const maxButtons = 5;
-    if (this.totalPages <= maxButtons) {
-      for (let i = 1; i <= this.totalPages; i++) pages.push(i);
-    } else {
-      let start = this.page - Math.floor(maxButtons / 2);
-      let end = this.page + Math.floor(maxButtons / 2);
-      if (start < 1) {
-        start = 1;
-        end = maxButtons;
-      }
-      if (end > this.totalPages) {
-        end = this.totalPages;
-        start = this.totalPages - maxButtons + 1;
-      }
-      for (let i = start; i <= end; i++) pages.push(i);
-    }
-    return pages;
+  get totalPages(): number {
+    return Math.ceil(this.filteredTasks.length / this.pageSize);
   }
 
+  get visiblePages(): number[] {
+    const total = this.totalPages;
+    if (total <= 5) return Array.from({length: total}, (_, i) => i + 1);
+    let start = Math.max(this.page - 2, 1);
+    let end = Math.min(start + 4, total);
+    if (end === total) start = Math.max(end - 4, 1);
+    return Array.from({length: end - start + 1}, (_, i) => start + i);
+  }
 
   setPage(p: number) {
     if (p >= 1 && p <= this.totalPages) this.page = p;
@@ -406,13 +387,13 @@ export class SharedProject {
     this.newFilter = { field: '', value: '' };
   }
 
+  // Realistic filters for projects
   getFilterValues(field: string): string[] {
     if (!field) return [];
     const values = this.tasks
       .map(t => (t as any)[field])
-      .filter(v => v !== undefined && v !== null)
+      .filter(v => v !== undefined && v !== null && v !== '')
       .map(v => String(v));
-
     return Array.from(new Set(values));
   }
 
@@ -441,14 +422,11 @@ export class SharedProject {
     this.activeFilters.push({ ...this.newFilter });
     this.newFilter = { field: '', value: '' };
     this.showFilterBuilder = false;
-    // reset to page 1
     this.page = 1;
   }
 
   removeFilter(idx: number) {
     this.activeFilters.splice(idx, 1);
-    // keep page valid
-    if (this.page > this.totalPages) this.page = this.totalPages;
   }
 
   clearAllFilters() {
@@ -489,7 +467,7 @@ export class SharedProject {
     this.selectedTask = null;
     this.showDetails = false;
     document.body.style.overflow = 'auto'; // يرجع scroll الصفحة
-
+    this.loadTasks();
   }
   //   getSortedStatuses(current: any) {
   //   return [current, ...this.statuses.filter(s => s !== current)];

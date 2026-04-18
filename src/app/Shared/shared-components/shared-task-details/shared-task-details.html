@@ -125,8 +125,14 @@
           </div>
           <button class="save-btn" (click)="saveTiming()" [disabled]="savingTiming">Save</button>
         </div>
-        <div style="margin-top:16px;">
-          <button class="save-btn" style="width:100%; padding:12px 16px; font-size:16px;"
+        <div style="margin-top:16px; display: flex; gap: 8px;">
+          <button *ngIf="showChecklistBtn" class="save-btn" [disabled]="task?.isChecklistDone"
+            [style.opacity]="task?.isChecklistDone ? '0.5' : '1'"
+            style="flex: 1; padding:12px 16px; font-size:16px; background-color: #4caf50; border-color: #4caf50;"
+            (click)="openChecklist()">
+            {{ task?.isChecklistDone ? 'CheckList Done' : 'CheckList' }}
+          </button>
+          <button class="save-btn" style="flex: 1; padding:12px 16px; font-size:16px;"
             (click)="confirm()">Confirm</button>
         </div>
       </div>

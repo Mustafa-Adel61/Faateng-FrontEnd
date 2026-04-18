@@ -187,17 +187,13 @@
     </span>
   </td> -->
 
-          <td class="faded">
-            <span [ngClass]="{
-                'priority-Critical': task.Priority === 'Critical',
-                'priority-High': task.Priority === 'High',
-                'priority-Medium': task.Priority === 'Medium'
-              }">{{ task.Priority }}</span>
+          <td>
+            <span class="priority-pill" [ngClass]="'priority-' + task.Priority">{{ task.Priority }}</span>
           </td>
 
-          <td class="faded">
-            <span [ngClass]="{
-                'status-UnderReview': task.Status === 'Under Review',
+          <td>
+            <span class="status-pill" [ngClass]="'status-' + task.Status?.replace(' ', '-')">{{ task.Status }}</span>
+          </td>
                 'status-Draft': task.Status === 'Draft',
                 'status-Approved': task.Status === 'Approved',
                 'status-Rejected': task.Status === 'Rejected'

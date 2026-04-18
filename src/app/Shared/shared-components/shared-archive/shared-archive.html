@@ -6,6 +6,7 @@
 </app-shared-page-header>
 <app-create-new-report *ngIf="showCreateReportModal" (close)="closeCreateReport()" (save)="saveNewReport($event)">
 </app-create-new-report>
+<app-loading [loading]="loading"></app-loading>
 <div class="task-list">
   <div class="page-tabs">
     <button class="tab-btn" [class.active]="activeTab === 'list'" (click)="activeTab = 'list'">Reports List</button>
@@ -18,7 +19,7 @@
         <div class="toolbar-left">
 
           <button class="icon-btn">+</button>
-          <button class="icon-btn">
+          <button class="icon-btn" (click)="toggleFilterBuilder()">
             <img src="/assets/images/Vector3.png" alt="">
           </button> <button class="icon-btn">⇅</button>
         </div>
@@ -28,10 +29,41 @@
             <button>
               <img class="search-icon" src="/assets/images/search.png" alt="">
             </button>
-            <input type="text" class="forSearch"  placeholder="Search Report ID, Technician..." />
-
+            <input type="text" class="forSearch" [(ngModel)]="searchText"
+              placeholder="Search Report ID, Technician..." />
           </div>
         </div>
+      </div>
+
+      <!-- Filter Builder -->
+      <div class="filter-builder" *ngIf="showFilterBuilder">
+        <h4>Add filter</h4>
+        <div class="filter-row">
+          <select [(ngModel)]="newFilter.field">
+            <option value="">Select Field</option>
+            <option value="reportId">Report ID</option>
+            <option value="technician">Technician</option>
+            <option value="systemId">System ID</option>
+            <option value="date">Date</option>
+          </select>
+
+          <select *ngIf="newFilter.field && getFilterValues(newFilter.field).length" [(ngModel)]="newFilter.value">
+            <option value="">Select Value</option>
+            <option *ngFor="let v of getFilterValues(newFilter.field)" [value]="v">{{ v }}</option>
+          </select>
+
+          <button class="add-btn" (click)="applyFilter()">Apply</button>
+          <button class="add-btn" (click)="showFilterBuilder = false" style="background:#ccc;color:#000">Close</button>
+        </div>
+      </div>
+
+      <!-- Active filters -->
+      <div class="active-filters" *ngIf="activeFilters.length">
+        <span class="filter-chip" *ngFor="let f of activeFilters; let i = index">
+          {{ f.field }}: <strong>{{ f.value }}</strong>
+          <button (click)="removeFilter(i)">×</button>
+        </span>
+        <button class="clear-btn" (click)="clearAllFilters()">Clear All</button>
       </div>
 
       <table>
@@ -169,9 +201,7 @@
   <div class="details-panel">
     <button class="close-btn" (click)="closeDetails()">×</button>
     <h3>{{ selectedReport?.reportId }}</h3>
-    <span class="details-span" [ngClass]="{
-      'status-Approved': selectedReport?.Status === 'Approved'
-    }">{{ selectedReport?.Status }}</span>
+    <span class="status-pill" [ngClass]="'status-' + selectedReport?.Status">{{ selectedReport?.Status }}</span>
     <p><strong>Visits:</strong> {{ selectedReport?.maintenanceVisits?.join(', ') }}</p>
     <p><strong>System ID:</strong> {{ selectedReport?.systemId }}</p>
     <p><strong>Work Performed:</strong> {{ selectedReport?.workPerformed }}</p>

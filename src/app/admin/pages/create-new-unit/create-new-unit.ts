@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { UnitService } from '../../../core/unit.service';
 import { Loading } from '../../../Shared/shared-components/loading/loading';
 import { ResourceService } from '../../../core/resource.service';
+import { ToastService } from '../../../Shared/services/toast.service';
 
 @Component({
   selector: 'app-create-new-unit',
@@ -21,6 +22,7 @@ export class CreateNewUnit implements OnInit {
   
   @Output() close = new EventEmitter<void>();
   @Output() save = new EventEmitter<any>();
+    @Output() notify = new EventEmitter<string>();
 
   unitTypes = [
     'Elevator', 'Escalator', 'Moving Walk',
@@ -32,17 +34,25 @@ export class CreateNewUnit implements OnInit {
     Serial: '',
     Model: '',
     Type: '',
+    Variant: '',
     Price: null,
     Quantity: null,
     Description: '',
     attachments: [] as { name: string; type: string; url: string }[]
   };
 
+  variants = ['AC Gearless', 'AC Geared'];
+
   submitted = false;
   maxFileSize = 10; // MB
   allowedFileTypes = ['image/jpeg','image/jpg','image/png','image/gif','image/webp','application/pdf'];
 
-  constructor(private unitService: UnitService, private http: HttpClient, private resource: ResourceService) {}
+  constructor(
+    private unitService: UnitService, 
+    private http: HttpClient, 
+    private resource: ResourceService,
+    private toast: ToastService
+  ) {}
   loading: boolean = false;
 
   ngOnInit(): void {
@@ -64,6 +74,7 @@ export class CreateNewUnit implements OnInit {
       serial: this.form.Serial,
       model: this.form.Model,
       type: this.form.Type,
+      variant: this.form.Type === 'Elevator' ? this.form.Variant : null,
       price: Number(this.form.Price),
       quantity: Number(this.form.Quantity),
       photos: this.form.attachments.map(a => a.url),
@@ -75,11 +86,13 @@ export class CreateNewUnit implements OnInit {
     this.unitService.create(payload).subscribe({
       next: (res) => {
         this.save.emit(res);
+        this.toast.show('Unit created successfully', 'success');
         this.doClose();
         this.loading = false;
       },
       error: (err) => {
         console.error(err);
+        this.toast.show('Failed to create unit', 'error');
         this.loading = false;
       }
     });

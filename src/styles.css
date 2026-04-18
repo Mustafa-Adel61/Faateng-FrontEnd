@@ -1,15 +1,19 @@
 /* You can add global styles to this file, and also import other style files */
 @import "leaflet/dist/leaflet.css";
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
 html, body {
   margin: 0;
   padding: 0;
   width: 100%;
   height: 100%;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  overflow-x: hidden; /* منع الـ scroll الأفقي على مستوى الصفحة */
 }
 
 /* Global Ellipsis for Table Cells */
 .text-ellipsis {
-  max-width: 150px;
+  max-width: 100%;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -28,4 +32,65 @@ html, body {
 
 .location-ellipsis {
   max-width: 150px;
+}
+
+/* Status Styles */
+.status-pill {
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: capitalize;
+  display: inline-block;
+}
+
+.status-Scheduled, .status-Draft { background: #E3F2FD; color: #1976D2; }
+.status-On-Site, .status-In-Progress { background: #E8F5E9; color: #2E7D32; }
+.status-Waiting-Parts, .status-Waiting { background: #FFF3E0; color: #EF6C00; }
+.status-Closed, .status-Completed { background: #F5F5F5; color: #616161; }
+
+/* Priority Styles */
+.priority-pill {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.priority-Urgent { background: #FFEBEE; color: #C62828; }
+.priority-High { background: #FFF3E0; color: #E65100; }
+.priority-Normal { background: #E8F5E9; color: #2E7D32; }
+.priority-Low { background: #F5F5F5; color: #757575; }
+
+/* SLA Styles */
+.sla-pill {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.sla-ok { background: #E8F5E9; color: #2E7D32; }
+.sla-overdue { background: #FFEBEE; color: #C62828; }
+.sla-pending { background: #FFF3E0; color: #EF6C00; }
+
+/* Table Container Responsiveness */
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: auto; /* Allow columns to adjust but stay within width */
+}
+
+th, td {
+  padding: 12px 8px;
+  text-align: left;
+  border-bottom: 1px solid #eee;
+  font-size: 14px;
 }

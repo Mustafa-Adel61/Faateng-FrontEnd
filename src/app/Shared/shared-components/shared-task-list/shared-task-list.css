@@ -184,19 +184,78 @@ table {
   width: 100%;
   border-collapse: collapse;
   background: #fff;
+  table-layout: auto;
+}
+
+.task-list {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+.tab-content {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 thead th {
   text-align: left;
-  padding: 10px 8px;
-  border-bottom: 1px solid #eee;
+  padding: 12px 8px;
+  border-bottom: 2px solid #eee;
   font-weight: 600;
+  font-size: 13px;
+  white-space: nowrap;
 }
 
 tbody td {
-  padding: 10px 8px;
+  padding: 12px 8px;
   border-bottom: 1px solid #f3f3f3;
   vertical-align: middle;
+  font-size: 14px;
+}
+
+@media (max-width: 1200px) {
+  .project-name-ellipsis { max-width: 120px; }
+  .objective-ellipsis { max-width: 150px; }
+}
+
+@media (max-width: 768px) {
+  table, thead, tbody, th, td, tr {
+    display: block;
+  }
+  
+  thead tr {
+    position: absolute;
+    top: -9999px;
+    left: -9999px;
+  }
+  
+  tr {
+    border: 1px solid #ccc;
+    margin-bottom: 10px;
+    border-radius: 8px;
+    padding: 10px;
+  }
+  
+  td {
+    border: none;
+    border-bottom: 1px solid #eee;
+    position: relative;
+    padding-left: 50% !important;
+    text-align: right;
+    min-height: 40px;
+  }
+  
+  td:before {
+    position: absolute;
+    left: 10px;
+    width: 45%;
+    padding-right: 10px;
+    white-space: nowrap;
+    text-align: left;
+    font-weight: bold;
+    content: attr(data-label);
+  }
 }
 
 tbody :hover {

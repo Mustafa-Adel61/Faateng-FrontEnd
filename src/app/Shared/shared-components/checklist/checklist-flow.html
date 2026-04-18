@@ -53,7 +53,7 @@
 
     <div class="action-buttons">
       <button class="primary" (click)="startChecklist()">Start Checklist <i class="fas fa-chevron-right"></i></button>
-      <button class="secondary" (click)="step = 1">Back</button>
+      <button class="secondary" (click)="goBack()">Back</button>
     </div>
   </div>
 
@@ -68,9 +68,11 @@
     </div>
 
     <div class="form-header-inputs">
-      <input type="text" [placeholder]="translations[selectedLanguage].site" [(ngModel)]="site">
-      <input type="text" [placeholder]="translations[selectedLanguage].unitId" [(ngModel)]="unitId">
-      <input type="text" [placeholder]="translations[selectedLanguage].technician" [(ngModel)]="technician">
+      <input type="text" [placeholder]="translations[selectedLanguage].site" [(ngModel)]="site" [readonly]="isReadOnly">
+      <input type="text" [placeholder]="translations[selectedLanguage].unitId" [(ngModel)]="unitId"
+        [readonly]="isReadOnly">
+      <input type="text" [placeholder]="translations[selectedLanguage].technician" [(ngModel)]="technician"
+        [readonly]="isReadOnly">
       <input type="date" [(ngModel)]="date">
     </div>
 

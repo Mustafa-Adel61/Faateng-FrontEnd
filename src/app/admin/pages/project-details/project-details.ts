@@ -1,9 +1,10 @@
 import { NgIf, NgFor, CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, Output, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, EventEmitter, Input, Output, OnChanges, SimpleChanges, inject } from '@angular/core';
 import { ResourceService } from '../../../core/resource.service';
 import { CreateNewUnit } from '../create-new-unit/create-new-unit';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
+import { ToastService } from '../../../Shared/services/toast.service';
 
 @Component({
   selector: 'app-project-details',
@@ -16,6 +17,7 @@ export class ProjectDetails implements OnChanges {
 
   @Input() taskss!: any;
   @Output() close = new EventEmitter<void>();
+  @Output() notify = new EventEmitter<string>();
 
   project: any = null;
   units: any[] = [];
@@ -30,6 +32,7 @@ export class ProjectDetails implements OnChanges {
 
   showCreateUnit = false;
 
+  private toast: ToastService = inject(ToastService);
   constructor(private resource: ResourceService) {}
   
   openCreateUnit() {
@@ -58,6 +61,10 @@ export class ProjectDetails implements OnChanges {
     // Switch to Unit tab so user sees it right away
     this.detailsTab = 'Unit';
     
+    // Show success message
+    // this.notify.emit('Unit created successfully!');
+    this.toast.show('Unit Created Successfully!', 'success');
+
     // Close modal
     this.showCreateUnit = false;
     

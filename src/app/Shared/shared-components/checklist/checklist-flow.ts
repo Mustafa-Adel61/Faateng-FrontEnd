@@ -1,10 +1,11 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { ChecklistService, ChecklistQuestion, ChecklistAnswer } from '../../services/checklist.service';
 import { AuthService } from '../../../core/auth';
 import { ToastService } from '../../services/toast.service';
+import { ResourceService } from '../../../core/resource.service';
 
 @Component({
   selector: 'app-checklist-flow',
@@ -36,6 +37,8 @@ export class ChecklistFlow implements OnInit {
   unitId: string = '';
   technician: string = '';
   date: string = new Date().toISOString().split('T')[0];
+  taskId: string | null = null;
+  isReadOnly: boolean = false;
 
   isSubmitting: boolean = false;
 
@@ -106,12 +109,32 @@ export class ChecklistFlow implements OnInit {
     private checklistService: ChecklistService,
     private auth: AuthService,
     private router: Router,
-    private toast: ToastService
+    private route: ActivatedRoute,
+    private toast: ToastService,
+    private resource: ResourceService
   ) {}
 
   ngOnInit() {
     this.role = this.auth.getRole();
     this.isAdmin = this.role === 'admin' || this.role === 'manager';
+
+    // Handle query params for direct flow from task details
+    this.route.queryParams.subscribe(params => {
+      if (params['site'] && params['unitId']) {
+        this.site = params['site'];
+        this.unitId = params['unitId'];
+        this.technician = params['technician'];
+        this.selectedSystem = params['system'] || 'Elevator';
+        this.selectedVariant = params['variant'] || 'Standard';
+        this.selectedFrequency = params['frequency'] || 'Monthly';
+        this.taskId = params['taskId'] || null;
+        this.isReadOnly = true;
+        
+        // Stay at step 2 (Language Selection) and don't load questions yet
+        // so the user can pick the language first.
+        this.step = 2;
+      }
+    });
   }
 
   selectSystem(system: any) {
@@ -132,6 +155,16 @@ export class ChecklistFlow implements OnInit {
     this.selectedVariant = 'Standard';
     this.selectedFrequency = '';
     this.step = 1;
+  }
+
+  goBack() {
+    if (this.taskId && this.isReadOnly) {
+      // Return to task details
+      const role = this.auth.getRole();
+      this.router.navigate([`/dashboard/${role}/task-list`], { queryParams: { openTaskId: this.taskId } });
+    } else {
+      this.step = 1;
+    }
   }
 
   canGoToLanguage() {
@@ -310,6 +343,7 @@ export class ChecklistFlow implements OnInit {
       systemType: this.selectedSystem,
       frequency: this.selectedFrequency,
       language: this.selectedLanguage,
+      taskId: this.taskId,
       answers: this.answers.map(a => ({
         questionId: a.questionId,
         status: a.status,
@@ -322,7 +356,16 @@ export class ChecklistFlow implements OnInit {
       next: () => {
         this.toast.show('Checklist submitted successfully', 'success');
         this.isSubmitting = false;
-        this.resetSelection();
+        
+        if (this.taskId && this.isReadOnly) {
+          // Update task notes to mark checklist as done then go back
+          this.resource.update('Tasks', this.taskId, { notes: 'CHECKLIST_DONE' }).subscribe({
+            next: () => this.goBack(),
+            error: () => this.goBack()
+          });
+        } else {
+          this.resetSelection();
+        }
       },
       error: () => {
         this.toast.show('Error submitting checklist', 'error');
@@ -347,16 +390,24 @@ export class ChecklistFlow implements OnInit {
       requireNumeric: false
     };
 
-    this.checklistService.createQuestion(newQ).subscribe(() => {
-      this.newQuestionText = '';
-      this.loadQuestions();
+    this.checklistService.createQuestion(newQ).subscribe({
+      next: () => {
+        this.newQuestionText = '';
+        this.toast.show('Question created successfully', 'success');
+        this.loadQuestions();
+      },
+      error: () => this.toast.show('Failed to create question', 'error')
     });
   }
 
   deleteQuestion(id: number) {
     if (confirm('Are you sure you want to delete this question?')) {
-      this.checklistService.deleteQuestion(id).subscribe(() => {
-        this.loadQuestions();
+      this.checklistService.deleteQuestion(id).subscribe({
+        next: () => {
+          this.toast.show('Question deleted successfully', 'success');
+          this.loadQuestions();
+        },
+        error: () => this.toast.show('Failed to delete question', 'error')
       });
     }
   }
@@ -382,10 +433,14 @@ export class ChecklistFlow implements OnInit {
       requireNumeric: false
     };
 
-    this.checklistService.updateQuestion(this.editingQuestionId, updatedQ).subscribe(() => {
-      this.editingQuestionId = null;
-      this.newQuestionText = '';
-      this.loadQuestions();
+    this.checklistService.updateQuestion(this.editingQuestionId, updatedQ).subscribe({
+      next: () => {
+        this.editingQuestionId = null;
+        this.newQuestionText = '';
+        this.toast.show('Question updated successfully', 'success');
+        this.loadQuestions();
+      },
+      error: () => this.toast.show('Failed to update question', 'error')
     });
   }
 }

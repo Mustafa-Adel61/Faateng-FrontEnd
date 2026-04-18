@@ -2,8 +2,8 @@
   <div class="header">
     <h2>Checklist Submissions</h2>
     <div class="actions">
-      <button *ngIf="isAdmin" class="btn-primary" [routerLink]="[getDashboardPath(), 'checklist-add']">Add
-        Question</button>
+      <button *ngIf="isAdmin" class="btn-primary" [routerLink]="[getDashboardPath(), 'checklist-add']">Question
+        Management</button>
       <button *ngIf="!isAdmin" class="btn-primary" [routerLink]="[getDashboardPath(), 'checklist']">New
         Checklist</button>
     </div>

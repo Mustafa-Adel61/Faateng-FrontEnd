@@ -3,7 +3,7 @@
   <span breadcrumb>CRM &gt; Units</span>
 </app-shared-page-header>
 
-<app-create-new-unit *ngIf="showCreateUnitModal" (close)="closeCreateUnit()" (save)="saveNewReport($event)">
+<app-create-new-unit *ngIf="showCreateUnitModal" (close)="closeCreateUnit()" (save)="saveNewReport($event)" (notify)="onNotify($event)">
 </app-create-new-unit>
 
 <app-create-service-request *ngIf="showCreateRequestModal" [unit]="selectedUnitForRequest"
