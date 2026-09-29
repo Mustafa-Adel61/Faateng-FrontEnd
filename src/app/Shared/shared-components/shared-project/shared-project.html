@@ -2,153 +2,218 @@
 
 <app-shared-page-header (createVisit)="openCreate()" [createButtonLabel]="'CREATE PROJECT'"
   [showCreateVisitButton]="true">
-  <span breadcrumb>CRM &gt; Projects</span>
 </app-shared-page-header>
 <!-- modal create -->
-<app-create-new-project *ngIf="showCreate" (close)="closeCreate()" (save)="addProject($event)">
+<app-create-new-project *ngIf="showCreate" [saving]="loading" (close)="closeCreate()" (save)="addProject($event)">
 </app-create-new-project>
 
 <div class="task-list">
-  <div class="page-tabs">
-    <button class="tab-btn" [class.active]="activeTab === 'list'" (click)="activeTab = 'list'">Task List</button>
-    <button class="tab-btn" [class.active]="activeTab === 'map'" (click)="activeTab = 'map'">Map</button>
+  <!-- Tabs بتصميم Segmented Control أنيق -->
+  <div class="page-tabs-container">
+    <div class="page-tabs">
+      <button class="tab-btn" [class.active]="activeTab === 'list'" (click)="activeTab = 'list'">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="8" y1="6" x2="21" y2="6"></line>
+          <line x1="8" y1="12" x2="21" y2="12"></line>
+          <line x1="8" y1="18" x2="21" y2="18"></line>
+          <line x1="3" y1="6" x2="3.01" y2="6"></line>
+          <line x1="3" y1="12" x2="3.01" y2="12"></line>
+          <line x1="3" y1="18" x2="3.01" y2="18"></line>
+        </svg>
+        Projects List
+      </button>
+      <button class="tab-btn" [class.active]="activeTab === 'map'" (click)="activeTab = 'map'">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon>
+          <line x1="8" y1="2" x2="8" y2="18"></line>
+          <line x1="16" y1="6" x2="16" y2="22"></line>
+        </svg>
+        Map View
+      </button>
+    </div>
   </div>
 
   <div class="tab-content">
-    <!-- قائمة المهام -->
+    <!-- قائمة المشاريع -->
     <ng-container *ngIf="activeTab === 'list'">
       <!-- task-toolbar -->
       <div class="task-toolbar">
-        <!-- Left side: actions -->
         <div class="toolbar-left">
-
-          <button class="icon-btn">+</button>
-          <button class="icon-btn" (click)="toggleFilterBuilder()">
-            <img src="/assets/images/Vector3.png" alt="">
-          </button> <!-- هنا تحط أيقونة الفلتر -->
-          <button class="icon-btn">⇅</button> <!-- هنا أيقونة sort -->
+          <button class="icon-btn" title="Add Project">+</button>
+          <button class="icon-btn" [class.active]="showFilterBuilder" (click)="toggleFilterBuilder()"
+            title="Toggle Filters">
+            <img src="/assets/images/Vector3.png" alt="Filter">
+          </button>
+          <button class="icon-btn" title="Sort">⇅</button>
         </div>
 
-        <!-- Right side: search -->
         <div class="toolbar-right">
           <div class="search-input">
-            <button><img class="search-icon" src="/assets/images/search.png" alt=""></button>
-            <input type="text" class="forSearch" [(ngModel)]="searchText" placeholder="Search" />
+            <button><img class="search-icon" src="/assets/images/search.png" alt="Search"></button>
+            <input type="text" class="forSearch" [(ngModel)]="searchText" placeholder="Search by project name..." />
           </div>
         </div>
       </div>
 
-      <!-- Filter Builder -->
-      <div class="filter-builder" *ngIf="showFilterBuilder">
-        <h4>Add filter</h4>
-        <div class="filter-row">
-          <select [(ngModel)]="newFilter.field">
-            <option value="">Select Field</option>
-            <option value="Project">Project</option>
-            <option value="Client">Client</option>
-            <option value="City">City</option>
-            <option value="Scopes">Scopes</option>
-            <option value="Units">Units</option>
-            <option value="OpenTasks">Open Tasks</option>
-            <option value="BookedValue">Booked Value</option>
-          </select>
+      <!-- Advanced Multi-Filter Form Panel -->
+      <div class="filter-builder-panel" *ngIf="showFilterBuilder">
+        <div class="filter-builder-header">
+          <h4>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M3 4h18M6 12h12M10 20h4" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+            </svg>
+            Filter Options
+          </h4>
+          <button class="close-panel-btn" (click)="showFilterBuilder = false">×</button>
+        </div>
 
-          <select [(ngModel)]="newFilter.value" *ngIf="getFilterValues(newFilter.field).length">
-            <option *ngFor="let v of getFilterValues(newFilter.field)" [value]="v">{{ v }}</option>
-          </select>
+        <div class="filter-grid">
+          <!-- Project Filter -->
+          <div class="filter-field-group">
+            <label>Project</label>
+            <select [(ngModel)]="quickProject" (change)="applyQuickFilter('Project', quickProject)">
+              <option value="">All Projects</option>
+              <option *ngFor="let p of getFilterValues('Project')" [value]="p">{{ p }}</option>
+            </select>
+          </div>
 
-          <button class="add-btn" (click)="applyFilter()">Apply</button>
-          <button class="add-btn" (click)="showFilterBuilder=false" style="background:#ccc;color:#000">Close</button>
+          <!-- Client Filter -->
+          <div class="filter-field-group">
+            <label>Client</label>
+            <select [(ngModel)]="quickClient" (change)="applyQuickFilter('Client', quickClient)">
+              <option value="">All Clients</option>
+              <option *ngFor="let c of getFilterValues('Client')" [value]="c">{{ c }}</option>
+            </select>
+          </div>
+
+          <!-- City / Address Filter -->
+          <div class="filter-field-group">
+            <label>City / Location</label>
+            <select [(ngModel)]="quickCity" (change)="applyQuickFilter('siteAddress', quickCity)">
+              <option value="">All Locations</option>
+              <option *ngFor="let s of getFilterValues('siteAddress')" [value]="s">{{ s }}</option>
+            </select>
+          </div>
+
+          <!-- Contract (Scopes) Filter -->
+          <div class="filter-field-group">
+            <label>Contract / Scopes</label>
+            <select [(ngModel)]="quickContract" (change)="applyQuickFilter('Scopes', quickContract)">
+              <option value="">All Scopes</option>
+              <option *ngFor="let s of getFilterValues('Scopes')" [value]="s">{{ s }}</option>
+            </select>
+          </div>
+
+          <!-- Status Filter -->
+          <div class="filter-field-group">
+            <label>Status</label>
+            <select [(ngModel)]="quickStatus" (change)="applyQuickFilter('Status', quickStatus)">
+              <option value="">All Statuses</option>
+              <option *ngFor="let st of getFilterValues('Status')" [value]="st">{{ st }}</option>
+            </select>
+          </div>
+
+          <!-- Units Filter -->
+          <div class="filter-field-group">
+            <label>Units</label>
+            <select [(ngModel)]="quickUnits" (change)="applyQuickFilter('Units', quickUnits)">
+              <option value="">All Units</option>
+              <option *ngFor="let u of getFilterValues('Units')" [value]="u">{{ u }}</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="filter-panel-actions">
+          <button class="clear-btn" *ngIf="activeFilters.length" (click)="clearAllFilters()">Clear All Filters</button>
+          <button class="cancel-btn" (click)="showFilterBuilder = false">Close</button>
         </div>
       </div>
 
-      <!-- Active filters -->
+      <!-- Active Filters Badges -->
       <div class="active-filters" *ngIf="activeFilters.length">
+        <span class="af-label">Active Filters:</span>
         <span class="filter-chip" *ngFor="let f of activeFilters; let i = index">
-          {{ f.field }}: <strong>{{ f.value }}</strong>
+          <span class="chip-field">{{ f.field }}:</span>
+          <span class="chip-value">{{ f.value }}</span>
           <button (click)="removeFilter(i)">×</button>
         </span>
         <button class="clear-btn" (click)="clearAllFilters()">Clear All</button>
       </div>
+
       <!-- selected count -->
       <div class="selected-count" *ngIf="selectedCount > 0">
         {{ selectedCount }} row(s) selected
       </div>
-      <table>
-        <thead>
-          <tr>
-            <th>
-              <input type="checkbox" [checked]="allSelected" (change)="allSelected = $event.target.checked; toggleAll()"
-                (click)="$event.stopPropagation()" />
-            </th>
-            <th class="faded">PROJECT</th>
-            <th class="faded">CLIENT</th>
-            <th class="faded">CITY</th>
-            <th class="faded">SCOPES</th>
-            <th class="faded">UNITS</th>
-            <th class="faded">OPEN TASKS</th>
-            <th class="faded">BOOKED VALUE</th>
-            <th class="faded">ACTION</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let task of pagedTasks" (click)="openDetails(task)">
-            <td data-label="Select">
-              <input type="checkbox" [(ngModel)]="task.selected" (change)="updateAllSelected()"
-                (click)="$event.stopPropagation()" />
-            </td>
-            <td class="faded" data-label="Project">
-              <div class="project-info-cell">
-                <span class="project-name-text" [title]="task.Project">{{task.Project}}</span>
-                <span class="project-id-subtext">{{task.ProjectIdStr || 'PRJ-' + task.id}}</span>
-              </div>
-            </td>
-            <td class="faded" data-label="Client">
-              <span class="text-ellipsis" [title]="task.Client">{{task.Client}}</span>
-            </td>
-            <td class="faded" data-label="City">
-              <div class="location-cell">
-                <span class="city-text">{{task.siteAddress}}</span>
-                <span class="text-ellipsis location-ellipsis address-subtext"
-                  [title]="task.siteAddress">{{task.siteAddress}}</span>
-              </div>
-            </td>
-            <td class="faded" data-label="Scopes">{{task.Scopes}}</td>
-            <td class="faded" data-label="Units">{{task.Units}}</td>
-            <td class="faded" data-label="OpenTasks">{{task.OpenTasks}}</td>
-            <td class="faded" data-label="BookedValue">{{task.BookedValue }}</td>
-            <td (click)="$event.stopPropagation()">
-              <button class="open-btn" (click)="openDetails(task)">Open</button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+
+      <!-- Responsive Table Container -->
+      <div class="table-container">
+        <table class="custom-table">
+          <thead>
+            <tr>
+              <th class="checkbox-col">
+                <input type="checkbox" [checked]="allSelected"
+                  (change)="allSelected = $event.target.checked; toggleAll()" (click)="$event.stopPropagation()" />
+              </th>
+              <th>PROJECT</th>
+              <th>CLIENT</th>
+              <th>CITY</th>
+              <th>CONTRACT</th>
+              <th>UNITS</th>
+              <th>OPEN TASKS</th>
+              <th>STATUS</th>
+              <th>ACTION</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let task of pagedTasks" (click)="openDetails(task)">
+              <td class="checkbox-col" data-label="Select" (click)="$event.stopPropagation()">
+                <input type="checkbox" [(ngModel)]="task.selected" (change)="updateAllSelected()" />
+              </td>
+              <td data-label="Project">
+                <div class="project-info-cell">
+                  <span class="project-name-text" [title]="task.Project">{{ task.Project }}</span>
+                  <span class="project-id-subtext">{{ task.ProjectIdStr || 'PRJ-' + task.id }}</span>
+                </div>
+              </td>
+              <td data-label="Client">
+                <span class="text-ellipsis" [title]="task.Client">{{ task.Client }}</span>
+              </td>
+              <td data-label="City">
+                <div class="location-cell">
+                  <span class="city-text">{{ task.siteAddress }}</span>
+                </div>
+              </td>
+              <td data-label="Contract">{{ task.Scopes }}</td>
+              <td data-label="Units">{{ task.Units }}</td>
+              <td data-label="Open Tasks">{{ task.OpenTasks }}</td>
+              <td data-label="Status">
+                <span class="status-pill" *ngIf="task.Status"
+                  [ngClass]="'status-' + task.Status.replace(' ', '-')">{{ task.Status }}</span>
+                <span *ngIf="!task.Status" class="unassigned-badge">N/A</span>
+              </td>
+              <td data-label="Action" (click)="$event.stopPropagation()">
+                <button class="open-btn" (click)="openDetails(task)">Open</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
 
       <!-- Pagination -->
       <div class="pagination" *ngIf="totalPages > 1">
-        <button class="page-btn" [disabled]="page === 1" (click)="setPage(page-1)">&lt;</button>
-
+        <button class="page-btn" [disabled]="page === 1" (click)="setPage(page - 1)">&lt;</button>
         <ng-container *ngFor="let p of visiblePages">
-          <button class="page-btn" [class.active]="p === page" (click)="setPage(p)">{{p}}</button>
+          <button class="page-btn" [class.active]="p === page" (click)="setPage(p)">{{ p }}</button>
         </ng-container>
-
-        <button class="page-btn" [disabled]="page === totalPages" (click)="setPage(page+1)">&gt;</button>
+        <button class="page-btn" [disabled]="page === totalPages" (click)="setPage(page + 1)">&gt;</button>
       </div>
     </ng-container>
 
-    <!-- الخريطة -->
+    <!-- Map tab -->
     <ng-container *ngIf="activeTab === 'map'">
-      <div class="map-container">
-        <iframe width="100%" height="500" frameborder="0" style="border:0" [src]="mapUrl" allowfullscreen>
-        </iframe>
-        <div class="map-caption">
-          Damascus Boulevard<br />
-          Address: Building A1 - UNIT#HW • Oil & Grease
-        </div>
-      </div>
+      <app-map mode="projects" [role]="role"></app-map>
     </ng-container>
   </div>
 </div>
-
 
 <app-project-details [taskss]="selectedTask" *ngIf="showDetails" (close)="closeDetails()"></app-project-details>

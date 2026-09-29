@@ -1,16 +1,17 @@
 <app-loading [loading]="loading"></app-loading>
 <app-shared-page-header [showCreateVisitButton]="false">
-  <span breadcrumb>CRM &gt; Units</span>
+  <!-- <span breadcrumb>CRM &gt; Units</span> -->
 </app-shared-page-header>
 
-<app-create-new-unit *ngIf="showCreateUnitModal" (close)="closeCreateUnit()" (save)="saveNewReport($event)" (notify)="onNotify($event)">
+<app-create-new-unit *ngIf="showCreateUnitModal" (close)="closeCreateUnit()" (save)="saveNewReport($event)"
+  (notify)="onNotify($event)">
 </app-create-new-unit>
 
 <app-create-service-request *ngIf="showCreateRequestModal" [unit]="selectedUnitForRequest"
   (close)="closeCreateRequest()" (save)="onRequestCreated($event)">
 </app-create-service-request>
 
-<div class="tabs">
+<div class="tabs" *ngIf="role !== 'client'">
   <button *ngFor="let tab of allTabs" [class.active]="activeTab === tab" (click)="changeTab(tab)">
     {{ tab }}
   </button>
@@ -23,8 +24,8 @@
       <h4>{{ unit.model }}</h4>
       <p>{{ unit.type }}</p>
       <small style="display:block;font-weight:500;">Serial: {{ unit.serial || '-' }}</small>
-      <small>Price: {{ unit.price | currency }}</small>
-      <small>Qty: {{ unit.quantity }}</small>
+      <!-- <small>Price: {{ unit.price | currency }}</small> -->
+      <!-- <small>Qty: {{ unit.quantity }}</small> -->
     </div>
 
     <!-- Details Row -->
@@ -38,24 +39,99 @@
             <span>{{ filteredUnits[selectedUnitIndex].serial }}</span>
           </div>
           <div>
-            <strong>Model:</strong>
+            <strong>Unit Name :</strong>
             <span>{{ filteredUnits[selectedUnitIndex].model }}</span>
           </div>
           <div>
             <strong>Type:</strong>
             <span>{{ filteredUnits[selectedUnitIndex].type }}</span>
           </div>
-          <div>
-            <strong>Quantity:</strong>
-            <span>{{ filteredUnits[selectedUnitIndex].quantity }}</span>
+          <div *ngIf="filteredUnits[selectedUnitIndex].variant">
+            <strong>Variant:</strong>
+            <span>{{ filteredUnits[selectedUnitIndex].variant }}</span>
           </div>
+          <!-- <div>
+            <strong>Quantity :</strong>
+            <span>{{ filteredUnits[selectedUnitIndex].quantity }}</span>
+          </div> -->
           <div *ngIf="filteredUnits[selectedUnitIndex].projectName">
-            <strong>Project:</strong>
+            <strong>Project Name :</strong>
             <span>{{ filteredUnits[selectedUnitIndex].projectName }}</span>
           </div>
           <div *ngIf="filteredUnits[selectedUnitIndex].clientName">
-            <strong>Client:</strong>
+            <strong>Client Name :</strong>
             <span>{{ filteredUnits[selectedUnitIndex].clientName }}</span>
+          </div>
+        </div>
+
+        <!-- NEW: Dynamic Technical Fields -->
+        <div class="technical-fields" style="margin-top: 20px; padding-top: 20px; border-top: 1px dashed #eee;">
+          <h4 style="margin-bottom: 15px; color: #555;">Technical Specifications</h4>
+
+          <!-- Core Technical -->
+          <div class="unit-details-grid">
+            <div *ngIf="filteredUnits[selectedUnitIndex].installationDate">
+              <strong>Installed:</strong>
+              <span>{{ filteredUnits[selectedUnitIndex].installationDate | date }}</span>
+            </div>
+            <div *ngIf="filteredUnits[selectedUnitIndex].status">
+              <strong>Status:</strong>
+              <span>{{ filteredUnits[selectedUnitIndex].status }}</span>
+            </div>
+            <div *ngIf="filteredUnits[selectedUnitIndex].isModernized">
+              <strong>Modernized:</strong>
+              <span>Yes ({{ filteredUnits[selectedUnitIndex].modernizationDate | date }})</span>
+            </div>
+          </div>
+
+          <!-- Elevator Specific -->
+          <div class="unit-details-grid" *ngIf="filteredUnits[selectedUnitIndex].type === 'Elevator'"
+            style="margin-top:10px;">
+            <div *ngIf="filteredUnits[selectedUnitIndex].brand"><strong>Brand:</strong>
+              {{ filteredUnits[selectedUnitIndex].brand }}</div>
+            <div *ngIf="filteredUnits[selectedUnitIndex].capacityKg"><strong>Capacity:</strong>
+              {{ filteredUnits[selectedUnitIndex].capacityKg }} kg</div>
+            <div *ngIf="filteredUnits[selectedUnitIndex].numberOfStops"><strong>Stops:</strong>
+              {{ filteredUnits[selectedUnitIndex].numberOfStops }}</div>
+            <div *ngIf="filteredUnits[selectedUnitIndex].machineRoomType"><strong>MR Type:</strong>
+              {{ filteredUnits[selectedUnitIndex].machineRoomType }}</div>
+            <div *ngIf="filteredUnits[selectedUnitIndex].machineType"><strong>Machine:</strong>
+              {{ filteredUnits[selectedUnitIndex].machineType }}</div>
+            <div *ngIf="filteredUnits[selectedUnitIndex].controllerType"><strong>Ctrl Type:</strong>
+              {{ filteredUnits[selectedUnitIndex].controllerType }}</div>
+            <div *ngIf="filteredUnits[selectedUnitIndex].controllerName"><strong>Ctrl Name:</strong>
+              {{ filteredUnits[selectedUnitIndex].controllerName }}</div>
+            <div *ngIf="filteredUnits[selectedUnitIndex].servingFloors"><strong>Floors:</strong>
+              {{ filteredUnits[selectedUnitIndex].servingFloors }}</div>
+          </div>
+
+          <!-- Escalator Specific -->
+          <div class="unit-details-grid"
+            *ngIf="filteredUnits[selectedUnitIndex].type === 'Escalator' || filteredUnits[selectedUnitIndex].type === 'Moving Walk'"
+            style="margin-top:10px;">
+            <div *ngIf="filteredUnits[selectedUnitIndex].brand"><strong>Brand:</strong>
+              {{ filteredUnits[selectedUnitIndex].brand }}</div>
+            <div *ngIf="filteredUnits[selectedUnitIndex].rise"><strong>Rise:</strong>
+              {{ filteredUnits[selectedUnitIndex].rise }} m</div>
+            <div *ngIf="filteredUnits[selectedUnitIndex].width"><strong>Width:</strong>
+              {{ filteredUnits[selectedUnitIndex].width }} mm</div>
+            <div *ngIf="filteredUnits[selectedUnitIndex].speed"><strong>Speed:</strong>
+              {{ filteredUnits[selectedUnitIndex].speed }} m/s</div>
+            <div *ngIf="filteredUnits[selectedUnitIndex].direction"><strong>Direction:</strong>
+              {{ filteredUnits[selectedUnitIndex].direction }}</div>
+            <div *ngIf="filteredUnits[selectedUnitIndex].servingLevels"><strong>Levels:</strong>
+              {{ filteredUnits[selectedUnitIndex].servingLevels }}</div>
+          </div>
+
+          <!-- Chiller Specific -->
+          <div class="unit-details-grid" *ngIf="filteredUnits[selectedUnitIndex].type === 'Chiller'"
+            style="margin-top:10px;">
+            <div *ngIf="filteredUnits[selectedUnitIndex].coolingCapacity"><strong>Cooling Cap:</strong>
+              {{ filteredUnits[selectedUnitIndex].coolingCapacity }} TR</div>
+            <div *ngIf="filteredUnits[selectedUnitIndex].refrigerantType"><strong>Refrigerant:</strong>
+              {{ filteredUnits[selectedUnitIndex].refrigerantType }}</div>
+            <div *ngIf="filteredUnits[selectedUnitIndex].compressorType"><strong>Compressor:</strong>
+              {{ filteredUnits[selectedUnitIndex].compressorType }}</div>
           </div>
         </div>
 
@@ -91,6 +167,6 @@
   </ng-container>
 
   <div *ngIf="filteredUnits.length === 0" class="no-data">
-    <p>No units found for {{ activeTab }}</p>
+    <p>{{ role === 'client' ? 'No assets found' : 'No units found for ' + activeTab }}</p>
   </div>
 </div>

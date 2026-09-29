@@ -1,216 +1,211 @@
-<!-- احطه في admin,dispatcher,client,manager,finance -->
-<app-shared-page-header [createButtonLabel]="'CREATE REPRORT'" [showCreateVisitButton]="false"
-  (createVisit)="openCreateReport()" [showSerchBox]="false" [showDropdown]="false">
-  <span breadcrumb>REPORTS > Maintenance Archive</span>
-
+<app-shared-page-header [createButtonLabel]="'CREATE REPORT'" [showCreateVisitButton]="false" [showSerchBox]="false"
+  [showDropdown]="false">
+  <!-- <span breadcrumb>Reports > Archive</span> -->
 </app-shared-page-header>
-<app-create-new-report *ngIf="showCreateReportModal" (close)="closeCreateReport()" (save)="saveNewReport($event)">
-</app-create-new-report>
-<app-loading [loading]="loading"></app-loading>
+
 <div class="task-list">
-  <div class="page-tabs">
-    <button class="tab-btn" [class.active]="activeTab === 'list'" (click)="activeTab = 'list'">Reports List</button>
-    <button class="tab-btn" [class.active]="activeTab === 'map'" (click)="activeTab = 'map'">Map</button>
-  </div>
+  <app-loading [loading]="loading"></app-loading>
 
   <div class="tab-content">
-    <ng-container *ngIf="activeTab === 'list'">
-      <div class="task-toolbar">
-        <div class="toolbar-left">
-
-          <button class="icon-btn">+</button>
-          <button class="icon-btn" (click)="toggleFilterBuilder()">
-            <img src="/assets/images/Vector3.png" alt="">
-          </button> <button class="icon-btn">⇅</button>
-        </div>
-
-        <div class="toolbar-right">
-          <div class="search-input">
-            <button>
-              <img class="search-icon" src="/assets/images/search.png" alt="">
-            </button>
-            <input type="text" class="forSearch" [(ngModel)]="searchText"
-              placeholder="Search Report ID, Technician..." />
-          </div>
-        </div>
+    <!-- Toolbar زي shared-task-list بالظبط -->
+    <div class="task-toolbar">
+      <div class="toolbar-left">
+        <!-- <button class="icon-btn" *ngIf="role !== 'client'">+</button> -->
+        <button class="icon-btn" [class.active]="showFilterBuilder" (click)="toggleFilterBuilder()"
+          title="Toggle Filters">
+          <img src="/assets/images/Vector3.png" alt="Filter">
+        </button>
+        <button class="icon-btn" title="Sort">⇅</button>
       </div>
 
-      <!-- Filter Builder -->
-      <div class="filter-builder" *ngIf="showFilterBuilder">
-        <h4>Add filter</h4>
-        <div class="filter-row">
-          <select [(ngModel)]="newFilter.field">
-            <option value="">Select Field</option>
-            <option value="reportId">Report ID</option>
-            <option value="technician">Technician</option>
-            <option value="systemId">System ID</option>
-            <option value="date">Date</option>
+      <div class="toolbar-right">
+        <div class="search-input">
+          <button><img class="search-icon" src="/assets/images/search.png" alt="Search"></button>
+          <input type="text" class="forSearch" [(ngModel)]="searchText"
+            placeholder="Search project, report ID, unit..." />
+        </div>
+      </div>
+    </div>
+
+    <!-- Filter Builder Panel — نفس شكل الـ review queue -->
+    <div class="filter-builder-panel" *ngIf="showFilterBuilder">
+      <div class="filter-builder-header">
+        <h4>Filter Options</h4>
+        <button class="close-panel-btn" (click)="showFilterBuilder = false">×</button>
+      </div>
+
+      <div class="filter-grid">
+        <!-- Project -->
+        <div class="filter-field-group">
+          <label>Project</label>
+          <select [(ngModel)]="quickProject" (change)="applyQuickFilter('ProjectName', quickProject)">
+            <option value="">All Projects</option>
+            <option *ngFor="let p of getFilterValues('ProjectName')" [value]="p">{{ p }}</option>
           </select>
+        </div>
 
-          <select *ngIf="newFilter.field && getFilterValues(newFilter.field).length" [(ngModel)]="newFilter.value">
-            <option value="">Select Value</option>
-            <option *ngFor="let v of getFilterValues(newFilter.field)" [value]="v">{{ v }}</option>
+        <!-- Report Type -->
+        <div class="filter-field-group">
+          <label>Report Type</label>
+          <select [(ngModel)]="quickType" (change)="applyQuickFilter('Type', quickType)">
+            <option value="">All Types</option>
+            <option *ngFor="let t of getFilterValues('Type')" [value]="t">{{ t }}</option>
           </select>
+        </div>
 
-          <button class="add-btn" (click)="applyFilter()">Apply</button>
-          <button class="add-btn" (click)="showFilterBuilder = false" style="background:#ccc;color:#000">Close</button>
+        <!-- Unit -->
+        <div class="filter-field-group">
+          <label>Unit</label>
+          <select [(ngModel)]="quickUnit" (change)="applyQuickFilter('units', quickUnit)">
+            <option value="">All Units</option>
+            <option *ngFor="let u of getFilterValues('units')" [value]="u">{{ u }}</option>
+          </select>
+        </div>
+
+        <!-- Date Range -->
+        <div class="filter-field-group">
+          <label>Date From</label>
+          <input type="date" [(ngModel)]="newFilter.dateFrom" (click)="forceDatePicker($event)" />
+        </div>
+        <div class="filter-field-group">
+          <label>Date To</label>
+          <input type="date" [(ngModel)]="newFilter.dateTo" (click)="forceDatePicker($event)" />
         </div>
       </div>
 
-      <!-- Active filters -->
-      <div class="active-filters" *ngIf="activeFilters.length">
-        <span class="filter-chip" *ngFor="let f of activeFilters; let i = index">
-          {{ f.field }}: <strong>{{ f.value }}</strong>
-          <button (click)="removeFilter(i)">×</button>
-        </span>
-        <button class="clear-btn" (click)="clearAllFilters()">Clear All</button>
+      <div class="filter-panel-actions">
+        <button class="clear-btn" *ngIf="activeFilters.length" (click)="clearAllFilters()">Clear All Filters</button>
+        <button class="cancel-btn" (click)="showFilterBuilder = false">Close</button>
+        <button class="apply-btn" (click)="applyDateRange(); showFilterBuilder = false">Apply Date</button>
       </div>
+    </div>
 
-      <table>
-        <thead class="table-header">
+    <!-- Active Filters Badges -->
+    <div class="active-filters" *ngIf="activeFilters.length">
+      <span class="af-label">Active Filters:</span>
+      <span class="filter-chip" *ngFor="let f of activeFilters; let i = index">
+        <span class="chip-field">{{ getActiveLabel(f) }}:</span>
+        <span class="chip-value">{{ f.value }}</span>
+        <button (click)="removeFilter(i)">×</button>
+      </span>
+      <button class="clear-btn" (click)="clearAllFilters()">Clear All</button>
+    </div>
+
+    <!-- Responsive Table Container — نفس أعمدة الـ review queue بالظبط -->
+    <div class="table-container">
+      <table class="custom-table">
+        <thead>
           <tr>
-            <th>
-              <input type="checkbox" [checked]="allSelected" (change)="allSelected = $event.target.checked; toggleAll()"
-                (click)="$event.stopPropagation()" />
-              <!-- <input 
-      type="checkbox" 
-      [(ngModel)]="report.selected" 
-      (change)="updateAllSelected()" 
-      (click)="$event.stopPropagation()"
-    /> -->
-            </th>
-            <th class="faded">Report ID</th>
-            <th class="faded">Date</th>
-            <th class="faded">Maintenance Visits</th>
-            <th class="faded">Work Performed</th>
-            <th class="faded">Technician</th>
-            <th class="faded">Photos</th>
-            <th class="faded">Comments</th>
-            <th class="faded">System ID</th>
-            <th class="faded">Actions</th>
+            <th>PROJECT</th>
+            <th>REPORT TYPE</th>
+            <th>REPORT ID</th>
+            <th>UNITS</th>
+            <th>DATE</th>
+            <th>STATUS</th>
+            <th>ACTION</th>
           </tr>
         </thead>
         <tbody>
-          <!-- <tr *ngFor="let report of pagedReports" (click)="openReportDetails(report)" class="report-row"> 
-             <td>
-<input 
-    type="checkbox" 
-    [(ngModel)]="report.selected" 
-    (change)="updateAllSelected()" 
-    (click)="$event.stopPropagation()"/>
-             </td>
-           
-            <td class="faded">{{report.reportId}}</td>
-            <td class="faded">{{report.date}}</td>
-            <td class="faded">
-              <span *ngFor="let visit of report.maintenanceVisits" class="visit-tag">{{visit}}</span>
-            </td>
-            <td class="faded">{{report.workPerformed | slice:0:30}}...</td> <td class="faded">{{report.technician}}</td>
-         
-             <td class="faded report-photos-cell">
-                <ng-container *ngIf="report.photos && report.photos.length > 0">
-                  <div class="photos-preview">
-                  <img *ngFor="let photo of report.photos; let i = index" [src]="photo" alt="Report Photo" class="report-thumbnail" [class.extra-photos]="i >= 4" (click)="openInNewTab(photo)">
-                    <span *ngIf="report.photos.length > 4" class="more-photos-count">
-                        +{{report.photos.length - 4}}
-                    </span>
-                  </div>
-                </ng-container>
-                <span *ngIf="!report.photos || report.photos.length === 0" class="no-photos">No Photos</span>
-            </td>
-
-
-
-            
-            <td class="faded">{{report.comments | slice:0:30}}...</td>
-            <td class="faded">
-              <span class="system-tag">{{report.systemId}}</span>
-            </td>
-          </tr> -->
-
-
-
           <tr *ngFor="let report of pagedReports" (click)="openReportDetails(report)" class="report-row">
-            <td data-label="Select">
-              <input type="checkbox" [(ngModel)]="report.selected" (change)="updateAllSelected()"
-                (click)="$event.stopPropagation()" />
+            <td data-label="PROJECT">{{ report.ProjectName }}</td>
+            <td data-label="REPORT TYPE">{{ report.Type }}</td>
+            <td data-label="REPORT ID"><span class="report-id-cell">{{ report.ReportId }}</span></td>
+            <td data-label="UNITS">
+              <div class="unit-chips">
+                <span class="unit-chip" *ngFor="let u of report.Units"
+                  [title]="u.model + ' (' + u.serial + ')'">{{ u.model }}</span>
+                <span *ngIf="!report.Units.length" class="no-units">—</span>
+              </div>
             </td>
-            <td class="faded" data-label="Report ID">{{report.reportId}}</td>
-            <td class="faded" data-label="Date">{{report.date}}</td>
-            <td class="faded" data-label="Maintenance Visits">
-              <span *ngFor="let visit of report.maintenanceVisits" class="visit-tag">{{visit}}</span>
+            <td data-label="DATE">{{ report.Date }}</td>
+            <td data-label="STATUS">
+              <span [ngClass]="'status-' + report.Status">{{ report.Status }}</span>
             </td>
-            <td class="faded" data-label="Work Performed">{{report.workPerformed | slice:0:30}}...</td>
-            <td class="faded" data-label="Technician">{{report.technician}}</td>
-            <td class="faded" data-label="Photos">
-              <ng-container *ngIf="report.photos && report.photos.length > 0">
-                <div class="photos-preview">
-                  <img *ngFor="let photo of report.photos; let i = index" [src]="photo" alt="Report Photo"
-                    class="report-thumbnail" [class.extra-photos]="i >= 4" (click)="openInNewTab(photo)">
-                  <span *ngIf="report.photos.length > 4" class="more-photos-count">
-                    +{{report.photos.length - 4}}
-                  </span>
-                </div>
-              </ng-container>
-              <span *ngIf="!report.photos || report.photos.length === 0" class="no-photos">No Photos</span>
-            </td>
-            <td class="faded" data-label="Comments">{{report.comments | slice:0:30}}...</td>
-            <td class="faded" data-label="System ID">
-              <span class="system-tag">{{report.systemId}}</span>
-            </td>
-            <td (click)="$event.stopPropagation()">
-              <select class="action-row" (change)="onSelectChange(report, $event)">
-                <option value="">Actions</option>
-                <option value="delete" *ngIf="role === 'admin'">Delete</option>
-              </select>
+            <td data-label="ACTION" (click)="$event.stopPropagation()">
+              <button type="button" class="open-report-btn" (click)="openReportDetails(report)">Open</button>
             </td>
           </tr>
-
-
-
         </tbody>
       </table>
+    </div>
 
-      <div class="pagination" *ngIf="totalPages > 1">
-        <button class="page-btn" [disabled]="page === 1" (click)="setPage(page-1)">
-        </button>
-
-        <ng-container *ngFor="let p of visiblePages">
-          <button class="page-btn" [class.active]="p === page" (click)="setPage(p)">{{p}}</button>
-        </ng-container>
-
-        <button class="page-btn" [disabled]="page === totalPages" (click)="setPage(page+1)">></button>
-      </div>
-    </ng-container>
-
-    <ng-container *ngIf="activeTab === 'map'">
-      <div class="map-container">
-        <iframe width="100%" height="500" frameborder="0" style="border:0" [src]="mapUrl" allowfullscreen>
-        </iframe>
-        <div class="map-caption">
-          Damascus Boulevard<br />
-          Address: Building A1 - UNIT#HW • Oil & Grease
-        </div>
-      </div>
-    </ng-container>
+    <!-- Pagination Controls -->
+    <div class="pagination" *ngIf="totalPages > 1">
+      <button class="page-btn" [disabled]="page === 1" (click)="setPage(page - 1)">&lt;</button>
+      <ng-container *ngFor="let p of visiblePages">
+        <button class="page-btn" [class.active]="p === page" (click)="setPage(p)">{{ p }}</button>
+      </ng-container>
+      <button class="page-btn" [disabled]="page === totalPages" (click)="setPage(page + 1)">&gt;</button>
+    </div>
   </div>
 </div>
 
-<!-- تفاصيل الأرشيف -->
+<!-- تفاصيل الأرشيف — نفس شكل الـ review queue بالظبط (خلفية بيضاء) بدون actions -->
 <div class="details-overlay" *ngIf="showDetails">
-  <div class="details-panel">
+  <div class="modal-responsive details-panel">
     <button class="close-btn" (click)="closeDetails()">×</button>
-    <h3>{{ selectedReport?.reportId }}</h3>
-    <span class="status-pill" [ngClass]="'status-' + selectedReport?.Status">{{ selectedReport?.Status }}</span>
-    <p><strong>Visits:</strong> {{ selectedReport?.maintenanceVisits?.join(', ') }}</p>
-    <p><strong>System ID:</strong> {{ selectedReport?.systemId }}</p>
-    <p><strong>Work Performed:</strong> {{ selectedReport?.workPerformed }}</p>
-    <p><strong>Technician:</strong> {{ selectedReport?.technician }}</p>
-    <p><strong>Date:</strong> {{ selectedReport?.date }}</p>
-    <p><strong>Comments:</strong> {{ selectedReport?.comments }}</p>
-    <p><strong>Photos:</strong></p>
-    <div class="thumbnail-row" *ngIf="selectedReport?.photos?.length">
-      <img *ngFor="let photo of selectedReport?.photos" [src]="photo" alt="Thumbnail" (click)="openInNewTab(photo)">
+    <div class="details-heading">
+      <div><span class="details-kicker">Archived report</span>
+        <h3>{{ selectedReport?.ReportId }}</h3>
+      </div>
+      <span class="detail-chip" [ngClass]="'status-' + selectedReport?.Status">{{ selectedReport?.Status }}</span>
+    </div>
+    <div class="details-summary">
+      <div><span>Project</span><strong>{{ selectedReport?.ProjectName }}</strong></div>
+      <div><span>Report type</span><strong>{{ selectedReport?.Type }}</strong></div>
+      <div><span>Technician</span><strong>{{ selectedReport?.Tech }}</strong></div>
+    </div>
+    <div class="details-grid">
+      <p><strong>Date</strong><span>{{ selectedReport?.Date }}</span></p>
+      <p><strong>Task ID</strong><span>{{ selectedReport?.TaskId || '—' }}</span></p>
+      <p><strong>Work performed</strong><span>{{ selectedReport?.WorkPerformed || '—' }}</span></p>
+      <p><strong>Comments</strong><span>{{ selectedReport?.Comments || '—' }}</span></p>
+    </div>
+    <div class="detail-section">
+      <span class="section-label">Linked units</span>
+      <div class="chips-row" *ngIf="selectedReport?.Units?.length">
+        <span class="detail-chip chip-unit" *ngFor="let u of selectedReport!.Units"
+          [title]="u.model + ' (' + u.serial + ')'">
+          {{ u.model }}<span *ngIf="u.serial"> ({{ u.serial }})</span>
+        </span>
+      </div>
+      <span class="muted-value" *ngIf="!selectedReport?.Units?.length">No units linked</span>
+    </div>
+    <div class="detail-section" *ngIf="selectedReport && selectedReport.Photos.length">
+      <span class="section-label">Photos</span>
+      <div class="thumbnail-row" *ngIf="selectedReport && selectedReport.Photos.length">
+        <img *ngFor="let photo of selectedReport!.Photos" [src]="photo" alt="Thumbnail" (click)="openInNewTab(photo)">
+      </div>
+
+    </div>
+
+    <!-- زرار عرض الشيك ليست لكل Unit، مستقل عن وجود صور -->
+    <button type="button" class="view-checklist-btn details-checklist-action" *ngIf="selectedReport?.TaskId"
+      (click)="viewReportChecklist()" [disabled]="loadingSubs">
+      {{ loadingSubs ? 'LOADING...' : 'VIEW CHECKLIST' }}
+    </button>
+  </div>
+</div>
+
+<!-- Unit Picker Popup — نفس شكل shared-task-details: الضغط على أي unit يفتح صفحة الـ submission بتاعته -->
+<div class="unit-picker-overlay" *ngIf="showUnitPicker">
+  <div class="unit-picker-modal">
+    <div class="unit-picker-header">
+      <h4>Show Checklist for Unit</h4>
+      <button class="close-btn" (click)="closeUnitPicker()">×</button>
+    </div>
+    <p class="unit-picker-hint">Choose which unit checklist to view:</p>
+    <div class="unit-picker-list">
+      <button class="unit-picker-item" *ngFor="let u of pickerUnits" [class.disabled]="!u.done && !u.submissionId"
+        (click)="onPickUnit(u)">
+        <span class="unit-picker-name">{{ u.name }}</span>
+        <span class="unit-picker-type" *ngIf="u.serial">({{ u.serial }})</span>
+        <span class="unit-picker-status done" *ngIf="u.done">✓ Done</span>
+        <span class="unit-picker-status pending" *ngIf="!u.done">Not Submitted</span>
+      </button>
+    </div>
+    <div class="unit-picker-actions">
+      <button class="cancel-btn" (click)="closeUnitPicker()">Cancel</button>
     </div>
   </div>
 </div>

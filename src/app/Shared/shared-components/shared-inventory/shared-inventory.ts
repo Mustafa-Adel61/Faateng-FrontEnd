@@ -5,6 +5,11 @@ import { FormsModule } from '@angular/forms';
 import { InventoryService, InventoryItem } from '../../../core/inventory.service';
 import { Loading } from '../loading/loading';
 import { ToastService } from '../../services/toast.service';
+import { TaskService } from '../../../core/task.service';
+import { UnitService } from '../../../core/unit.service';
+import { ResourceService } from '../../../core/resource.service';
+import { forkJoin, of } from 'rxjs';
+import { switchMap, catchError } from 'rxjs/operators';
 
 @Component({
   selector: 'app-shared-inventory',
@@ -31,6 +36,9 @@ export class SharedInventory implements OnInit {
   selectedItem: InventoryItem | null = null;
   loading = false;
   private toast = inject(ToastService);
+  private taskService = inject(TaskService);
+  private unitService = inject(UnitService);
+  private resource = inject(ResourceService);
 
   constructor(private inventoryService: InventoryService) {}
 
@@ -40,17 +48,60 @@ export class SharedInventory implements OnInit {
 
   loadItems() {
     this.loading = true;
-    this.inventoryService.getAll().subscribe({
-      next: (data) => {
-        this.items = data;
-        this.filteredItems = data;
-        this.loading = false;
-      },
-      error: (err) => {
-        console.error(err);
-        this.loading = false;
-      }
-    });
+
+    if (this.role === 'technician') {
+      // Logic for technician: Tasks -> Assigned Units -> Serials -> Inventory Items
+      this.taskService.getAll().pipe(
+        switchMap(tasks => {
+          const assignedUnitIds = tasks.map(t => t.unitId).filter(id => !!id);
+          if (assignedUnitIds.length === 0) {
+            return of({ inventory: [], assignedSerials: [] });
+          }
+          return forkJoin({
+            units: this.unitService.getAll(),
+            inventory: this.inventoryService.getAll(),
+            assignedIds: of(assignedUnitIds)
+          }).pipe(
+            switchMap(result => {
+              const assignedSerials = result.units
+                .filter((u: any) => result.assignedIds.includes(u.id))
+                .map((u: any) => u.serial);
+              return of({ inventory: result.inventory, assignedSerials });
+            })
+          );
+        }),
+        catchError(err => {
+          console.error('Error loading technician inventory data:', err);
+          return of({ inventory: [], assignedSerials: [] });
+        })
+      ).subscribe({
+        next: (result: any) => {
+          const { inventory, assignedSerials } = result;
+          if (assignedSerials && assignedSerials.length > 0) {
+            this.items = inventory.filter((item: any) => assignedSerials.includes(item.sku));
+          } else {
+            this.items = [];
+          }
+          this.filteredItems = this.items;
+          this.loading = false;
+        },
+        error: () => {
+          this.loading = false;
+        }
+      });
+    } else {
+      this.inventoryService.getAll().subscribe({
+        next: (data) => {
+          this.items = data;
+          this.filteredItems = data;
+          this.loading = false;
+        },
+        error: (err) => {
+          console.error(err);
+          this.loading = false;
+        }
+      });
+    }
   }
 
   get pagedItems() {

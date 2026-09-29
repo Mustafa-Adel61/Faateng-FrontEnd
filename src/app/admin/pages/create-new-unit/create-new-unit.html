@@ -1,96 +1,513 @@
 <app-loading [loading]="loading"></app-loading>
 <div class="cnv-backdrop">
-  <div class="cnv-modal report-modal">
+  <div class="cnv-modal">
     <button class="cnv-close" (click)="doClose()">✕</button>
 
-    <!-- <h2>Add New Unit</h2> -->
-
-    <div class="report-form-grid">
-
-      <!-- Project Name (Read-only if provided) -->
-      <label class="full-width" *ngIf="projectName">
-        <span style="font-size: 11px; color: #888;">Linked Project</span>
-        <input type="text" [value]="projectName" disabled style="background: #f9f9f9;" />
-      </label>
-
-      <!-- Client Name (Read-only if provided) -->
-      <label class="full-width" *ngIf="clientName">
-        <span style="font-size: 11px; color: #888;">Client</span>
-        <input type="text" [value]="clientName" disabled style="background: #f9f9f9;" />
-      </label>
-
-      <!-- Serial Number -->
-      <label class="full-width">
-        <input type="text" [(ngModel)]="form.Serial" name="Serial" placeholder="Serial / SKU"
-          [ngClass]="{'input-error': submitted && !form.Serial}" />
-      </label>
-
-      <!-- Model Name -->
-      <label class="full-width">
-        <input type="text" [(ngModel)]="form.Model" name="Model" placeholder="Model Name"
-          [ngClass]="{'input-error': submitted && !form.Model}" />
-      </label>
-
-      <!-- Unit Type -->
-      <label class="full-width">
-        <select [(ngModel)]="form.Type" name="Type" [ngClass]="{'input-error': submitted && !form.Type}">
-          <option value="" disabled selected>Unit Type</option>
-          <option *ngFor="let t of unitTypes" [value]="t">{{ t }}</option>
-        </select>
-      </label>
-
-      <!-- Unit Variant (Only for Elevator) -->
-      <label class="full-width" *ngIf="form.Type === 'Elevator'">
-        <select [(ngModel)]="form.Variant" name="Variant" [ngClass]="{'input-error': submitted && !form.Variant}">
-          <option value="" disabled selected>Select Variant</option>
-          <option *ngFor="let v of variants" [value]="v">{{ v }}</option>
-        </select>
-      </label>
-
-      <!-- Price -->
-      <label class="full-width">
-        <input type="number" [(ngModel)]="form.Price" name="Price" placeholder="Price"
-          [ngClass]="{'input-error': submitted && !form.Price}" />
-      </label>
-
-      <!-- Quantity -->
-      <label class="full-width">
-        <input type="number" [(ngModel)]="form.Quantity" name="Quantity" placeholder="Quantity"
-          [ngClass]="{'input-error': submitted && !form.Quantity}" />
-      </label>
-
-      <!-- Description -->
-      <label class="full-width">
-        <textarea [(ngModel)]="form.Description" name="Description" placeholder="Add description"></textarea>
-      </label>
-
-      <!-- Attachments -->
-      <label class="full-width">
-        <div class="custom-file-upload" (click)="openFilePicker()">
-          <i class="pin-icon">
-            <img src="/assets/images/imgIcon.png" alt="">
-          </i>
-          <span class="upload-text">Upload File</span>
+    <!-- Header & Badges -->
+    <div class="modal-header">
+      <div class="steps-indicator">
+        <div class="step-item" [class.active]="step === 1" [class.completed]="step > 1">
+          <div class="step-num">{{ step > 1 ? '✓' : '1' }}</div>
+          <div class="step-info">
+            <span class="step-label">Step 1</span>
+            <span class="step-title">Unit Type</span>
+          </div>
         </div>
-      </label>
-      <div class="selected-files">
-        <div class="thumbnail-item" *ngFor="let f of form.attachments; let i = index">
-          <button type="button" class="delete-icon" (click)="removeAttachment(i)">✕</button>
-          <ng-container *ngIf="f.type.startsWith('image/'); else nonImageAtt">
-            <img [src]="f.url" (click)="openAttachment(f)">
-          </ng-container>
-          <ng-template #nonImageAtt>
-            <div class="file-chip" (click)="openAttachment(f)">
-              <span class="file-icon">📄</span>
+        <div class="step-item" [class.active]="step === 2" [class.completed]="step > 2">
+          <div class="step-num">{{ step > 2 ? '✓' : '2' }}</div>
+          <div class="step-info">
+            <span class="step-label">Step 2</span>
+            <span class="step-title">Unit Info</span>
+          </div>
+        </div>
+        <div class="step-item" [class.active]="step === 3" [class.completed]="step > 3">
+          <div class="step-num">{{ step > 3 ? '✓' : '3' }}</div>
+          <div class="step-info">
+            <span class="step-label">Step 3</span>
+            <span class="step-title">Contract</span>
+          </div>
+        </div>
+        <div class="step-item" [class.active]="step === 4" [class.completed]="step > 4">
+          <div class="step-num">4</div>
+          <div class="step-info">
+            <span class="step-label">Step 4</span>
+            <span class="step-title">Review</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="header-badges" *ngIf="form.Type">
+        <div class="badge">
+          <span class="badge-label">Auto-Generated Unit ID</span>
+          <span class="badge-value">{{ form.AutoId }}</span>
+        </div>
+        <div class="badge">
+          <span class="badge-label">Suggested Unit Name</span>
+          <span class="badge-value">{{ form.SuggestedName }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Body -->
+    <div class="modal-body">
+
+      <!-- STEP 1: Select Type -->
+      <div *ngIf="step === 1" class="step-content">
+        <div class="types-grid">
+          <div *ngFor="let t of unitTypes" class="type-card" [class.selected]="form.Type === t.name"
+            (click)="selectType(t.name)">
+            <span class="type-icon">{{ t.icon }}</span>
+            <span class="type-name">{{ t.name }}</span>
+            <span class="type-desc">{{ t.desc }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 2: Unit Info -->
+      <div *ngIf="step === 2" class="step-content">
+
+        <!-- Rules Button -->
+        <div class="section-header">
+          <span class="section-title">Core Fields</span>
+          <button class="rules-btn" (click)="showRules = true">Step 2 Rules</button>
+        </div>
+
+        <div class="form-section">
+          <div class="fields-grid">
+            <div class="field-group full-width">
+              <label class="field-label">Unit Name <span style="color:red">*</span></label>
+              <div class="input-with-btn">
+                <input type="text" [(ngModel)]="form.Model" class="input-modern"
+                  [class.invalid]="submitted && !form.Model">
+                <button class="suggestion-btn" (click)="useSuggestion()">Use Suggestion</button>
+              </div>
             </div>
-          </ng-template>
+
+            <div class="field-group">
+              <label class="field-label">Project</label>
+              <input type="text" [value]="projectName" disabled class="input-modern" style="background:#f9f9f9">
+            </div>
+            <div class="field-group">
+              <label class="field-label">Client</label>
+              <input type="text" [value]="clientName" disabled class="input-modern" style="background:#f9f9f9">
+            </div>
+
+            <div class="field-group">
+              <label class="field-label">Installation Date <span style="color:red">*</span></label>
+              <input type="date" [(ngModel)]="form.InstallationDate" class="input-modern"
+                (focus)="forceDatePicker($event)" (click)="forceDatePicker($event)"
+                [class.invalid]="submitted && !form.InstallationDate">
+            </div>
+            <div class="field-group">
+              <label class="field-label">Modernized?</label>
+              <div class="radio-group">
+                <label class="radio-label">
+                  <input type="radio" [checked]="form.IsModernized" (click)="form.IsModernized = true">
+                  Yes
+                </label>
+                <label class="radio-label">
+                  <input type="radio" [checked]="!form.IsModernized" (click)="form.IsModernized = false"> No
+                </label>
+              </div>
+            </div>
+
+            <div class="field-group" *ngIf="form.IsModernized">
+              <label class="field-label">Modernization Date</label>
+              <input type="date" [(ngModel)]="form.ModernizationDate" class="input-modern"
+                (focus)="forceDatePicker($event)" (click)="forceDatePicker($event)">
+            </div>
+            <div class="field-group">
+              <label class="field-label">Status</label>
+              <select [(ngModel)]="form.Status" class="input-modern">
+                <option value="Active">Active</option>
+                <option value="Inactive">Inactive</option>
+                <option value="Maintenance">Under Maintenance</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Elevator Specific Fields -->
+        <div class="form-section" *ngIf="form.Type === 'Elevator'">
+          <h3 class="section-title">Elevator Fields</h3>
+          <div class="fields-grid">
+            <div class="field-group">
+              <label class="field-label">Brand</label>
+              <select [(ngModel)]="form.Brand" class="input-modern">
+                <option value="">Select Brand</option>
+                <option value="Otis">Otis</option>
+                <option value="Schindler">Schindler</option>
+                <option value="Kone">Kone</option>
+                <option value="Thyssenkrupp">Thyssenkrupp</option>
+                <option value="Mitsubishi">Mitsubishi</option>
+              </select>
+            </div>
+            <div class="field-group">
+              <label class="field-label">Type</label>
+              <select [(ngModel)]="form.Variant" class="input-modern">
+                <option value="">Select Type</option>
+                <option value="Passenger">Passenger</option>
+                <option value="Freight">Freight</option>
+                <option value="Service">Service</option>
+              </select>
+            </div>
+            <div class="field-group">
+              <label class="field-label">Capacity (kg) <span style="color:red">*</span></label>
+              <input type="number" [(ngModel)]="form.CapacityKg" class="input-modern"
+                [class.invalid]="submitted && !form.CapacityKg">
+            </div>
+            <div class="field-group">
+              <label class="field-label">Number of Stops</label>
+              <input type="number" [(ngModel)]="form.NumberOfStops" class="input-modern">
+            </div>
+            <div class="field-group">
+              <label class="field-label">Machine Room Type</label>
+              <select [(ngModel)]="form.MachineRoomType" class="input-modern">
+                <option value="">Select MR Type</option>
+                <option value="MR">MR (Machine Room)</option>
+                <option value="MRL">MRL (Machine Room Less)</option>
+              </select>
+            </div>
+            <div class="field-group">
+              <label class="field-label">Machine Type <span style="color:red">*</span></label>
+              <select [(ngModel)]="form.MachineType" class="input-modern"
+                [class.invalid]="submitted && !form.MachineType">
+                <option value="">Select Machine Type</option>
+                <option value="AC Geared">AC Geared</option>
+                <option value="AC Gearless">AC Gearless</option>
+              </select>
+            </div>
+            <div class="field-group">
+              <label class="field-label">Controller Type</label>
+              <select [(ngModel)]="form.ControllerType" class="input-modern">
+                <option value="">Select Controller Type</option>
+                <option value="Integrated">Integrated</option>
+                <option value="Separated">Separated</option>
+              </select>
+            </div>
+            <div class="field-group">
+              <label class="field-label">Controller Name</label>
+              <input type="text" [(ngModel)]="form.ControllerName" class="input-modern">
+            </div>
+            <div class="field-group full-width">
+              <label class="field-label">Serving Floors</label>
+              <input type="text" [(ngModel)]="form.ServingFloors" class="input-modern">
+            </div>
+          </div>
+        </div>
+
+        <!-- Escalator Specific Fields -->
+        <div class="form-section" *ngIf="form.Type === 'Escalator' || form.Type === 'Moving Walk'">
+          <h3 class="section-title">{{ form.Type }} Fields</h3>
+          <div class="fields-grid">
+            <div class="field-group">
+              <label class="field-label">Brand Name</label>
+              <input type="text" [(ngModel)]="form.Brand" class="input-modern">
+            </div>
+            <div class="field-group">
+              <label class="field-label">Rise (m)</label>
+              <input type="number" [(ngModel)]="form.Rise" class="input-modern">
+            </div>
+            <div class="field-group">
+              <label class="field-label">Width (mm)</label>
+              <select [(ngModel)]="form.Width" class="input-modern">
+                <option [ngValue]="null">Select Width</option>
+                <option [ngValue]="600">600 mm</option>
+                <option [ngValue]="800">800 mm</option>
+                <option [ngValue]="1000">1000 mm</option>
+              </select>
+            </div>
+            <div class="field-group">
+              <label class="field-label">Speed (m/s)</label>
+              <input type="number" [(ngModel)]="form.Speed" class="input-modern">
+            </div>
+            <div class="field-group">
+              <label class="field-label">Direction</label>
+              <select [(ngModel)]="form.Direction" class="input-modern">
+                <option value="">Select Direction</option>
+                <option value="Up">Up</option>
+                <option value="Down">Down</option>
+                <option value="Bi-directional">Bi-directional</option>
+              </select>
+            </div>
+            <div class="field-group full-width">
+              <label class="field-label">Serving Levels</label>
+              <input type="text" [(ngModel)]="form.ServingLevels" class="input-modern">
+            </div>
+          </div>
+        </div>
+
+        <!-- Chiller Specific Fields -->
+        <div class="form-section" *ngIf="form.Type === 'Chiller'">
+          <h3 class="section-title">Chiller Fields</h3>
+          <div class="fields-grid">
+            <div class="field-group">
+              <label class="field-label">Cooling Capacity (TR) <span style="color:red">*</span></label>
+              <input type="number" [(ngModel)]="form.CoolingCapacity" class="input-modern"
+                [class.invalid]="submitted && !form.CoolingCapacity">
+            </div>
+            <div class="field-group">
+              <label class="field-label">Refrigerant Type</label>
+              <input type="text" [(ngModel)]="form.RefrigerantType" class="input-modern">
+            </div>
+            <div class="field-group full-width">
+              <label class="field-label">Compressor Type</label>
+              <select [(ngModel)]="form.CompressorType" class="input-modern">
+                <option value="">Select Compressor Type</option>
+                <option value="Centrifugal">Centrifugal</option>
+                <option value="Screw">Screw</option>
+                <option value="Scroll">Scroll</option>
+                <option value="Reciprocating">Reciprocating</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Checklist Section (Required) -->
+        <div class="form-section">
+          <h3 class="section-title">Associated Checklist <span style="color:red">*</span></h3>
+          <div class="fields-grid">
+            <div class="field-group full-width">
+              <label class="field-label">Select Checklist <span style="color:red">*</span></label>
+              <select [(ngModel)]="selectedChecklistId" class="input-modern"
+                [class.invalid]="submitted && !selectedChecklistId">
+                <option [ngValue]="null">-- Select a Checklist --</option>
+                <option *ngFor="let c of filteredChecklists" [ngValue]="c.id">
+                  {{ c.name }} · {{ c.system }} · {{ c.frequency }} · ({{ c.questionsCount }} Qs)
+                </option>
+              </select>
+              <div *ngIf="filteredChecklists.length === 0 && form.Type" class="checklist-empty-message">
+                <span class="checklist-warning-icon">⚠️</span>
+
+                <span class="checklist-empty-text">
+                  No published checklists found for this unit type
+                  (<strong>{{ form.Type }}</strong>).
+                </span>
+
+                <button type="button" class="create-checklist-btn" (click)="openChecklistCreator()">
+                  Create one here
+                  <span class="create-checklist-arrow">→</span>
+                </button>
+              </div>
+
+              <small *ngIf="form.Type === '' && selectedChecklistId === null" class="checklist-hint">
+                Select a unit type first to filter relevant checklists.
+              </small>
+            </div>
+          </div>
+        </div>
+
+        <!-- Attachments Section (Always Visible in Step 2) -->
+        <div class="form-section">
+          <h3 class="section-title">Attachments</h3>
+          <div class="custom-file-upload" (click)="openFilePicker()">
+            <i class="pin-icon"><img src="/assets/images/imgIcon.png" alt=""></i>
+            <span class="upload-text">Upload photos or technical docs</span>
+          </div>
+          <div class="selected-files">
+            <div class="thumbnail-item" *ngFor="let f of form.attachments; let i = index">
+              <button type="button" class="delete-icon" (click)="removeAttachment(i)">✕</button>
+              <img [src]="f.url" *ngIf="!f.name.endsWith('.pdf')">
+              <div class="file-chip" *ngIf="f.name.endsWith('.pdf')">📄 PDF</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 3: Assign Contract -->
+      <div *ngIf="step === 3" class="step-content">
+        <div class="section-header">
+          <span class="section-title">Assign the unit to a contract if needed</span>
+        </div>
+
+        <div style="display:flex; gap:30px;">
+          <div style="flex:1;">
+            <p style="color:#666; font-size:14px; margin-bottom:20px;">
+              Link this unit to one or more existing contracts for the same project, or leave it uncovered for now.
+            </p>
+
+            <div *ngIf="availableContracts.length === 0"
+              style="padding:40px; text-align:center; border:1px dashed #ddd; border-radius:12px;">
+              No existing contracts found for this project.
+            </div>
+
+            <div *ngFor="let c of availableContracts" class="contract-item" (click)="toggleContract(c.id)">
+              <input type="checkbox" [checked]="form.selectedContractIds.indexOf(c.id) > -1">
+              <div class="contract-info">
+                <span class="contract-name">{{ c.title }}</span>
+                <span class="contract-code">{{ c.id }} - {{ c.type }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div style="width:300px; background:#f8f9fa; padding:20px; border-radius:12px;">
+            <h4 style="font-size:14px; margin-bottom:15px;">Important Logic</h4>
+            <ul style="font-size:13px; color:#555; padding-left:18px; line-height:1.6;">
+              <li>The project owns the unit.</li>
+              <li>The contract only references the unit.</li>
+              <li>You may save a unit without assigning it to a contract.</li>
+              <li>Assigning will auto-generate maintenance tasks for this unit.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 4: Review -->
+      <div *ngIf="step === 4" class="step-content review-step">
+        <div class="review-header">
+          <div class="review-icon">📋</div>
+          <div class="review-title-group">
+            <h2 class="review-main-title">Review Unit Details</h2>
+            <p class="review-subtitle">Please verify all information before saving the unit to the system.</p>
+          </div>
+        </div>
+
+        <div class="review-sections">
+          <!-- Basic Information -->
+          <div class="review-card">
+            <div class="card-header">
+              <span class="card-icon">🏗️</span>
+              <span class="card-title">Basic Information</span>
+            </div>
+            <div class="card-body">
+              <div class="info-row">
+                <span class="info-label">Unit Type</span>
+                <span class="info-value">{{ form.Type }}</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Unit Name</span>
+                <span class="info-value">{{ form.Model }}</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Auto ID</span>
+                <span class="info-value">{{ form.AutoId }}</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Status</span>
+                <span class="info-value status-badge" [attr.data-status]="form.Status">{{ form.Status }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Dates & Modernization -->
+          <div class="review-card">
+            <div class="card-header">
+              <span class="card-icon">📅</span>
+              <span class="card-title">Dates & Modernization</span>
+            </div>
+            <div class="card-body">
+              <div class="info-row">
+                <span class="info-label">Installation Date</span>
+                <span class="info-value">{{ form.InstallationDate }}</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Modernized</span>
+                <span class="info-value">{{ form.IsModernized ? 'Yes' : 'No' }}</span>
+              </div>
+              <div class="info-row" *ngIf="form.IsModernized">
+                <span class="info-label">Modernization Date</span>
+                <span class="info-value">{{ form.ModernizationDate }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Technical Details (If applicable) -->
+          <div class="review-card" *ngIf="form.Brand || form.CapacityKg">
+            <div class="card-header">
+              <span class="card-icon">⚙️</span>
+              <span class="card-title">Technical Details</span>
+            </div>
+            <div class="card-body">
+              <div class="info-row" *ngIf="form.Brand">
+                <span class="info-label">Brand</span>
+                <span class="info-value">{{ form.Brand }}</span>
+              </div>
+              <div class="info-row" *ngIf="form.CapacityKg">
+                <span class="info-label">Capacity</span>
+                <span class="info-value">{{ form.CapacityKg }} kg</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Assigned Contracts -->
+          <div class="review-card full-width">
+            <div class="card-header">
+              <span class="card-icon">📄</span>
+              <span class="card-title">Assigned Contracts</span>
+            </div>
+            <div class="card-body">
+              <div class="contracts-list">
+                <div *ngIf="form.selectedContractIds.length === 0" class="no-contracts">
+                  No contracts assigned to this unit yet.
+                </div>
+                <div *ngFor="let cId of form.selectedContractIds" class="contract-chip">
+                  <span class="chip-icon">🔗</span>
+                  <span class="chip-text">Contract #{{ cId }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Attachments -->
+          <div class="review-card full-width" *ngIf="form.attachments.length > 0">
+            <div class="card-header">
+              <span class="card-icon">📎</span>
+              <span class="card-title">Attachments ({{ form.attachments.length }})</span>
+            </div>
+            <div class="card-body">
+              <div class="review-attachments">
+                <div class="review-thumbnail" *ngFor="let f of form.attachments">
+                  <img [src]="f.url" *ngIf="!f.name.endsWith('.pdf')" alt="Attachment">
+                  <div class="pdf-placeholder" *ngIf="f.name.endsWith('.pdf')">
+                    <span class="pdf-icon">📄</span>
+                    <span class="pdf-text">PDF</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
     </div>
 
-    <!-- Buttons -->
-    <button type="button" class="save-button-large yellow-bg" (click)="doSave()">Add</button>
+    <!-- Modal Footer -->
+    <div class="modal-footer">
+      <button class="nav-btn btn-back" *ngIf="step > 1" (click)="prevStep()">Back</button>
+      <div style="flex:1"></div>
+      <button class="nav-btn btn-next" *ngIf="step < 4" (click)="nextStep()">Next</button>
+      <button class="nav-btn btn-save" *ngIf="step === 4" (click)="doSave()" [disabled]="saving">
+        <span class="button-loader" *ngIf="saving"></span>
+        {{ saving ? 'Saving...' : 'Save Unit' }}
+      </button>
+    </div>
+
+    <!-- Rules Overlay -->
+    <div class="rules-overlay" *ngIf="showRules">
+      <button class="cnv-close" (click)="showRules = false">✕</button>
+      <div class="rules-content">
+        <h2 style="text-align:left; margin-bottom:10px;">Step 2 Rules</h2>
+        <p style="color:#888; font-size:14px;">Operational and technical guidelines for {{ form.Type }}</p>
+
+        <ul class="rules-list">
+          <li>Unit type is already selected in Step 1.</li>
+          <li>Unit ID is generated automatically from the project code and unit type.</li>
+          <li>Unit Name is editable for operational use.</li>
+          <li>Controller Type is selected from a dropdown to keep data standardized.</li>
+          <li>Controller Name is entered manually for the actual installed controller model.</li>
+          <li>Machine Room Type (MR or MRL) must be selected as it impacts maintenance and access.</li>
+          <li>The unit is being created inside this project file, not inside the contract.</li>
+          <li>Modernization is optional. Only modernized units should show a modernization date field.</li>
+        </ul>
+
+        <button class="save-button-large yellow-bg" (click)="showRules = false"
+          style="width:200px; margin-top:40px;">Got it</button>
+      </div>
+    </div>
 
   </div>
 </div>
+
+<app-checklist-editor *ngIf="showChecklistCreator" [embedded]="true" [initialSystem]="form.Type"
+  (cancelled)="closeChecklistCreator()" (published)="onChecklistPublished($event)">
+</app-checklist-editor>

@@ -1,15 +1,11 @@
-<div class="cnv-backdrop">
-  <div class="cnv-modal report-modal">
-      <button class="cnv-close" (click)="doClose()">✕</button>
-      
-      <h2>MR - 001</h2>
+<div class="cnr-backdrop">
+  <div class="cnr-modal">
+    <button class="cnv-close" (click)="doClose()">✕</button>
+
+      <!-- <h2>{{ autoReportId }}</h2> -->
 
       <div class="report-form-grid">
-      
-      <!-- <label>System ID <span class="required">*</span>
-          <input type="text" [(ngModel)]="form.systemId"
-           name="systemId" required #systemId="ngModel"/>
-      </label> -->
+
       <label>Project
         <select name="projectId" [(ngModel)]="form.projectId" (change)="onProjectChange()">
           <option [value]="''">Select Project</option>
@@ -17,38 +13,44 @@
         </select>
       </label>
 
-
-      <label>Unit <span class="required">*</span>
-        <select [(ngModel)]="form.systemId" name="systemId" [ngClass]="{'input-error': submitted && !form.systemId}">
-          <option [value]="''">Select Unit</option>
-          <option *ngFor="let u of units" [value]="u.id">{{u.model}} ({{u.serial}})</option>
+      <!-- Assigned Technician -->
+      <label>Assigned Technician
+        <select name="assignedTechnician" [(ngModel)]="form.assignedTechnician" (change)="onTechnicianChange()">
+          <option value="">Select Technician</option>
+          <option *ngFor="let t of technicians" [value]="t.id">{{t.name}}</option>
         </select>
       </label>
 
-      <!-- Report ID removed per requirements -->
-
-      <label>Maintenance Visits <span class="required">*</span>
-          <input type="text" [(ngModel)]="form.maintenanceVisits" name="maintenanceVisits"
-             [ngClass]="{'input-error': submitted && !form.maintenanceVisits}"/>
+      <!-- Units — أكتر من وحدة من المشروع -->
+      <label class="full-width">Units <span class="required">*</span>
+        <div *ngIf="units.length; else noUnits" class="units-list">
+          <div *ngFor="let u of units" class="unit-item"
+            [class.selected]="isUnitSelected(u)" (click)="toggleUnit(u)">
+            <input type="checkbox" [checked]="isUnitSelected(u)" readonly />
+            <span>{{ u.model }} ({{ u.serial }})</span>
+          </div>
+        </div>
+        <ng-template #noUnits><span class="hint">Select a project first</span></ng-template>
       </label>
 
-      <label>Date 
+      <label>Report Type
+          <select [(ngModel)]="form.visitType" name="visitType">
+          <option *ngFor="let t of VisitType" [value]="t">{{t}}</option>
+          </select>
+      </label>
+
+      <label>Date
           <input type="date" [(ngModel)]="form.date" name="date" (click)="forceDatePicker($event)"/>
       </label>
 
-      <!-- <label>Photos
-          <input type="file" multiple (change)="onPhotosSelected($event)" />
-      </label> -->
+        <label>Status <span class="required">*</span>
+          <select [(ngModel)]="form.status" name="status"
+           [ngClass]="{'input-error': submitted && !form.status}">
+          <option value="">Select Status</option>
+          <option *ngFor="let t of Status" [value]="t">{{t}}</option>
+          </select>
+      </label>
 
-      <!-- <label>Photos
-      <div class="file-upload-container">
-      <button class="file-upload-button" (click)="openFilePicker()">اختر ملف</button>
-      <span *ngIf="selectedFile" class="file-name">{{ selectedFile.name }}</span>
-      <span *ngIf="errorMessage" class="error-message">{{ errorMessage }}</span>
-      </div>
-      </label> -->
-
-      <!-- ✅ الزر الجديد لرفع الصور -->
       <label>Photos
         <div class="custom-file-upload" (click)="openFilePicker()">
           <i class="pin-icon">
@@ -62,53 +64,25 @@
           <button type="button" class="remove-photo" (click)="removePhoto(i)">×</button>
         </div>
       </div>
-      </label>
       <div class="selected-files" *ngIf="form.files.length">
-        <div class="selected-thumb" *ngFor="let f of form.files; let i = index">
+        <div class="selected-thumb file-thumb" *ngFor="let f of form.files; let i = index">
           <button type="button" (click)="openUrl(f.url)">{{ f.name }}</button>
           <button type="button" class="remove-photo" (click)="removeFile(i)">×</button>
         </div>
       </div>
-
-      <!-- Team Assigned removed per requirements -->
-
-      <label>Assigned Technician
-          <select [(ngModel)]="form.assignedTechnician" name="assignedTechnician" (change)="onTechnicianChange()">
-          <option *ngFor="let t of technicians" [value]="t.id">{{t.name}}</option>
-          </select>
-      </label>
-
-      <!-- <label>Visit Type
-          <span class="badge scheduled">{{form.visitType || 'Scheduled'}}</span>
-      </label>
-
-      <label>Status
-          <span class="badge maintenance">{{form.status || 'Under Maintenance'}}</span>
-      </label>
-      </div> -->
-
-      <!-- ✅ رجعناهم جوه نفس الـ grid -->
-        <label>Visit Type
-          <select [(ngModel)]="form.visitType" name="visitType">
-          <option *ngFor="let t of VisitType" [value]="t">{{t}}</option>
-          </select>
-      </label>
-
-        <label>Status <span class="required">*</span>
-          <select [(ngModel)]="form.status" name="status"   
-           [ngClass]="{'input-error': submitted && !form.status}">
-          <option *ngFor="let t of Status" [value]="t">{{t}}</option>
-          </select>
       </label>
       </div>
-      
+
       <label class="full-width">Comments
       <textarea [(ngModel)]="form.comments" name="comments" rows="3"></textarea>
       </label>
 
       <div class="cnv-actions report-actions">
       <button type="button" class="cancel-button" (click)="doClose()">Cancel</button>
-      <button type="button" class="save-button-large yellow-bg" (click)="doSave()">Save</button>
+      <button type="button" class="save-button-large yellow-bg" (click)="doSave()" [disabled]="saving">
+        <span class="button-loader" *ngIf="saving"></span>
+        {{ saving ? 'Creating...' : 'Save' }}
+      </button>
       </div>
   </div>
 </div>

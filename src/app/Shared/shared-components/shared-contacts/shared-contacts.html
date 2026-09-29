@@ -1,6 +1,6 @@
 <app-shared-page-header [createButtonLabel]="'CREATE NEW CONTACT'" [showCreateVisitButton]="true"
   (createVisit)="openCreate()">
-  <span breadcrumb>CRM &gt; Contacts</span>
+  <!-- <span breadcrumb>CRM &gt; Contacts</span> -->
 </app-shared-page-header>
 
 <!-- modal create -->
@@ -10,21 +10,33 @@
 <h2>Users</h2>
 <app-loading [loading]="loadingUsers"></app-loading>
 <div class="status-summary">
-  <div class="summary-card">
-    <span class="label">Client</span>
-    <span class="count">{{ getRoleCount('client') }}</span>
+  <div class="summary-card active">
+    <div class="card-icon">👤</div>
+    <div class="card-content">
+      <span class="label">Client</span>
+      <span class="count">{{ getRoleCount('client') }}</span>
+    </div>
   </div>
-  <div class="summary-card">
-    <span class="label">Dispatcher</span>
-    <span class="count">{{ getRoleCount('dispatcher') }}</span>
+  <div class="summary-card review">
+    <div class="card-icon">📡</div>
+    <div class="card-content">
+      <span class="label">Dispatcher</span>
+      <span class="count">{{ getRoleCount('dispatcher') }}</span>
+    </div>
   </div>
-  <div class="summary-card">
-    <span class="label">Technician</span>
-    <span class="count">{{ getRoleCount('technician') }}</span>
+  <div class="summary-card approved">
+    <div class="card-icon">🔧</div>
+    <div class="card-content">
+      <span class="label">Technician</span>
+      <span class="count">{{ getRoleCount('technician') }}</span>
+    </div>
   </div>
-  <div class="summary-card">
-    <span class="label">Finance</span>
-    <span class="count">{{ getRoleCount('finance') }}</span>
+  <div class="summary-card value">
+    <div class="card-icon">💰</div>
+    <div class="card-content">
+      <span class="label">Finance</span>
+      <span class="count">{{ getRoleCount('finance') }}</span>
+    </div>
   </div>
 </div>
 
@@ -57,7 +69,7 @@
   <div class="toolbar-left">
 
     <button class="icon-btn">+</button>
-    <button class="icon-btn" (click)="toggleUserFilterBuilder()">
+    <button class="icon-btn" [class.active]="userFilterBuilder" (click)="toggleUserFilterBuilder()">
       <img src="/assets/images/Vector3.png" alt="">
     </button> <!-- هنا تحط أيقونة الفلتر -->
     <button class="icon-btn">⇅</button> <!-- هنا أيقونة sort -->
@@ -71,33 +83,69 @@
     </div>
   </div>
 </div>
-<!-- Filter Builder -->
-<div class="filter-builder" *ngIf="userFilterBuilder">
-  <h4>Add filter</h4>
-  <div class="filter-row">
-    <select [(ngModel)]="userNewFilter.field">
-      <option value="">Select Field</option>
-      <option value="name">Name</option>
-      <option value="role">Role</option>
-      <option value="email">Email</option>
-      <option value="phone">Phone</option>
-      <option value="position">Position</option>
-    </select>
-
-    <!-- باقي الفيلدات العادية -->
-    <select *ngIf="userNewFilter.field && getUserFilterValues(userNewFilter.field).length"
-      [(ngModel)]="userNewFilter.value">
-      <option *ngFor="let v of getUserFilterValues(userNewFilter.field)" [value]="v">{{ v }}</option>
-    </select>
-
-    <button class="add-btn" (click)="applyUserFilter()">Apply</button>
-    <button class="add-btn" (click)="userFilterBuilder=false" style="background:#ccc;color:#000">Close</button>
+<!-- Filter Builder Panel -->
+<div class="filter-builder-panel" *ngIf="userFilterBuilder">
+  <div class="filter-builder-header">
+    <h4>Filter Options</h4>
+    <button class="close-panel-btn" (click)="userFilterBuilder=false">×</button>
+  </div>
+  <div class="filter-grid">
+    <div class="filter-field-group">
+      <label>Name</label>
+      <select [(ngModel)]="quickUserName" (change)="applyUserQuickFilter('name', quickUserName)">
+        <option value="">All Names</option>
+        <option *ngFor="let v of getUserFilterValues('name')" [value]="v">{{ v }}</option>
+      </select>
+    </div>
+    <div class="filter-field-group">
+      <label>Role</label>
+      <select [(ngModel)]="quickUserRole" (change)="applyUserQuickFilter('role', quickUserRole)">
+        <option value="">All Roles</option>
+        <option *ngFor="let v of getUserFilterValues('role')" [value]="v">{{ v }}</option>
+      </select>
+    </div>
+    <div class="filter-field-group">
+      <label>Email</label>
+      <select [(ngModel)]="quickUserEmail" (change)="applyUserQuickFilter('email', quickUserEmail)">
+        <option value="">All Emails</option>
+        <option *ngFor="let v of getUserFilterValues('email')" [value]="v">{{ v }}</option>
+      </select>
+    </div>
+    <div class="filter-field-group">
+      <label>Phone</label>
+      <select [(ngModel)]="quickUserPhone" (change)="applyUserQuickFilter('phone', quickUserPhone)">
+        <option value="">All Phones</option>
+        <option *ngFor="let v of getUserFilterValues('phone')" [value]="v">{{ v }}</option>
+      </select>
+    </div>
+    <div class="filter-field-group">
+      <label>Position</label>
+      <select [(ngModel)]="quickUserPosition" (change)="applyUserQuickFilter('position', quickUserPosition)">
+        <option value="">All Positions</option>
+        <option *ngFor="let v of getUserFilterValues('position')" [value]="v">{{ v }}</option>
+      </select>
+    </div>
+    <div class="filter-field-group">
+      <label>Status</label>
+      <select [(ngModel)]="quickUserStatus" (change)="applyUserQuickFilter('isActive', quickUserStatus)">
+        <option value="">All Statuses</option>
+        <option value="true">Active</option>
+        <option value="false">Inactive</option>
+      </select>
+    </div>
+  </div>
+  <div class="filter-panel-actions">
+    <button class="clear-btn" *ngIf="userActiveFilters.length" (click)="clearAllUserFilters()">Clear All
+      Filters</button>
+    <button class="cancel-btn" (click)="userFilterBuilder=false">Close</button>
   </div>
 </div>
 <!-- Active filters -->
 <div class="active-filters" *ngIf="userActiveFilters.length">
+  <span class="af-label">Active Filters:</span>
   <span class="filter-chip" *ngFor="let f of userActiveFilters; let i = index">
-    {{ f.field }}: <strong>{{ f.value }}</strong>
+    <span class="chip-field">{{ f.field }}:</span>
+    <span class="chip-value">{{ f.value }}</span>
     <button (click)="removeUserFilter(i)">×</button>
   </span>
 
@@ -108,46 +156,47 @@
   {{ selectedCount }} row(s) selected
 </div>
 
-<table>
-  <thead>
-    <tr>
-      <th>
-        <input type="checkbox" [checked]="userAllSelected"
-          (change)="userAllSelected = $event.target.checked; toggleUserAll()" (click)="$event.stopPropagation()" />
-      <th class="faded">Name</th>
-      <th class="faded">Role</th>
-      <th class="faded">Email</th>
-      <th class="faded">Phone</th>
-      <th class="faded">Position</th>
-      <th class="faded">Status</th>
-      <th class="faded">Action</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr *ngFor="let u of pagedUsers" (click)="openUserDetails(u)">
-      <td>
-        <input type="checkbox" [(ngModel)]="u.selected" (change)="updateUserAllSelected()"
-          (click)="$event.stopPropagation()" />
-      </td>
-      <td class="faded" data-label="Name">{{u.name}}</td>
-      <td class="faded" data-label="Role">{{u.role}}</td>
-      <td class="faded" data-label="Email">{{u.email}}</td>
-      <td class="faded" data-label="Phone">{{u.phone}}</td>
-      <td class="faded" data-label="Position">{{u.position}}</td>
-      <td class="faded" data-label="Status">
-        <span [ngClass]="u.isActive ? 'status-Active' : 'status-Inactive'">
-          {{ u.isActive ? 'Active' : 'Inactive' }}
-        </span>
-      </td>
-      <td (click)="$event.stopPropagation()">
-        <select class="action-row" (change)="onUserSelectChange(u, $event)">
-          <option value="">Actions</option>
-          <option value="view">View Details</option>
-        </select>
-      </td>
-    </tr>
-  </tbody>
-</table>
+<div class="table-container">
+  <table class="custom-table">
+    <thead>
+      <tr>
+        <th class="checkbox-col">
+          <input type="checkbox" [checked]="userAllSelected"
+            (change)="userAllSelected = $event.target.checked; toggleUserAll()" (click)="$event.stopPropagation()" />
+        <th>Name</th>
+        <th>Role</th>
+        <th>Email</th>
+        <th>Phone</th>
+        <th>Position</th>
+        <th>Status</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let u of pagedUsers" (click)="openUserDetails(u)">
+        <td class="checkbox-col" data-label="Select" (click)="$event.stopPropagation()">
+          <input type="checkbox" [(ngModel)]="u.selected" (change)="updateUserAllSelected()" />
+        </td>
+        <td data-label="Name">{{u.name}}</td>
+        <td data-label="Role">{{u.role}}</td>
+        <td data-label="Email">{{u.email}}</td>
+        <td data-label="Phone">{{u.phone}}</td>
+        <td data-label="Position">{{u.position}}</td>
+        <td data-label="Status">
+          <span [ngClass]="u.isActive ? 'status-Active' : 'status-Inactive'">
+            {{ u.isActive ? 'Active' : 'Inactive' }}
+          </span>
+        </td>
+        <td data-label="Action" (click)="$event.stopPropagation()">
+          <select class="action-row" (change)="onUserSelectChange(u, $event)">
+            <option value="">Actions</option>
+            <option value="view">View Details</option>
+          </select>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
 
 <!-- Pagination -->
 <div class="pagination" *ngIf="userTotalPages > 1">
@@ -164,24 +213,38 @@
 <div class="details-overlay" *ngIf="showDetails">
   <div class="details-panel">
     <button class="close-btn" (click)="closeUserDetails()">×</button>
-    <h3>{{ selectedUser?.name }}</h3>
-    <p><strong>Role:</strong> {{ selectedUser?.role }}</p>
-    <p><strong>Email:</strong> {{ selectedUser?.email }}</p>
-    <p><strong>Phone:</strong> {{ selectedUser?.phone }}</p>
-    <p><strong>Position:</strong> {{ selectedUser?.position }}</p>
-    <p><strong>Status:</strong>
+    <div class="details-heading">
+      <div><span class="details-kicker">User contact</span>
+        <h3>{{ selectedUser?.name }}</h3>
+      </div>
+      <span class="detail-chip" [ngClass]="selectedUser?.isActive ? 'status-Active' : 'status-Inactive'">
+        {{ selectedUser?.isActive ? 'Active' : 'Inactive' }}
+      </span>
+    </div>
+    <div class="details-summary contact-summary">
+      <div><span>Role</span><strong>{{ selectedUser?.role || '—' }}</strong></div>
+      <div><span>Position</span><strong>{{ selectedUser?.position || '—' }}</strong></div>
+      <div><span>Contact</span><strong>{{ selectedUser?.phone || 'No phone' }}</strong></div>
+    </div>
+    <div class="details-grid">
+      <p><strong>Full name</strong><span>{{ selectedUser?.name }}</span></p>
+      <p><strong>Email</strong><span>{{ selectedUser?.email || '—' }}</span></p>
+      <p><strong>Phone</strong><span>{{ selectedUser?.phone || '—' }}</span></p>
+      <p><strong>Position</strong><span>{{ selectedUser?.position || '—' }}</span></p>
+    </div>
+    <div class="detail-status-row"><strong>Status</strong>
       <ng-container *ngIf="!canEditStatus(); else editableStatus">
-        <span [ngClass]="selectedUser?.isActive ? 'status-Active' : 'status-Inactive'">
+        <span class="detail-chip" [ngClass]="selectedUser?.isActive ? 'status-Active' : 'status-Inactive'">
           {{ selectedUser?.isActive ? 'Active' : 'Inactive' }}
         </span>
       </ng-container>
       <ng-template #editableStatus>
         <select [ngModel]="selectedUser?.isActive ? 'Active' : 'Inactive'"
-                (ngModelChange)="selectedUser && updateUserStatus(selectedUser, $event)">
+          (ngModelChange)="selectedUser && updateUserStatus(selectedUser, $event)">
           <option value="Active">Active</option>
           <option value="Inactive">Inactive</option>
         </select>
       </ng-template>
-    </p>
+    </div>
   </div>
 </div>

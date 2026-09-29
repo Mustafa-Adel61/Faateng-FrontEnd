@@ -1,0 +1,66 @@
+<section class="documents-page">
+  <header class="documents-heading">
+    <span class="eyebrow">DOCUMENT CENTRE</span>
+    <h1>Documents</h1>
+    <p>Contracts, reports, invoices and technical files.</p>
+  </header>
+
+  <section class="summary-grid" aria-label="Document summary">
+    <article class="summary-card">
+      <strong>{{ contractsCount }}</strong>
+      <span>Contracts</span>
+    </article>
+    <article class="summary-card">
+      <strong>{{ maintenanceReportsCount }}</strong>
+      <span>Maintenance Reports</span>
+    </article>
+    <article class="summary-card">
+      <strong>{{ serviceReportsCount }}</strong>
+      <span>Service Reports</span>
+    </article>
+    <article class="summary-card">
+      <strong>{{ invoicesCount }}</strong>
+      <span>Invoices</span>
+    </article>
+  </section>
+
+  <section class="documents-panel">
+    <app-loading [loading]="loading"></app-loading>
+    <p class="error-message" *ngIf="error">{{ error }}</p>
+    <div class="table-scroll" *ngIf="!loading">
+      <table class="documents-table">
+        <thead>
+          <tr>
+            <th>DOCUMENT</th>
+            <th>CATEGORY</th>
+            <th>RELATED TO</th>
+            <th>BUILDING</th>
+            <th>DATE</th>
+            <th aria-label="Download"></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let document of pagedDocuments">
+            <td class="document-name" [title]="document.name">{{ document.name }}</td>
+            <td>{{ document.category }}</td>
+            <td>{{ document.relatedTo }}</td>
+            <td>{{ document.building }}</td>
+            <td>{{ formatDate(document.date) }}</td>
+            <td class="download-cell">
+              <button type="button" class="download-button" (click)="download(document)">Download</button>
+            </td>
+          </tr>
+          <tr *ngIf="!documents.length">
+            <td colspan="6" class="empty-cell">No documents available.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="pagination" *ngIf="totalPages > 1">
+      <button class="page-btn" [disabled]="page === 1" (click)="setPage(page - 1)">&lt;</button>
+      <button class="page-btn" *ngFor="let currentPage of visiblePages" [class.active]="currentPage === page"
+        (click)="setPage(currentPage)">{{ currentPage }}</button>
+      <button class="page-btn" [disabled]="page === totalPages" (click)="setPage(page + 1)">&gt;</button>
+    </div>
+  </section>
+</section>

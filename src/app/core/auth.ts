@@ -70,22 +70,26 @@ export class AuthService {
       // يمكننا لاحقًا استدعاء /auth/me لجلب تفاصيل المستخدم
       this.currentUser = { email, role: res.role };
       return true;
-    } catch (err) {
-      let message = 'Invalid credentials';
-      // const e = err?.error ;
-      // if (typeof e === 'string') {
-      //   message = e;
-      // } else if (e && typeof e === 'object') {
-      //   if (typeof e.message === 'string') message = e.message;
-      //   else if (typeof e.error === 'string') message = e.error;
-      // } 
-      // else if (err?.message) {
-      //   message = err.message;
-      // }
-      if (/inactive/i.test(message)) message = 'This user is inactive. Please contact admin.';
-      this.lastError = message;
-      return false;
-    }
+    } 
+catch (err: any) {
+  let message = 'An unexpected error occurred';
+
+  // Backend is not reachable / connection failed
+  if (err?.error instanceof ProgressEvent || err?.status === 0) {
+    message = 'There is a problem connecting to the system. Please contact the system administrator.';
+  } 
+  // Backend returned an error message
+  else if (typeof err?.error?.message === 'string') {
+    message = err.error.message;
+  } 
+  else if (typeof err?.error === 'string') {
+    message = err.error;
+  }
+
+  this.lastError = message;
+
+  return false;
+}
   }
 
   /** تسجيل مستخدم جديد (محاكاة مؤقتة) */

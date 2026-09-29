@@ -1,94 +1,147 @@
 <app-loading [loading]="loading"></app-loading>
 <div class="cnv-backdrop">
   <div class="cnv-modal report-modal">
-      <button class="cnv-close" (click)="doClose()">✕</button>
+    <button class="cnv-close" (click)="doClose()">✕</button>
+    <h2>Create New Contract</h2>
 
-      <h2>Create Contract</h2>
+    <!-- Steps Progress -->
+    <div class="progress-container">
+      <div *ngFor="let stepItem of steps; let i = index" class="progress-segment" [class.active]="i < step"></div>
+    </div>
 
+    <!-- STEP 1: Contract Details -->
+    <div *ngIf="step === 1" class="cnv-step">
       <div class="report-form-grid">
+        <h3 class="full-width">Contract Details</h3>
+        <p class="full-width subtitle">Core contract information including client, project, and billing details.</p>
 
-      <label class="full-width">Client <span class="required">*</span>
-        <select [(ngModel)]="selectedClientId" name="Client"
-        [ngClass]="{'input-error': submitted && !selectedClientId}"
-        (change)="onClientChange()">
-          <option [ngValue]="null" disabled selected>Select Client</option>
-          <option *ngFor="let c of clients" [ngValue]="c.id">{{ c.name }}</option>
-        </select>
-      </label>
-
-      <label class="full-width">Linked Project <span class="required">*</span>
-        <select [(ngModel)]="selectedProjectId" name="LinkedProject"
-        [ngClass]="{'input-error': submitted && !selectedProjectId}"
-        (change)="onProjectChange()"
-        [disabled]="!selectedClientId">
-          <option [ngValue]="null" disabled selected>Select Project</option>
-          <option *ngFor="let p of projects" [ngValue]="p.id">{{ p.projectIdStr }} - {{ p.name }}</option>
-        </select>
-      </label>
-
-      <label class="full-width">Type <span class="required">*</span>
-          <select [(ngModel)]="form.Type" name="Type"
-          [ngClass]="{'input-error': submitted && !form.Type}">
-          <option *ngFor="let t of Types" [value]="t">{{t}}</option>
+        <label class="full-width">Client <span class="required">*</span>
+          <select [(ngModel)]="selectedClientId" name="Client"
+            [ngClass]="{'input-error': submitted && !selectedClientId}" (change)="onClientChange()">
+            <option [ngValue]="null" disabled selected>Select Client</option>
+            <option *ngFor="let c of clients" [ngValue]="c.id">{{ c.name }}</option>
           </select>
-      </label>
+        </label>
 
-      <label class="full-width">Title (Optional)
-          <input type="text" [(ngModel)]="form.Title" name="Title" placeholder="Auto-generated if empty"/>
-      </label>
+        <label class="full-width">
+          Linked Project <span class="required">*</span>
+
+          <div *ngIf="!selectedClientId" class="no-units" [ngClass]="{'input-error': submitted && !selectedProjectId}">
+            Select a client to see available projects
+          </div>
+
+          <select *ngIf="selectedClientId" [(ngModel)]="selectedProjectId" name="LinkedProject"
+            [ngClass]="{'input-error': submitted && !selectedProjectId}" (change)="onProjectChange()">
+
+            <option [ngValue]="null" disabled selected>Select Project</option>
+            <option *ngFor="let p of projects" [ngValue]="p.id">
+              {{ p.projectIdStr }} - {{ p.name }}
+            </option>
+
+          </select>
+        </label>
+
+        <label class="full-width">Select Units<span class="required">*</span>
+          <div [ngClass]="{'input-error': submitted && selectedUnitIds.length === 0}" class="units-list"
+            *ngIf="availableUnits.length">
+            <div *ngFor="let u of availableUnits" class="unit-item" [class.selected]="selectedUnitIds.includes(u.id)"
+              (click)="onUnitToggle(u.id)">
+              <input type="checkbox" [checked]="selectedUnitIds.includes(u.id)" readonly />
+              <span>{{ u.serial }} - {{ u.model }} ({{ u.type }})</span>
+            </div>
+          </div>
+          <div [ngClass]="{'input-error': submitted && selectedUnitIds.length === 0}"
+            *ngIf="!availableUnits.length && selectedProjectId" class="no-units">
+            No units available for this project
+          </div>
+          <div [ngClass]="{'input-error': submitted && !selectedProjectId}" *ngIf="!selectedProjectId" class="no-units">
+            Select a project to see available units
+          </div>
+        </label>
+
+        <label class="full-width">Type <span class="required">*</span>
+          <select [(ngModel)]="form.Type" name="Type" [ngClass]="{'input-error': submitted && !form.Type}">
+            <option value="" disabled selected>Select Type</option>
+            <option *ngFor="let t of Types" [value]="t">{{t}}</option>
+          </select>
+        </label>
+
+        <label class="full-width">Title (Optional)
+          <input type="text" [(ngModel)]="form.Title" name="Title" placeholder="Auto-generated if empty" />
+        </label>
 
         <label>Start <span class="required">*</span>
-            <input type="date"
-               [(ngModel)]="form.Start"
-               name="Start"
-               (click)="forceDatePicker($event)"
-               class="styled-date-input"
-               [ngClass]="{'input-error': submitted && !form.Start}"
-               />
-      </label>
+          <input type="date" [(ngModel)]="form.Start" name="Start" (click)="forceDatePicker($event)"
+            class="styled-date-input" [ngClass]="{'input-error': submitted && !form.Start}" />
+        </label>
 
         <label>End <span class="required">*</span>
-            <input type="date"
-               [(ngModel)]="form.End"
-               name="End"
-               (click)="forceDatePicker($event)"
-               class="styled-date-input"
-               [ngClass]="{'input-error': submitted && !form.End}"
-               />
-      </label>
+          <input type="date" [(ngModel)]="form.End" name="End" (click)="forceDatePicker($event)"
+            class="styled-date-input" [ngClass]="{'input-error': submitted && !form.End}" />
+        </label>
 
-      <label>Billing Cycles <span class="required">*</span>
+        <label>Billing Cycles <span class="required">*</span>
           <select [(ngModel)]="form.BillingCycle" name="BillingCycle"
-          [ngClass]="{'input-error': submitted && !form.BillingCycle}">
-          <option *ngFor="let t of BillingCycles" [value]="t">{{t}}</option>
+            [ngClass]="{'input-error': submitted && !form.BillingCycle}">
+            <option value="" disabled selected>Select Billing Cycle</option>
+            <option *ngFor="let t of BillingCycles" [value]="t">{{t}}</option>
           </select>
-      </label>
+        </label>
 
-      <label>Amount per Cycle
-          <input type="number" [(ngModel)]="form.AmountperCycle" name="AmountperCycle"/>
-      </label>
+        <label>Amount per Cycle <span class="required">*</span>
+          <input type="number" [(ngModel)]="form.AmountperCycle" name="AmountperCycle" min="0.01"
+            [ngClass]="{'input-error': submitted && (!form.AmountperCycle || form.AmountperCycle <= 0)}" />
+          <span class="field-error" *ngIf="submitted && (!form.AmountperCycle || form.AmountperCycle <= 0)">Amount per
+            cycle is required.</span>
+        </label>
 
-      <label class="full-width">Select Units
-        <div class="units-list" *ngIf="availableUnits.length">
-          <div *ngFor="let u of availableUnits" class="unit-item"
-            [class.selected]="selectedUnitIds.includes(u.id)"
-            (click)="onUnitToggle(u.id)">
-            <input type="checkbox" [checked]="selectedUnitIds.includes(u.id)" readonly/>
-            <span>{{ u.serial }} - {{ u.model }} ({{ u.type }})</span>
-          </div>
-        </div>
-        <div *ngIf="!availableUnits.length && selectedProjectId" class="no-units">
-          No units available for this project
-        </div>
-        <div *ngIf="!selectedProjectId" class="no-units">
-          Select a project to see available units
-        </div>
-      </label>
-
+      </div>
     </div>
+
+    <!-- STEP 2: Auto Generate Task List -->
+    <div *ngIf="step === 2" class="cnv-step">
+      <div class="report-form-grid">
+        <h3 class="full-width">Auto Generate Task List</h3>
+        <p class="full-width subtitle">Configure visit schedule and task generation settings.</p>
+
+        <label>Visit Frequency <span class="required">*</span>
+          <select [(ngModel)]="form.VisitFrequency" name="VisitFrequency"
+            [ngClass]="{'input-error': submitted && !form.VisitFrequency}">
+            <option value="" disabled selected>Select Visit Frequency</option>
+            <option *ngFor="let t of VisitFrequencies" [value]="t">{{t}}</option>
+          </select>
+        </label>
+
+        <!-- <label>Number of Visits <span class="required">*</span>
+          <input type="number" [(ngModel)]="form.NumberOfVisits" name="NumberOfVisits" min="1"
+            [ngClass]="{'input-error': submitted && form.NumberOfVisits <= 0}" />
+        </label> -->
+
+        <label>Visit Start Date <span class="required">*</span>
+          <input type="date" [(ngModel)]="form.VisitStartDate" name="VisitStartDate" [min]="form.Start" [max]="form.End"
+            (click)="forceDatePicker($event)" class="styled-date-input"
+            [ngClass]="{'input-error': submitted && !form.VisitStartDate}" />
+        </label>
+        <label>
+          Visit Time <span class="required">*</span>
+
+          <input type="time" [(ngModel)]="form.VisitStartTime" name="VisitStartTime"
+            [ngClass]="{'input-error': submitted && !form.VisitStartTime}" (click)="forceDatePicker($event)" />
+        </label>
+
+      </div>
+    </div>
+
+    <!-- Navigation Actions -->
     <div class="cnv-actions report-actions">
-    <button type="button" class="cancel-button" (click)="doClose()">Cancel</button>
-    <button type="button" class="save-button-large yellow-bg" (click)="doSave()">Save</button>
+      <button type="button" class="cancel-button" (click)="doClose()">Cancel</button>
+      <div class="right-actions">
+        <button type="button" *ngIf="step > 1" class="back-button" (click)="goBack()">Back</button>
+        <button type="button" class="save-button-large yellow-bg" (click)="goNext()" [disabled]="saving || loading">
+          <span class="button-loader" *ngIf="saving || loading"></span>
+          {{ saving || loading ? 'Creating...' : (step === 2 ? 'Create Contract' : 'Next') }}
+        </button>
+      </div>
     </div>
-</div>
+  </div>
 </div>

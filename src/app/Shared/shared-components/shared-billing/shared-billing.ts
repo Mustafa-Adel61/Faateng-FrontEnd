@@ -1,24 +1,35 @@
 import { SharedPageHeader } from './../../shared-layout/shared-page-header/shared-page-header';
-import { NgClass, NgFor, NgIf } from '@angular/common';
+import { DatePipe, DecimalPipe, NgClass, NgFor, NgIf } from '@angular/common';
 import { Component, Input } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CreateNewBilling } from '../../../admin/pages/create-new-billing/create-new-billing';
 import { ResourceService } from '../../../core/resource.service';
 import { Loading } from '../loading/loading';
 interface Invoice {
+  id?: number;
   selected: boolean;
   Invoice: string;
   Client: string;
   Date: string;         // date string
   Due: string;
   Amount: number;
-  Balance: number;
+  Balance?: number;
   Status?: 'Unpaid' | 'Paid' | 'Partially Paid' | string;
+  Frequency?: string;
+  PaymentTermsDays?: number;
+  Project?: string;
+  AutoGenerateInvoices?: boolean;
+  BillingNumber?: string;
+  AmountPerCycle?: number;
+  CycleCount?: number;
+  ContractTitle?: string;
+  UnitNames?: string[];
+  EndDate?: string | null;
   photos?: string[];
 }
 @Component({
   selector: 'app-shared-billing',
-  imports: [NgFor, NgIf, FormsModule, CreateNewBilling, NgClass, SharedPageHeader, Loading],
+  imports: [NgFor, NgIf, FormsModule, CreateNewBilling, NgClass, SharedPageHeader, Loading, DatePipe, DecimalPipe],
   standalone: true,
   templateUrl: './shared-billing.html',
   styleUrl: './shared-billing.css'
@@ -27,6 +38,13 @@ export class SharedBilling {
 
   // UI state
   showFilterBuilder = false;
+  quickInvoice: string = '';
+  quickClient: string = '';
+  quickDate: string = '';
+  quickDue: string = '';
+  quickAmount: string = '';
+  quickBalance: string = '';
+  quickStatus: string = '';
   // ضيفت ال data من والي 
   newFilter = { field: '', value: '', dateFrom: '', dateTo: '' };
   activeFilters: { field: string; value: string; dateFrom?: string; dateTo?: string }[] = [];
@@ -43,9 +61,8 @@ export class SharedBilling {
   page = 1;
   pageSize = 10;
   statuses = [
-    'Partially Paid',
-    'Paid',
-    'Unpaid',
+    'Active',
+    'Inactive',
   ];
   @Input() role: 'admin' | 'finance' | 'manager' | null = null;
 
@@ -62,24 +79,34 @@ export class SharedBilling {
       params.role = this.role;
     }
     this.loading = true;
-    this.resourceService.getAll('invoices', params).subscribe({
+    this.resourceService.getAll('Billings', params).subscribe({
       next: (data: any[]) => {
         this.tasks = data.map(item => ({
           selected: false,
-          Invoice: item.invoiceNumber || item.Invoice || 'INV-0000',
+          id: item.id,
+          Invoice: `BILL-${item.id}`,
           Client: item.clientName || item.Client || 'Unknown Client',
-          Date: item.issueDate || item.Date || '',
-          Due: item.dueDate || item.Due || '',
-          Amount: item.amount || item.Amount || 0,
-          Balance: item.balance || item.Balance || 0,
-          Status: item.status || item.Status || 'Unpaid',
+          Date: item.startDate || item.Date || '',
+          Due: item.nextInvoiceDate || item.Due || '',
+          EndDate: item.endDate || null,
+          Amount: item.amountPerCycle ?? item.amount ?? item.Amount ?? 0,
+          Balance: item.isActive ? item.amount || 0 : 0,
+          Status: item.isActive ? 'Active' : 'Inactive',
+          Frequency: item.frequency || 'OneOff',
+          PaymentTermsDays: item.paymentTermsDays || 0,
+          Project: item.projectName || '',
+          ContractTitle: item.contractTitle || '',
+          UnitNames: item.unitNames || [],
+          AutoGenerateInvoices: item.autoGenerateInvoices || false,
+          AmountPerCycle: item.amountPerCycle || 0,
+          CycleCount: item.cycleCount || 1,
           photos: item.photos || []
         }));
         this.loading = false;
       },
       error: (err) => {
-        console.error('Failed to load invoices, using mock data', err);
-        this.loadMockData();
+        console.error('Failed to load billing schedules', err);
+        this.tasks = [];
         this.loading = false;
       }
     });
@@ -197,7 +224,7 @@ export class SharedBilling {
 
   // ---------------- pagination / filtered list getters ----------------
   get filteredTasks(): Invoice[] {
-    console.log("Mustafa Adel");
+    // console.log("Mustafa Adel");
 
     let result = this.tasks;
 
@@ -210,20 +237,26 @@ export class SharedBilling {
           console.log(f.field);
           // ✅ لو الفلتر تاريخ
           if (f.field === 'Date') {
-            const taskDate = new Date(task.Date);
-            const from = f.dateFrom ? new Date(f.dateFrom) : null;
-            const to = f.dateTo ? new Date(f.dateTo) : null;
-            if (from && taskDate < from) return false;
-            if (to && taskDate > to) return false;
-            return true;
+            if (f.dateFrom || f.dateTo) {
+              const taskDate = new Date(task.Date);
+              const from = f.dateFrom ? new Date(f.dateFrom) : null;
+              const to = f.dateTo ? new Date(f.dateTo) : null;
+              if (from && taskDate < from) return false;
+              if (to && taskDate > to) return false;
+              return true;
+            }
+            return String(v).toLowerCase() === String(f.value).toLowerCase();
           }
           else if (f.field === 'Due') {
-            const taskDate = new Date(task.Due);
-            const from = f.dateFrom ? new Date(f.dateFrom) : null;
-            const to = f.dateTo ? new Date(f.dateTo) : null;
-            if (from && taskDate < from) return false;
-            if (to && taskDate > to) return false;
-            return true;
+            if (f.dateFrom || f.dateTo) {
+              const taskDate = new Date(task.Due);
+              const from = f.dateFrom ? new Date(f.dateFrom) : null;
+              const to = f.dateTo ? new Date(f.dateTo) : null;
+              if (from && taskDate < from) return false;
+              if (to && taskDate > to) return false;
+              return true;
+            }
+            return String(v).toLowerCase() === String(f.value).toLowerCase();
           }
 
           // باقي الفلاتر العادية
@@ -284,6 +317,20 @@ export class SharedBilling {
     this.newFilter = { field: '', value: '', dateFrom: '', dateTo: '' };
   }
 
+  applyQuickFilter(field: string, value: string) {
+    if (!value) {
+      this.activeFilters = this.activeFilters.filter(f => f.field !== field);
+    } else {
+      const existingIndex = this.activeFilters.findIndex(f => f.field === field);
+      if (existingIndex > -1) {
+        this.activeFilters[existingIndex].value = value;
+      } else {
+        this.activeFilters.push({ field, value });
+      }
+    }
+    this.page = 1;
+  }
+
   // Realistic filters for billing
   getFilterValues(field: string): string[] {
     if (!field) return [];
@@ -326,13 +373,30 @@ export class SharedBilling {
 
 
   removeFilter(idx: number) {
+    const removedFilter = this.activeFilters[idx];
     this.activeFilters.splice(idx, 1);
+    if (removedFilter) {
+      if (removedFilter.field === 'Invoice') this.quickInvoice = '';
+      if (removedFilter.field === 'Client') this.quickClient = '';
+      if (removedFilter.field === 'Date') this.quickDate = '';
+      if (removedFilter.field === 'Due') this.quickDue = '';
+      if (removedFilter.field === 'Amount') this.quickAmount = '';
+      if (removedFilter.field === 'Balance') this.quickBalance = '';
+      if (removedFilter.field === 'Status') this.quickStatus = '';
+    }
     // keep page valid
     if (this.page > this.totalPages) this.page = this.totalPages;
   }
 
   clearAllFilters() {
     this.activeFilters = [];
+    this.quickInvoice = '';
+    this.quickClient = '';
+    this.quickDate = '';
+    this.quickDue = '';
+    this.quickAmount = '';
+    this.quickBalance = '';
+    this.quickStatus = '';
     this.page = 1;
   }
 
@@ -347,6 +411,12 @@ export class SharedBilling {
       if (idx >= 0) this.tasks.splice(idx, 1);
       if (this.page > this.totalPages) this.page = this.totalPages;
       this.loading = false;
+    } else if (action === 'generate' && task.id) {
+      this.loading = true;
+      this.resourceService.create(`Billings/${task.id}/generate-invoice`, {}).subscribe({
+        next: () => this.loadTasks(),
+        error: () => { this.loading = false; }
+      });
     }
   }
 
@@ -370,7 +440,6 @@ export class SharedBilling {
     this.showDetails = true;
     // scroll to top so details visible (optional)
     window.scrollTo({ top: 0, behavior: 'smooth' });
-    document.body.style.overflow = 'hidden'; // يمنع scroll الصفحة
 
   }
 
@@ -415,6 +484,7 @@ export class SharedBilling {
   //create new visit modal logic
 
   showCreate = false;
+  savingSchedule = false;
 
   openCreate() {
     this.showCreate = true;
@@ -432,30 +502,31 @@ export class SharedBilling {
 
 
   addTask(newInvoiceData: any) {
+    if (this.savingSchedule) return;
     const payload = {
-      invoiceNumber: newInvoiceData.Invoice || `INV-${Math.floor(Math.random() * 10000)}`,
       clientId: newInvoiceData.ClientId,
-      clientName: newInvoiceData.ClientName,
-      projectName: newInvoiceData.Project, // Assuming Project is part of input if needed, or mapped
-      issueDate: newInvoiceData.Date,
-      dueDate: newInvoiceData.Due,
-      total: newInvoiceData.Amount || 0, // InvoicesController uses 'Total'
-      balance: newInvoiceData.Balance || 0,
-      status: 'Pending',
-      photos: []
+      title: newInvoiceData.Title,
+      amount: newInvoiceData.Amount,
+      frequency: newInvoiceData.RecurringEnabled ? newInvoiceData.BillingCycle : 'OneOff',
+      paymentTermsDays: newInvoiceData.Terms,
+      startDate: newInvoiceData.IssueDate,
+      endDate: newInvoiceData.EndDate || null,
+      projectId: newInvoiceData.ProjectId,
+      autoGenerateInvoices: newInvoiceData.RecurringEnabled
     };
 
-    this.resourceService.create('Invoices/create', payload).subscribe({
+    this.savingSchedule = true;
+    this.resourceService.create('Billings/create', payload).subscribe({
       next: (created) => {
         const newInvoice: Invoice = {
           selected: false,
-          Invoice: created.id ? `INV-${created.id}` : payload.invoiceNumber,
-          Client: payload.clientName,
-          Date: payload.issueDate,
-          Due: created.dueDate || payload.dueDate,
-          Amount: created.total || payload.total,
-          Balance: payload.balance,
-          Status: created.status || 'Pending',
+          id: created.id,
+          Invoice: created.title || `BILL-${created.id}`,
+          Client: newInvoiceData.ClientName,
+          Date: created.startDate || payload.startDate,
+          Due: created.nextInvoiceDate || payload.startDate,
+          Amount: created.amount || payload.amount,
+          Status: created.isActive === false ? 'Inactive' : 'Active',
           photos: []
         };
         this.tasks.unshift(newInvoice);
@@ -465,23 +536,9 @@ export class SharedBilling {
       },
       error: (err) => {
         console.error('Failed to create invoice', err);
-        // Fallback
-        const newInvoice: Invoice = {
-          selected: false,
-          Invoice: payload.invoiceNumber,
-          Client: payload.clientName,
-          Date: payload.issueDate,
-          Due: payload.dueDate,
-          Amount: payload.total,
-          Balance: payload.balance,
-          Status: 'Pending',
-          photos: []
-        };
-        this.tasks.unshift(newInvoice);
-        this.page = 1;
-        this.showCreate = false;
-        document.body.style.overflow = 'auto';
-      }
+        this.loading = false;
+      },
+      complete: () => { this.savingSchedule = false; }
     });
   }
 

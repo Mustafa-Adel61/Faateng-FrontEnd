@@ -9,6 +9,7 @@ import { ResourceService } from '../../../core/resource.service';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { Loading } from "../loading/loading";
+import { MapComponent } from "../../../admin/pages/map/map";
 
 interface Task {
   id?: number;
@@ -25,7 +26,7 @@ interface Task {
 }
 @Component({
   selector: 'app-shared-project',
-  imports: [FormsModule, NgIf, NgFor, CreateNewProject, ProjectDetails, SharedPageHeader, Loading],
+  imports: [FormsModule, NgIf, NgFor, NgClass, CreateNewProject, ProjectDetails, SharedPageHeader, Loading, MapComponent],
   templateUrl: './shared-project.html',
   styleUrl: './shared-project.css'
 })
@@ -39,6 +40,14 @@ export class SharedProject {
   showFilterBuilder = false;
   newFilter = { field: '', value: '' };
   activeFilters: { field: string; value: string }[] = [];
+
+  // Quick filters (pinned, always visible)
+  quickProject: string = '';
+  quickClient: string = '';
+  quickCity: string = '';
+  quickContract: string = '';
+  quickStatus: string = '';
+  quickUnits: string = '';
 
   // details panel
   showDetails = false;
@@ -425,12 +434,37 @@ export class SharedProject {
     this.page = 1;
   }
 
+  // Quick filter: sets/replaces the filter for a given field directly (used by the pinned dropdowns)
+  applyQuickFilter(field: string, value: string) {
+    this.activeFilters = this.activeFilters.filter(f => f.field !== field);
+    if (value) {
+      this.activeFilters.push({ field, value });
+    }
+    this.page = 1;
+  }
+
   removeFilter(idx: number) {
+    const removed = this.activeFilters[idx];
     this.activeFilters.splice(idx, 1);
+    if (removed) {
+      if (removed.field === 'Project') this.quickProject = '';
+      if (removed.field === 'Client') this.quickClient = '';
+      if (removed.field === 'siteAddress') this.quickCity = '';
+      if (removed.field === 'Scopes') this.quickContract = '';
+      if (removed.field === 'Status') this.quickStatus = '';
+      if (removed.field === 'Units') this.quickUnits = '';
+    }
+    if (this.page > this.totalPages) this.page = this.totalPages;
   }
 
   clearAllFilters() {
     this.activeFilters = [];
+    this.quickProject = '';
+    this.quickClient = '';
+    this.quickCity = '';
+    this.quickContract = '';
+    this.quickStatus = '';
+    this.quickUnits = '';
     this.page = 1;
   }
 

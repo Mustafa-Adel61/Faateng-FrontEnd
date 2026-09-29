@@ -1,12 +1,12 @@
 <div class="list-container">
   <div class="header">
     <h2>Checklist Submissions</h2>
-    <div class="actions">
+    <!-- <div class="actions">
       <button *ngIf="isAdmin" class="btn-primary" [routerLink]="[getDashboardPath(), 'checklist-add']">Question
         Management</button>
       <button *ngIf="!isAdmin" class="btn-primary" [routerLink]="[getDashboardPath(), 'checklist']">New
         Checklist</button>
-    </div>
+    </div> -->
   </div>
 
   <div *ngIf="isLoading" class="loading">Loading...</div>
@@ -18,22 +18,22 @@
           <th>Site</th>
           <th>Unit ID</th>
           <th>Technician</th>
-          <th>Selection</th>
+          <th>Checklist</th>
           <th>Frequency</th>
           <th>Date</th>
-          <th>Client</th>
+          <!-- <th>Client</th> -->
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let s of submissions" [routerLink]="[getDashboardPath(), 'checklist-details', s.id]"
+        <tr *ngFor="let s of submissions" [routerLink]="['/dashboard/admin/submissions', s.id]"
           class="clickable-row">
           <td>{{ s.site }}</td>
           <td>{{ s.unitId }}</td>
           <td>{{ s.technicianName }}</td>
-          <td>{{ s.systemType }}</td>
+          <td>{{ s.checklistName }}</td>
           <td>{{ s.frequency }}</td>
           <td>{{ formatDate(s.date) }}</td>
-          <td>{{ s.clientName }}</td>
+          <!-- <td>{{ s.clientName }}</td> -->
         </tr>
       </tbody>
     </table>

@@ -102,11 +102,30 @@ export class SharedContacts {
   userPageSize = 10;
   selectedUser: UserRow | null = null;
   userFilterBuilder = false;
+  quickUserName: string = '';
+  quickUserRole: string = '';
+  quickUserEmail: string = '';
+  quickUserPhone: string = '';
+  quickUserPosition: string = '';
+  quickUserStatus: string = '';
   userNewFilter = { field: '', value: '' };
   userActiveFilters: { field: string; value: string }[] = [];
   toggleUserFilterBuilder() {
     this.userFilterBuilder = !this.userFilterBuilder;
     this.userNewFilter = { field: '', value: '' };
+  }
+  applyUserQuickFilter(field: string, value: string) {
+    if (!value) {
+      this.userActiveFilters = this.userActiveFilters.filter(f => f.field !== field);
+    } else {
+      const existingIndex = this.userActiveFilters.findIndex(f => f.field === field);
+      if (existingIndex > -1) {
+        this.userActiveFilters[existingIndex].value = value;
+      } else {
+        this.userActiveFilters.push({ field, value });
+      }
+    }
+    this.userPage = 1;
   }
   getUserFilterValues(field: string): string[] {
     if (!field) return [];
@@ -126,11 +145,26 @@ export class SharedContacts {
     this.userPage = 1;
   }
   removeUserFilter(idx: number) {
+    const removedFilter = this.userActiveFilters[idx];
     this.userActiveFilters.splice(idx, 1);
+    if (removedFilter) {
+      if (removedFilter.field === 'name') this.quickUserName = '';
+      if (removedFilter.field === 'role') this.quickUserRole = '';
+      if (removedFilter.field === 'email') this.quickUserEmail = '';
+      if (removedFilter.field === 'phone') this.quickUserPhone = '';
+      if (removedFilter.field === 'position') this.quickUserPosition = '';
+      if (removedFilter.field === 'isActive') this.quickUserStatus = '';
+    }
     if (this.userPage > this.userTotalPages) this.userPage = this.userTotalPages;
   }
   clearAllUserFilters() {
     this.userActiveFilters = [];
+    this.quickUserName = '';
+    this.quickUserRole = '';
+    this.quickUserEmail = '';
+    this.quickUserPhone = '';
+    this.quickUserPosition = '';
+    this.quickUserStatus = '';
     this.userPage = 1;
   }
   get filteredUsers(): UserRow[] {
@@ -204,7 +238,6 @@ export class SharedContacts {
     this.selectedUser = user;
     this.showDetails = true;
     window.scrollTo({ top: 0, behavior: 'smooth' });
-    document.body.style.overflow = 'hidden';
   }
   closeUserDetails() {
     this.selectedUser = null;

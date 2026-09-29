@@ -1,0 +1,137 @@
+<div class="checklists-page">
+  <div class="page-header">
+    <div class="header-content">
+      <h1>Checklists</h1>
+      <p class="subtitle">Create, publish and assign inspection checklists.</p>
+    </div>
+    <a class="btn-create" routerLink="/dashboard/admin/checklists/new">
+      <span class="plus-icon">+</span>
+      Create Checklist
+    </a>
+  </div>
+
+  <div class="stats-grid">
+    <div class="stat-card">
+      <span class="stat-value">{{ totalCount }}</span>
+      <span class="stat-label">Total Checklists</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-value stat-published">{{ publishedCount }}</span>
+      <span class="stat-label">Published</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-value stat-draft">{{ draftCount }}</span>
+      <span class="stat-label">Drafts</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-value stat-linked">{{ linkedUnitsCount }}</span>
+      <span class="stat-label">Linked Units</span>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="filter-toolbar">
+      <div class="search-wrapper">
+        <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <input type="text" class="search-input" [(ngModel)]="query" (ngModelChange)="onSearchChange()"
+          placeholder="Search checklist name, system or category" />
+      </div>
+      <select class="status-select" [(ngModel)]="status" (ngModelChange)="onStatusChange()">
+        <option value="">All statuses</option>
+        <option value="Published">Published</option>
+        <option value="Draft">Draft</option>
+      </select>
+    </div>
+
+    <div class="table-wrapper" *ngIf="!loading">
+      <table class="checklists-table">
+        <thead>
+          <tr>
+            <th>Checklist</th>
+            <th>Category</th>
+            <th>Questions</th>
+            <th>Linked Units</th>
+            <th>Status</th>
+            <th>Last Updated</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let checklist of filteredChecklists; trackBy: trackById" class="table-row clickable"
+            (click)="openChecklist(checklist.id)">
+            <td data-label="Checklist">
+              <div class="checklist-info">
+                <strong class="checklist-name">{{ checklist.name }}</strong>
+                <small class="checklist-meta">{{ checklist.system }} · {{ checklist.frequency }}</small>
+              </div>
+            </td>
+            <td data-label="Category">
+              <span class="category-text">{{ checklist.category }}</span>
+            </td>
+            <td data-label="Questions">
+              <span class="count-badge questions">{{ checklist.questionsCount || 0 }}</span>
+            </td>
+            <td data-label="Linked Units">
+              <span class="count-badge units">{{ checklist.linkedUnitsCount || 0 }}</span>
+            </td>
+            <td data-label="Status">
+              <span class="status-badge"
+                [ngClass]="checklist.status === 'Published' ? 'status-published' : 'status-draft'">
+                {{ checklist.status }}
+              </span>
+            </td>
+            <td data-label="Last Updated">
+              <span class="date-text">{{ formatDate(checklist.updatedDate) }}</span>
+            </td>
+            <td class="actions-cell" (click)="$event.stopPropagation()">
+              <div class="actions">
+                <button class="action-btn view-btn" (click)="openChecklist(checklist.id)">View</button>
+                <button class="action-btn delete-btn" (click)="requestDeleteChecklist(checklist)">Delete</button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="empty-state" *ngIf="filteredChecklists.length === 0 && checklists.length > 0">
+        <svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+        </svg>
+        <p>No checklists match your filters.</p>
+      </div>
+
+      <div class="empty-state" *ngIf="checklists.length === 0">
+        <svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path
+            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4">
+          </path>
+        </svg>
+        <p>No checklists yet. Create your first checklist!</p>
+      </div>
+    </div>
+
+    <div class="loading-state" *ngIf="loading">
+      <div class="spinner"></div>
+      <p>Loading checklists...</p>
+    </div>
+  </div>
+
+  <div class="confirm-overlay" *ngIf="showDeleteConfirm" (click)="cancelDelete()">
+    <div class="confirm-dialog" (click)="$event.stopPropagation()">
+      <h3>Delete Checklist?</h3>
+      <p *ngIf="checklistToDelete">
+        Are you sure you want to delete <strong>{{ checklistToDelete.name }}</strong>?
+      </p>
+      <p class="confirm-hint">This action cannot be undone.</p>
+      <div class="confirm-actions">
+        <button class="btn-cancel" (click)="cancelDelete()">Cancel</button>
+        <button class="btn-confirm" (click)="confirmDeleteChecklist()" [disabled]="deletingChecklist">
+          {{ deletingChecklist ? 'Deleting...' : 'Delete' }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

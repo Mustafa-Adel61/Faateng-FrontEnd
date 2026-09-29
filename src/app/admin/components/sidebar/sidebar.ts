@@ -2,6 +2,7 @@ import { CommonModule, NgIf } from '@angular/common';
 import { Component, EventEmitter, Output } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/auth';
+import { SidebarNotificationService } from '../../../core/sidebar-notification.service';
 
 @Component({
   selector: 'app-sidebar',
@@ -15,7 +16,11 @@ export class Sidebar {
   calendarOpen = false;
   repairsOpen = false;
   reportOpen = false;
-  constructor(private auth: AuthService) {}
+  constructor(private auth: AuthService, public notifications: SidebarNotificationService) {}
+
+  ngOnInit(): void {
+    this.notifications.refresh();
+  }
   
     logout() {
        this.auth.logout();
@@ -42,7 +47,10 @@ export class Sidebar {
 
   getChecklistLink(): string {
     const role = this.auth.getRole();
-    return role === 'admin' || role === 'manager' ? '/admin/checklist-list' : '/admin/checklist';
+    if (role === 'admin' || role === 'manager' || role === 'dispatcher') {
+      return '/dashboard/admin/submissions';
+    }
+    return '/dashboard/admin/checklist';
   }
 
   @Output() closeSidebar = new EventEmitter<void>();

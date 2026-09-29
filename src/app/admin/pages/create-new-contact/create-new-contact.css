@@ -99,6 +99,39 @@
   min-height: 60px;
 }
 
+@media (max-width: 600px) {
+  .cnv-backdrop {
+    align-items: flex-start;
+    padding: 72px 8px 16px;
+    overflow-y: auto;
+  }
+
+  .cnv-modal {
+    width: 100%;
+    max-width: none;
+    padding: 20px 12px;
+    box-sizing: border-box;
+    margin-top: 50px;
+  }
+
+  .form-grid,
+  .fields-grid,
+  .report-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .cnv-actions {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .cnv-actions button {
+    width: 100%;
+    min-height: 48px;
+    padding: 12px 18px;
+  }
+}
+
 /* الحقل اللي ياخد العرض كامل */
 .full-width {
   grid-column: 1 / -1;
@@ -134,6 +167,24 @@
   transition: 0.2s;
   font-size: 15px;
 
+}
+
+.button-loader {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  margin-right: 7px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: button-spin .7s linear infinite;
+  vertical-align: -2px;
+}
+
+@keyframes button-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .yellow-bg {
@@ -254,11 +305,23 @@
   margin-top: 5px;
 }
 
-.unit-item {
+/* .unit-item {
   display: flex;
   align-items: center;
   gap: 8px;
   padding: 8px 10px;
+  cursor: pointer;
+  border-bottom: 1px solid #eee;
+} */
+.unit-item {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  /* 👈 يظبطهم شمال */
+  gap: 16px;
+  /* 👈 قللنا المسافة */
+  padding: 12px 18px;
+  /* 👈 خفف padding */
   cursor: pointer;
   border-bottom: 1px solid #eee;
 }
@@ -277,4 +340,66 @@
 
 .unit-item input[type="checkbox"] {
   cursor: pointer;
+  margin: 0;
+  /* 👈 أهم حاجة تشيل المسافة الغريبة */
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  /* 👈 يمنع تصغيره */
+}
+
+.no-units {
+  background: #f5f5f5;
+  padding: 10px;
+  border-radius: 6px;
+  color: #888;
+}
+
+/* Steps Line progress indicator */
+.progress-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  margin: 20px auto;
+}
+
+.progress-segment {
+  flex: 1;
+  height: 6px;
+  margin: 0 5px;
+  background-color: #ddd;
+  border-radius: 10px;
+  transition: background-color 0.3s;
+}
+
+.progress-segment.active {
+  background-color: #F5D11C;
+}
+
+.subtitle {
+  font-size: 12px;
+  color: #666;
+  margin-top: -5px;
+  margin-bottom: 10px;
+}
+
+.right-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.back-button {
+  background: #eee;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+h3 {
+  margin: 0 0 5px 0;
+  font-size: 1.1em;
+  color: #333;
 }

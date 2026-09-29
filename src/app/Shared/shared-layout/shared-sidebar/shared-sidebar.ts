@@ -1,12 +1,13 @@
 import { CommonModule, NgIf } from '@angular/common';
 import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { RouterLink, RouterModule } from '@angular/router';
 import { AuthService } from '../../../core/auth';
+import { SidebarNotificationService } from '../../../core/sidebar-notification.service';
 
 @Component({
   selector: 'app-shared-sidebar',
   standalone: true,
-  imports: [NgIf,RouterLink,CommonModule],
+  imports: [NgIf,RouterLink,CommonModule,RouterModule],
   templateUrl: './shared-sidebar.html',
   styleUrl: './shared-sidebar.css'
 })
@@ -16,7 +17,7 @@ export class SharedSidebar {
   calendarOpen = false;
   repairsOpen = false;
   reportOpen = false;
-  constructor(private auth: AuthService) {}
+  constructor(private auth: AuthService, public notifications: SidebarNotificationService) {}
   
     logout() {
        this.auth.logout();
@@ -41,10 +42,24 @@ export class SharedSidebar {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
+  ngOnInit(): void {
+    this.notifications.refresh();
+  }
+
   getChecklistLink(): any[] {
     const role = this.auth.getRole();
-    const target = role === 'admin' || role === 'manager' ? 'checklist-list' : 'checklist';
-    return ['/dashboard', role, target];
+    if (role === 'admin' || role === 'manager' || role === 'dispatcher') {
+      return ['/dashboard/admin/submissions'];
+    }
+    return ['/dashboard/admin/checklist'];
+  }
+
+  getChecklistsLink(): any[] {
+    return ['/dashboard/admin/checklists'];
+  }
+
+  getDashboardPath(): string {
+    return `/dashboard/${this.role}`;
   }
 
   @Output() closeSidebar = new EventEmitter<void>();

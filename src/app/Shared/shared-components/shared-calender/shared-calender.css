@@ -1,35 +1,14 @@
+/* SASSA */
 .calendar-header {
   display: flex;
   align-items: center;
   gap: 16px;
-  margin-bottom: 50px;
-  margin-top: 70px;
+  margin-bottom: 40px;
+  margin-top: 50px;
   color: #606060;
-  font-family: 'Roboto', sans-serif;
+  font-family: 'Inter', sans-serif;
 }
 
-.todayButton {
-  cursor: pointer;
-  border: none;
-  color: #606060;
-  box-shadow: 0px 1px 2px rgba(34, 34, 34, 0.2);
-  width: 73;
-  height: 40;
-  top: 1px;
-  left: 1px;
-  margin-left: 30px;
-  opacity: 1;
-  border-radius: 6px;
-  border-width: 2px;
-  padding-top: 10px;
-  padding-right: 20px;
-  padding-bottom: 10px;
-  padding-left: 20px;
-  gap: 10px;
-  background: #FFFFFF;
-  font-weight: bold;
-  /* هنا خلي الخط Bold */
-}
 
 .ChangeDay {
   background: #FFFFFF;
@@ -72,18 +51,24 @@
 }
 
 .view-switch {
-  margin-left: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* يخلي العناصر في النص بالعرض */
+  gap: 8px;
+  /* بعير فيها عشان اغير مكانه في النص  */
+  width: 59%;
 }
 
 .view-switch button {
   /* cursor: pointer;  */
   border: none;
   /* color: Colors/Neutral/800; */
-  box-shadow: 0px 1px 2px rgba(34, 34, 34, 0.2);
+  box-shadow: 0px 2px 2px rgba(0, 0, 0, 0.2);
   width: 73px;
   height: 40px;
-  top: 1px;
-  left: 1px;
+  /* top: 1px; */
+  /* left: 1px; */
   opacity: 1;
   border-width: 2px;
   padding-top: 10px;
@@ -92,27 +77,24 @@
   padding-left: 15px;
   gap: 10px;
   background: #FFFFFF;
-  font-family: Roboto;
+  font-family: 'Inter', sans-serif;
   font-weight: bold;
+  border-radius: 6px;
+  cursor: pointer;
   /* هنا خلي الخط Bold */
-
 }
 
 .view-switch button.active {
   /* background: ; */
-  color: #050101;
+  background-color: black;
+  color: #ffffff;
 }
 
-.yearButton {
-
-  border-top-left-radius: 6px;
-  border-bottom-left-radius: 6px;
+.view-switch button:hover {
+  /* background: ; */
+  background-color: #c4c1c1;
 }
 
-.dayButton {
-  border-top-right-radius: 6px;
-  border-bottom-right-radius: 6px;
-}
 
 .calendar-table {
   width: 100%;
@@ -141,7 +123,7 @@
 
 .calendar-header-row {
   font-weight: bold;
-  height: 60px;
+  height: 46px;
 }
 
 .calendar-cell {
@@ -193,7 +175,7 @@
   padding: 8px 10px;
   /* قللت البادينج */
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  font-family: 'Roboto', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-size: 12px;
   /* صغرت الخط الأساسي */
   display: flex;
@@ -230,14 +212,14 @@
 
 .task-left .label,
 .task-right .label {
-  font-size: 11px;
+  font-size: 10px;
   /* خط أصغر */
   color: #777;
 }
 
 .task-left .value,
 .task-right .value {
-  font-size: 12px;
+  font-size: 11px;
   /* متوافق مع حجم الخلية */
   font-weight: 600;
   color: #333;
@@ -253,7 +235,7 @@
   background: rgba(0, 0, 0, 0.15);
   /* يبان أغمق من لون الباكجراوند */
   color: #000;
-  font-size: 10px;
+  font-size: 9px;
   /* أصغر */
   font-weight: bold;
   padding: 5px 7px;
@@ -346,7 +328,7 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
-  font-family: 'Roboto', sans-serif;
+  font-family: 'Inter', sans-serif;
 }
 
 .create-form h3 {
@@ -403,35 +385,28 @@
   z-index: 10;
 }
 
+.add-task {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 1000;
+}
+
 .add-task-btn {
-  position: absolute;
-  /* يفضل جوه مكانه في الصفحة */
-  left: 55%;
-  /* يجي في نص العرض */
-  transform: translateX(-50%);
-  /* علشان يكون في النص بالضبط */
-
-  display: flex;
-  justify-content: center;
-  align-items: center;
-
   pointer-events: auto;
   background: #ffcc00;
   border: none;
   border-radius: 50%;
-  width: 34px;
-  height: 34px;
+  width: 45px;
+  height: 45px;
   font-size: 20px;
   font-weight: 700;
   cursor: pointer;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
-  z-index: 11;
-  transition: transform 0.2s ease, background 0.2s ease;
 }
 
 .add-task-btn:hover {
   background: #f1c000;
-  transform: translateX(-50%) scale(1.08);
 }
 
 /* ====== شبكة التقويم الأساسية ====== */
@@ -439,7 +414,7 @@
   display: grid;
   /* grid-template-columns set dynamically in HTML */
   border-bottom: 1px solid #f0f0f0;
-  min-height: 80px;
+  min-height: 60px;
 }
 
 .calendar-header-row {
@@ -461,7 +436,7 @@
   justify-content: flex-start;
   overflow-y: auto;
   /* يمنع أي خروج للتاسك */
-  min-height: 80px;
+  min-height: 60px;
   box-sizing: border-box;
   padding: 2px;
 }
@@ -478,14 +453,14 @@
 
 /* كل الخلايا متساوية تمامًا */
 .calendar-row>.calendar-cell {
-  min-height: 80px;
+  min-height: 60px;
   height: auto;
 }
 
 /* ====== شكل التاسك الأساسي ====== */
 .calendar-task {
   width: 100%;
-  min-height: 70px;
+  min-height: 48px;
   margin-bottom: 2px;
   background: #eafbe7;
   border-radius: 6px;
@@ -494,9 +469,9 @@
   flex-direction: column;
   justify-content: center;
   align-items: flex-start;
-  padding: 6px 8px;
-  gap: 2px;
-  font-family: 'Roboto', sans-serif;
+  padding: 4px 6px;
+  gap: 1px;
+  font-family: 'Inter', sans-serif;
   color: #333;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -534,3 +509,219 @@
   outline: 2px dashed #4c9aff;
   outline-offset: -2px;
 }
+
+.status-legend {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  margin: 8px 0 30px;
+  flex-wrap: wrap;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.legend-color {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+  .legend-color.draft {
+    background: #ef4444;
+  }
+
+  .legend-color.scheduled {
+    background: #facc15;
+  }
+
+  .legend-color.waiting {
+    background: #f97316;
+  }
+
+  .legend-color.onsite {
+    background: #22c55e;
+  }
+
+  .legend-color.closed {
+    background: #9ca3af;
+  }
+
+/* ====== Responsive ====== */
+@media (max-width: 768px) {
+  .calendar-header {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 20px;
+    margin-bottom: 20px;
+  }
+
+  .calendar-header > .view-switch,
+  .calendar-header > .calendar-navigation {
+    width: 100%;
+  }
+
+  .view-switch {
+    gap: 6px;
+  }
+
+  .view-switch button {
+    flex: 1 1 auto;
+    width: auto;
+    min-width: 64px;
+    max-width: 96px;
+    padding: 10px 12px;
+  }
+
+  .calendar-navigation {
+    gap: 6px;
+  }
+
+  .calendar-navigation .ChangeDay {
+    margin: 6px 2px;
+  }
+
+  .calendar-range {
+    font-size: 14px;
+    white-space: nowrap;
+    text-align: center;
+  }
+
+  .status-legend {
+    gap: 14px;
+  }
+}
+
+@media (max-width: 420px) {
+  .view-switch button {
+    min-width: 56px;
+    max-width: 80px;
+    font-size: 13px;
+  }
+}
+
+/* ====== Mobile-first compact layout ====== */
+@media (max-width: 640px) {
+  .calendar-header {
+    margin-top: 16px;
+    margin-bottom: 16px;
+    gap: 8px;
+    align-items: stretch;
+  }
+
+  .calendar-header > .view-switch {
+    width: 100%;
+  }
+
+  .calendar-header > .view-switch button {
+    flex: 1;
+    width: 100%;
+    height: 38px;
+    max-width: none;
+    padding: 8px 10px;
+    font-size: 13px;
+  }
+
+  .calendar-header > .calendar-navigation {
+    width: 100%;
+  }
+
+  .ChangeDay {
+    width: 38px;
+    height: 38px;
+    padding: 9px;
+    margin: 4px;
+  }
+
+  .calendar-range {
+    font-size: 13px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex: 1;
+    text-align: center;
+  }
+
+  .status-legend {
+    gap: 10px 14px;
+    margin: 6px 0 18px;
+  }
+
+  .legend-item {
+    font-size: 12px;
+    gap: 6px;
+  }
+
+  .legend-color {
+    width: 12px;
+    height: 12px;
+  }
+
+  .calendar-day-label {
+    font-size: 11px;
+    text-align: center;
+    white-space: nowrap;
+  }
+
+  .calendar-header-row {
+    height: 40px;
+  }
+
+  .calendar-row {
+    min-height: 44px;
+  }
+
+  .calendar-cell {
+    min-height: 44px;
+    font-size: 12px;
+  }
+
+  .time-cell {
+    flex: 0 0 26px;
+    width: 26px;
+    padding: 0 4px;
+    font-size: 11px;
+  }
+
+  .time-cell img {
+    width: 13px;
+    height: 13px;
+    padding: 0;
+  }
+
+  .calendar-task {
+    min-height: 38px;
+    padding: 3px 5px;
+    font-size: 11px;
+    border-radius: 6px;
+  }
+
+  .task-left .label,
+  .task-right .label {
+    font-size: 9px;
+  }
+
+  .task-left .value,
+  .task-right .value {
+    font-size: 10px;
+  }
+
+  .time-tag {
+    font-size: 8px;
+    padding: 3px 5px;
+  }
+
+  .add-task-btn {
+    width: 40px;
+    height: 40px;
+    font-size: 18px;
+  }
+}
+

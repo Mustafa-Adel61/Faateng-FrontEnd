@@ -20,6 +20,8 @@ export class ProjectDetails implements OnChanges {
   @Output() notify = new EventEmitter<string>();
 
   project: any = null;
+  client: any = null;
+  clientName: string = '';
   units: any[] = [];
   projectTasks: any[] = [];
   reports: any[] = [];
@@ -88,7 +90,10 @@ export class ProjectDetails implements OnChanges {
     const projectId = this.taskss.id;
     this.resource.getById('Projects', `${projectId}/bundle`).subscribe({
       next: (bundle) => {
+        console.log('Fetched project bundle:', bundle);
         this.project = bundle?.project || null;
+        this.client = bundle?.clientName || bundle?.client || bundle?.project?.client || null;
+        this.clientName = this.client?.fullName || this.client?.userName || this.client?.name || '';
         this.units = bundle?.units || [];
         this.projectTasks = bundle?.tasks || [];
         this.monthlyTasks = Array.isArray(bundle?.monthlyTasks)
@@ -111,6 +116,8 @@ export class ProjectDetails implements OnChanges {
         }
       },
       error: () => {
+        this.client = null;
+        this.clientName = '';
         this.units = [];
         this.projectTasks = [];
         this.monthlyTasks = [];

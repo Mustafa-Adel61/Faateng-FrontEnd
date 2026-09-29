@@ -15,24 +15,26 @@
       <div class="report-form-grid">
         <h3 class="full-width">Project Identity</h3>
         <p class="full-width subtitle">Core information used across records, contracts, units, and visits.</p>
-        
         <label class="full-width">Auto-generated Project ID
           <input type="text" [value]="'PRJ-XXXX'" disabled class="disabled-input" />
         </label>
 
         <label>Project Name <span class="required">*</span>
-          <input type="text" [(ngModel)]="form.projectName" name="projectName" placeholder="e.g. Carlton Hotel - Damascus" [ngClass]="{'input-error': submitted && !form.projectName}" />
+          <input type="text" [(ngModel)]="form.projectName" name="projectName"
+            placeholder="e.g. Carlton Hotel - Damascus" [ngClass]="{'input-error': submitted && !form.projectName}" />
         </label>
 
         <label>Project Type <span class="required">*</span>
-          <select [(ngModel)]="form.ProjectType" name="ProjectType" [ngClass]="{'input-error': submitted && !form.ProjectType}">
+          <select [(ngModel)]="form.ProjectType" name="ProjectType"
+            [ngClass]="{'input-error': submitted && !form.ProjectType}">
             <option value="" disabled selected>Select Type</option>
             <option *ngFor="let t of ProjectTypes" [value]="t">{{t}}</option>
           </select>
         </label>
 
         <label class="full-width">Internal Notes
-          <textarea [(ngModel)]="form.objective" name="objective" rows="3" placeholder="Special access notes, gate requirements, commercial notes, etc."></textarea>
+          <textarea [(ngModel)]="form.objective" name="objective" rows="3"
+            placeholder="Special access notes, gate requirements, commercial notes, etc."></textarea>
         </label>
       </div>
     </div>
@@ -42,26 +44,33 @@
       <div class="report-form-grid">
         <h3 class="full-width">Site Location</h3>
         <p class="full-width subtitle">Precise address information for dispatching, quotations, and reporting.</p>
-        
-        <label class="full-width">Search Location / Address <span class="required">*</span>
-          <input id="gmap-autocomplete" type="text" [(ngModel)]="addressQuery" (input)="onAddressInput()" placeholder="Write and select location..." [ngClass]="{'input-error': submitted && !form.siteAddress}" />
-        </label>
-        
-        <div *ngIf="showAddressDropdown && addressSuggestions.length" class="suggestions-dropdown">
-          <div *ngFor="let s of addressSuggestions" (click)="selectSuggestion(s)" class="suggestion-item">
-            {{ s.display_name }}
+
+        <div class="full-width">
+          <h4 style="margin: 0;">Pin the project location <span class="required">*</span></h4>
+          <p class="subtitle" style="margin-top: 6px;">Click on the map to drop/move the pin. Search is optional</p>
+        </div>
+
+        <div class="full-width address-search-wrapper">
+          <label>Search (optional)
+            <input id="gmap-autocomplete" type="text" [(ngModel)]="addressQuery" (input)="onAddressInput()"
+              placeholder="Search..." />
+          </label>
+
+          <div *ngIf="showAddressDropdown && addressSuggestions.length" class="suggestions-dropdown">
+            <div *ngFor="let s of addressSuggestions" (click)="selectSuggestion(s)" class="suggestion-item">
+              {{ s.display_name }}
+            </div>
           </div>
         </div>
 
-        <div id="cnv-map" style="height: 250px; width: 100%; border-radius: 8px; margin-bottom: 15px;" class="full-width"></div>
+        <div id="cnv-map" style="height: 250px; width: 100%; border-radius: 8px; margin-bottom: 15px;"
+          class="full-width"></div>
 
-        <label>Location Pin / Maps Link
-          <input type="text" [(ngModel)]="form.siteAddressGoogleMapLocation" name="mapLink" readonly placeholder="Google Maps link or pin reference" />
-        </label>
-
-        <label class="full-width">Full Address
-          <textarea [(ngModel)]="form.siteAddress" name="siteAddress" rows="2" readonly placeholder="Street, building, entrance, floor access instructions"></textarea>
-        </label>
+        <!-- <label class="full-width">Full Address / Details <span class="required">*</span>
+          <textarea [(ngModel)]="form.siteAddress" name="siteAddress" rows="2"
+            placeholder="Street, building, entrance, floor access instructions"
+            [ngClass]="{'input-error': submitted && !form.siteAddress}"></textarea>
+        </label> -->
       </div>
     </div>
 
@@ -69,57 +78,53 @@
     <div *ngIf="step === 3" class="cnv-step">
       <div class="report-form-grid">
         <h3 class="full-width">Client & Account</h3>
-        
+
         <div class="full-width client-selection-header">
-            <label style="flex: 1;">Select Existing Client <span class="required" *ngIf="!isNewClient">*</span>
-              <select [(ngModel)]="selectedClientId" (change)="onClientChange()" name="clientId" [ngClass]="{'input-error': submitted && !selectedClientId && !isNewClient}">
-                <option [ngValue]="null">-- Select Client --</option>
-                <option *ngFor="let c of clients" [ngValue]="c.id">{{c.name}}</option>
-              </select>
-            </label>
-            <button type="button" class="new-client-btn" (click)="toggleNewClient()" [class.active]="isNewClient">
-                {{ isNewClient ? 'Cancel New Client' : '+ New Client' }}
-            </button>
+          <label style="flex: 1;">Select Existing Client <span class="required" *ngIf="!isNewClient">*</span>
+            <select [(ngModel)]="selectedClientId" (change)="onClientChange()" name="clientId"
+              [ngClass]="{'input-error': submitted && !selectedClientId && !isNewClient}">
+              <option [ngValue]="null">-- Select Client --</option>
+              <option *ngFor="let c of clients" [ngValue]="c.id">{{c.name}}</option>
+            </select>
+          </label>
+          <button type="button" class="new-client-btn" (click)="toggleNewClient()" [class.active]="isNewClient">
+            {{ isNewClient ? 'Cancel New Client' : '+ New Client' }}
+          </button>
         </div>
 
         <!-- New Client Form (Step 3: Project Contacts) -->
         <div *ngIf="isNewClient" class="full-width">
-            <h3 class="full-width" style="margin-top: 20px;">Project Contacts</h3>
-            <p class="full-width subtitle">Create the people attached to this project directly during project setup.</p>
-            
-            <div *ngFor="let contact of contacts; let i = index" class="contact-card full-width">
-              <div class="contact-header">
-                <h4>Contact {{i + 1}}</h4>
-                <div class="contact-actions">
-                  <label class="primary-label">
-                    <input type="radio" [checked]="contact.isPrimary" (change)="setPrimary(i)" name="primaryContact" /> Primary
-                  </label>
-                  <button *ngIf="contacts.length > 1" (click)="removeContact(i)" class="remove-btn">Remove</button>
-                </div>
-              </div>
-              <div class="contact-inputs">
-                <label>Name <span class="required">*</span>
-                  <input type="text" [(ngModel)]="contact.name" placeholder="Contact Name" />
+          <h3 class="full-width" style="margin-top: 20px;">Project Contacts</h3>
+          <p class="full-width subtitle">Create the people attached to this project directly during project setup.</p>
+
+          <div *ngFor="let contact of contacts; let i = index" class="contact-card full-width">
+            <div class="contact-header">
+              <h4>Contact {{i + 1}}</h4>
+              <div class="contact-actions">
+                <label class="primary-label">
+                  <input type="radio" [checked]="contact.isPrimary" (change)="setPrimary(i)" name="primaryContact" />
+                  Primary
                 </label>
-                <label>Role / Position
-                  <input type="text" [(ngModel)]="contact.title" placeholder="Facility Manager..." />
-                </label>
-                <label>Company
-                    <input type="text" placeholder="Company Name" />
-                </label>
-                <label>Phone <span class="required">*</span>
-                  <input type="text" [(ngModel)]="contact.phone" placeholder="+963 ..." />
-                </label>
-                <label>WhatsApp
-                    <input type="text" placeholder="+963 ..." />
-                </label>
-                <label>Email <span class="required">*</span>
-                  <input type="email" [(ngModel)]="contact.email" placeholder="name@company.com" />
-                </label>
+                <button *ngIf="contacts.length > 1" (click)="removeContact(i)" class="remove-btn">Remove</button>
               </div>
             </div>
-    
-            <button type="button" class="add-contact-btn full-width" (click)="addContact()">+ Add Contact</button>
+            <div class="contact-inputs">÷
+              <label>Name <span class="required">*</span>
+                <input type="text" [(ngModel)]="contact.name" placeholder="Contact Name" />
+              </label>
+              <label>Role / Position
+                <input type="text" [(ngModel)]="contact.title" placeholder="Facility Manager..." />
+              </label>÷
+              <label>Phone <span class="required">*</span>
+                <input type="text" [(ngModel)]="contact.phone" placeholder="+963 ..." />
+              </label>
+              <label>Email <span class="required">*</span>
+                <input type="email" [(ngModel)]="contact.email" placeholder="name@company.com" />
+              </label>
+            </div>
+          </div>
+
+          <button type="button" class="add-contact-btn full-width" (click)="addContact()">+ Add Contact</button>
         </div>
       </div>
     </div>
@@ -129,8 +134,10 @@
       <button type="button" class="cancel-button" (click)="save.emit(null)">Cancel</button>
       <div class="right-actions">
         <button type="button" *ngIf="step > 1" class="back-button" (click)="goBack()">Back</button>
-        <button type="button" class="save-button-large yellow-bg" (click)="goNext()">
-          {{ step === 3 ? 'Create Project' : 'Next' }}
+        <button type="button" class="save-button-large yellow-bg" (click)="goNext()"
+          [disabled]="saving || (step === 3 && loading)">
+          <span class="button-loader" *ngIf="saving || (step === 3 && loading)"></span>
+          {{ saving || (step === 3 && loading) ? 'Creating...' : (step === 3 ? 'Create Project' : 'Next') }}
         </button>
       </div>
     </div>

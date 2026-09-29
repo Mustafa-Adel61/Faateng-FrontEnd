@@ -1,25 +1,29 @@
+html,
+body {
+  height: auto;
+}
+
 .login-container {
   display: flex;
-  align-items: center;
+  /* align-items: center; */
+  margin-top: 10px;
   justify-content: center;
-  height: 100vh;
+
+  /* height: 80vh; */
   /* background: #fafafa; */
 }
 
 .login-box {
   background: #fff;
   border-radius: 10px;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-  width: 450px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  width: 400px;
   padding: 40px;
   text-align: center;
+  margin-bottom: 50px;
 }
 
-/* .logo {
-  width: 120px;
-  margin-bottom: 10px;
-} */
- 
+
 /* اللوجو */
 .logo-wrapper {
   position: relative;
@@ -47,44 +51,44 @@ h2 {
   margin-bottom: 8px; */
 
   font-family: Roboto;
-font-weight: 700;
-font-style: Bold;
-font-size: 20px;
-/* leading-trim: NONE; */
-line-height: 100%;
-letter-spacing: 0%;
+  font-weight: 700;
+  font-style: Bold;
+  font-size: 20px;
+  /* leading-trim: NONE; */
+  line-height: 100%;
+  letter-spacing: 0%;
 
 }
 
 .subtitle {
-font-family: Roboto;
-line-height: 1.4;
-font-weight: 300;
-margin-bottom: 25px;
-font-style: Light;
-padding-left: 25px;
-padding-right: 25px;
-font-size: 15px;
-text-align: center;
-color: #1B1616;
+  font-family: Roboto;
+  line-height: 1.4;
+  font-weight: 300;
+  margin-bottom: 25px;
+  font-style: Light;
+  padding-left: 25px;
+  padding-right: 25px;
+  font-size: 15px;
+  text-align: center;
+  color: #1B1616;
 }
 
 .form-group {
   text-align: left;
   margin-bottom: 18px;
-  position: relative; 
+  position: relative;
 }
 
 label {
-font-family: Roboto;
-font-weight: 600;
-font-style: Bold;
-font-size: 17px;
-/* leading-trim: NONE; */
-line-height: 100%;
-letter-spacing: 0%;
-color: #1B1616;
-padding-left: 10px;
+  font-family: Roboto;
+  font-weight: 600;
+  font-style: Bold;
+  font-size: 17px;
+  /* leading-trim: NONE; */
+  line-height: 100%;
+  letter-spacing: 0%;
+  color: #1B1616;
+  padding-left: 10px;
 }
 
 input {
@@ -96,16 +100,45 @@ input {
   outline: none;
   font-size: 14px;
   font-family: Roboto;
-font-weight: 300;
-font-style: Light;
-font-size: 15px;
-line-height: 100%;
-letter-spacing: 0%;
-color: #1B1616;
+  font-weight: 300;
+  font-style: Light;
+  font-size: 15px;
+  line-height: 100%;
+  letter-spacing: 0%;
+  color: #1B1616;
 }
 
 input:focus {
   border-bottom: 1.5px solid #000;
+}
+
+/* .password-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.password-wrapper button {
+  padding: 6px 10px;
+  cursor: pointer;
+} */
+.password-wrapper {
+  position: relative;
+}
+
+.password-wrapper input {
+  /* width: 90%; */
+  padding-right: 40px;
+}
+
+.toggle-password {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  user-select: none;
+  font-size: 18px;
 }
 
 .checkmark {
@@ -132,11 +165,11 @@ input:focus {
   font-weight: 600;
   transition: 0.3s;
   width: 270px;
-height: 67;
-top: 771px;
-left: 773px;
-opacity: 1;
-border-radius: 34px;
+  height: 67;
+  top: 771px;
+  left: 773px;
+  opacity: 1;
+  border-radius: 34px;
 }
 
 .login-btn:hover {

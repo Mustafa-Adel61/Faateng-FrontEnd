@@ -16,6 +16,7 @@ export class Register {
   form: any;
   error = '';
   success = '';
+  saving = false;
   private toast: ToastService = inject(ToastService);
   constructor(
     private fb: FormBuilder,
@@ -33,6 +34,8 @@ export class Register {
   }
 
   register() {
+    // منع الإرسال مرتين أثناء انتظار رد الـ backend
+    if (this.saving) return;
     // console.log(this.form.value);
     const { email, password, role } = this.form.value;
     if (!email || !password) {
@@ -42,6 +45,7 @@ export class Register {
     }
 
     const payload = this.form.value;
+    this.saving = true;
     this.auth.registerAdmin({
       fullName: payload.fullName,
       phone: payload.phone,
@@ -61,7 +65,8 @@ export class Register {
       error: (err) => {
         this.error = (err?.error || 'Registration failed');
         this.success = '';
-      }
+      },
+      complete: () => { this.saving = false; }
     });
   }
 }

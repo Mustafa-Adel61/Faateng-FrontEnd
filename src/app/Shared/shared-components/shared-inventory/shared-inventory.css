@@ -104,7 +104,7 @@
   justify-content: center;
   padding-top: 100px;
   z-index: 1000;
-  font-family: 'Poppins', sans-serif;
+  font-family: 'Inter', sans-serif;
 }
 
 .cnv-modal {
@@ -165,7 +165,7 @@
   background: transparent;
   height: 32px;
   font-size: 14px;
-  font-family: 'Poppins', sans-serif;
+  font-family: 'Inter', sans-serif;
   color: #1C1C1C;
 }
 

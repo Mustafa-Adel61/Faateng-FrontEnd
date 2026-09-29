@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { ChecklistService, ChecklistSubmission } from '../../services/checklist.service';
+import { ChecklistService, SubmissionListItem } from '../../services/checklist.service';
 import { AuthService } from '../../../core/auth';
 
 @Component({
@@ -12,7 +12,7 @@ import { AuthService } from '../../../core/auth';
   styleUrls: ['./checklist-list.css']
 })
 export class ChecklistList implements OnInit {
-  submissions: ChecklistSubmission[] = [];
+  submissions: SubmissionListItem[] = [];
   isLoading: boolean = true;
   isAdmin: boolean = false;
   role: string | null = null;
@@ -24,17 +24,19 @@ export class ChecklistList implements OnInit {
 
   ngOnInit() {
     this.role = this.auth.getRole();
-    this.isAdmin = this.role === 'admin' || this.role === 'manager';
+    console.log('Role:', this.role);
+    this.isAdmin = this.role === 'admin' || this.role === 'manager'|| this.role === 'dispatcher';
     this.loadSubmissions();
   }
 
   getDashboardPath(): string {
-    return `/dashboard/${this.role}`;
+    return '/dashboard/admin/submissions';
   }
 
   loadSubmissions() {
     this.checklistService.getAllSubmissions().subscribe(res => {
       this.submissions = res;
+      console.log('Loaded submissions:', this.submissions);
       this.isLoading = false;
     });
   }

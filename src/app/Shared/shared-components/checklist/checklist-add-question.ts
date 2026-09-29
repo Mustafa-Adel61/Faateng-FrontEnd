@@ -15,9 +15,17 @@ import { ToastService } from '../../services/toast.service';
 })
 export class ChecklistAddQuestion implements OnInit {
   role: string | null = null;
-  
+
   isEditing: boolean = false;
   editingId: number | null = null;
+  saving: boolean = false;
+
+  // Controls the popup/modal visibility
+  showModal: boolean = false;
+
+  // Controls the delete-confirmation popup
+  showDeleteModal: boolean = false;
+  questionToDelete: ChecklistQuestion | null = null;
 
   question: any = {
     systemType: '',
@@ -105,43 +113,96 @@ export class ChecklistAddQuestion implements OnInit {
   }
 
   isValid() {
-    return this.question.systemType && 
-           this.question.frequency && 
-           this.question.textEn && 
+    return this.question.systemType &&
+           this.question.frequency &&
+           this.question.textEn &&
            this.question.textAr &&
            (this.question.systemType !== 'Elevator' || this.question.variant);
   }
 
+  // Opens the modal in "Create" mode
+  openAddModal() {
+    this.isEditing = false;
+    this.editingId = null;
+    this.question = {
+      systemType: '',
+      variant: '',
+      frequency: '',
+      category: 'General & IAQ',
+      textEn: '',
+      textAr: '',
+      requirePhoto: false,
+      requireNotes: false,
+      requireNumeric: false
+    };
+    this.showModal = true;
+  }
+
+  // Closes the modal without saving
+  closeModal() {
+    this.showModal = false;
+    this.resetForm();
+  }
+
   save() {
+    if (this.saving) return;
+    this.saving = true;
+    const done = () => { this.saving = false; };
     if (this.isEditing && this.editingId) {
-      this.checklistService.updateQuestion(this.editingId, this.question).subscribe(() => {
-        this.toast.show('Question updated successfully', 'success');
-        this.resetForm();
-        this.loadAllQuestions();
+      this.checklistService.updateQuestion(this.editingId, this.question).subscribe({
+        next: () => {
+          this.toast.show('Question updated successfully', 'success');
+          this.resetForm();
+          this.showModal = false;
+          this.loadAllQuestions();
+        },
+        complete: done
       });
     } else {
-      this.checklistService.createQuestion(this.question).subscribe(() => {
-        this.toast.show('Question added successfully', 'success');
-        this.resetForm();
-        this.loadAllQuestions();
+      console.log('Creating question:', this.question);
+      this.checklistService.createQuestion(this.question).subscribe({
+        next: () => {
+          this.toast.show('Question added successfully', 'success');
+          this.resetForm();
+          this.showModal = false;
+          this.loadAllQuestions();
+        },
+        complete: done
       });
     }
   }
 
+  // Opens the modal in "Edit" mode, pre-filled with the row data
   editQuestion(q: ChecklistQuestion) {
     this.isEditing = true;
     this.editingId = q.id!;
     this.question = { ...q };
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    this.showModal = true;
   }
 
-  deleteQuestion(id: number) {
-    if (confirm('Are you sure you want to delete this question?')) {
-      this.checklistService.deleteQuestion(id).subscribe(() => {
-        this.toast.show('Question deleted successfully', 'success');
-        this.loadAllQuestions();
-      });
+  // Opens the delete-confirmation popup
+  confirmDelete(q: ChecklistQuestion) {
+    this.questionToDelete = q;
+    this.showDeleteModal = true;
+  }
+
+  // Closes the delete-confirmation popup without deleting
+  cancelDelete() {
+    this.showDeleteModal = false;
+    this.questionToDelete = null;
+  }
+
+  // Runs after the user confirms deletion inside the popup
+  deleteQuestion() {
+    if (!this.questionToDelete?.id) {
+      return;
     }
+    this.checklistService.deleteQuestion(this.questionToDelete.id).subscribe(() => {
+      this.toast.show('Question deleted successfully', 'success');
+      this.showDeleteModal = false;
+      this.questionToDelete = null;
+      this.loadAllQuestions();
+    });
   }
 
   resetForm() {
@@ -163,4 +224,5 @@ export class ChecklistAddQuestion implements OnInit {
   getDashboardPath(): string {
     return `/dashboard/${this.role}`;
   }
+
 }

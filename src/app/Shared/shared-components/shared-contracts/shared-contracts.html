@@ -1,44 +1,58 @@
 <app-shared-page-header [createButtonLabel]="'CREATE CONTRACT'"
   [showCreateVisitButton]="role === 'admin' || role === 'manager'" (createVisit)="openCreate()">
-  <span breadcrumb>CRM &gt; Contracts</span>
+  <!-- <span breadcrumb>CRM &gt; Contracts</span> -->
 </app-shared-page-header>
 
 <!-- modal create -->
-<app-create-new-contact *ngIf="showCreate" (close)="closeCreate()" (save)="addTask($event)">
+<app-create-new-contact *ngIf="showCreate" [saving]="savingContract" (close)="closeCreate()" (save)="addTask($event)">
 </app-create-new-contact>
 
 
 <div class="task-list">
   <app-loading [loading]="loading"></app-loading>
-
   <div class="tab-content">
     <div class="status-summary" *ngIf="contracts.length">
-      <div class="summary-card">
-        <span class="label">Total</span>
-        <span class="count">{{ totalCount }}</span>
+      <div class="summary-card total">
+        <div class="card-icon">📊</div>
+        <div class="card-content">
+          <span class="label">Total</span>
+          <span class="count">{{ totalCount }}</span>
+        </div>
       </div>
-      <div class="summary-card">
-        <span class="label">Approved</span>
-        <span class="count">{{ approvedCount }}</span>
+      <div class="summary-card approved">
+        <div class="card-icon">✓</div>
+        <div class="card-content">
+          <span class="label">Approved</span>
+          <span class="count">{{ approvedCount }}</span>
+        </div>
       </div>
-      <div class="summary-card">
-        <span class="label">Rejected</span>
-        <span class="count">{{ rejectedCount }}</span>
+      <div class="summary-card critical">
+        <div class="card-icon">✕</div>
+        <div class="card-content">
+          <span class="label">Rejected</span>
+          <span class="count">{{ rejectedCount }}</span>
+        </div>
       </div>
-      <div class="summary-card">
-        <span class="label">Active</span>
-        <span class="count">{{ activeCount }}</span>
+      <div class="summary-card active">
+        <div class="card-icon">📋</div>
+        <div class="card-content">
+          <span class="label">Active</span>
+          <span class="count">{{ activeCount }}</span>
+        </div>
       </div>
-      <div class="summary-card">
-        <span class="label">Total Value</span>
-        <span class="count">{{ totalValue | currency }}</span>
+      <div class="summary-card value">
+        <div class="card-icon">💰</div>
+        <div class="card-content">
+          <span class="label">Total Value</span>
+          <span class="count">{{ totalValue | currency }}</span>
+        </div>
       </div>
     </div>
     <ng-container *ngIf="activeTab === 'list'">
       <div class="task-toolbar">
         <div class="toolbar-left">
           <button class="icon-btn">+</button>
-          <button class="icon-btn" (click)="toggleFilterBuilder()">
+          <button class="icon-btn" [class.active]="showFilterBuilder" (click)="toggleFilterBuilder()">
             <img src="/assets/images/Vector3.png" alt="">
           </button>
           <button class="icon-btn">⇅</button>
@@ -51,28 +65,62 @@
           </div>
         </div>
       </div>
-      <div class="filter-builder" *ngIf="showFilterBuilder">
-        <h4>Add filter</h4>
-        <div class="filter-row">
-          <select [(ngModel)]="newFilter.field">
-            <option value="">Select Field</option>
-            <option value="Title">Title</option>
-            <option value="Client">Client</option>
-            <option value="Project">Project</option>
-            <option value="Type">Type</option>
-            <option value="Cycle">Cycle</option>
-            <option value="Status">Status</option>
-          </select>
-          <select [(ngModel)]="newFilter.value" *ngIf="getFilterValues(newFilter.field).length">
-            <option *ngFor="let v of getFilterValues(newFilter.field)" [value]="v">{{ v }}</option>
-          </select>
-          <button class="add-btn" (click)="applyFilter()">Apply</button>
-          <button class="add-btn" (click)="showFilterBuilder=false" style="background:#ccc;color:#000">Close</button>
+
+      <!-- Filter Builder Panel -->
+      <div class="filter-builder-panel" *ngIf="showFilterBuilder">
+        <div class="filter-builder-header">
+          <h4>Filter Options</h4>
+          <button class="close-panel-btn" (click)="showFilterBuilder = false">×</button>
+        </div>
+        <div class="filter-grid">
+          <div class="filter-field-group">
+            <label>Client</label>
+            <select [(ngModel)]="quickClient" (change)="applyQuickFilter('Client', quickClient)">
+              <option value="">All Clients</option>
+              <option *ngFor="let v of getFilterValues('Client')" [value]="v">{{ v }}</option>
+            </select>
+          </div>
+          <div class="filter-field-group">
+            <label>Project</label>
+            <select [(ngModel)]="quickProject" (change)="applyQuickFilter('Project', quickProject)">
+              <option value="">All Projects</option>
+              <option *ngFor="let v of getFilterValues('Project')" [value]="v">{{ v }}</option>
+            </select>
+          </div>
+          <div class="filter-field-group">
+            <label>Type</label>
+            <select [(ngModel)]="quickType" (change)="applyQuickFilter('Type', quickType)">
+              <option value="">All Types</option>
+              <option *ngFor="let v of getFilterValues('Type')" [value]="v">{{ v }}</option>
+            </select>
+          </div>
+          <div class="filter-field-group">
+            <label>Frequency</label>
+            <select [(ngModel)]="quickCycle" (change)="applyQuickFilter('Cycle', quickCycle)">
+              <option value="">All Frequencies</option>
+              <option *ngFor="let v of getFilterValues('Cycle')" [value]="v">{{ v }}</option>
+            </select>
+          </div>
+          <div class="filter-field-group">
+            <label>Status</label>
+            <select [(ngModel)]="quickStatus" (change)="applyQuickFilter('Status', quickStatus)">
+              <option value="">All Statuses</option>
+              <option *ngFor="let v of getFilterValues('Status')" [value]="v">{{ v }}</option>
+            </select>
+          </div>
+        </div>
+        <div class="filter-panel-actions">
+          <button class="clear-btn" *ngIf="activeFilters.length" (click)="clearAllFilters()">Clear All Filters</button>
+          <button class="cancel-btn" (click)="showFilterBuilder = false">Close</button>
         </div>
       </div>
+
+      <!-- Active filters -->
       <div class="active-filters" *ngIf="activeFilters.length">
+        <span class="af-label">Active Filters:</span>
         <span class="filter-chip" *ngFor="let f of activeFilters; let i = index">
-          {{ f.field }}: <strong>{{ f.value }}</strong>
+          <span class="chip-field">{{ f.field }}:</span>
+          <span class="chip-value">{{ f.value }}</span>
           <button (click)="removeFilter(i)">×</button>
         </span>
         <button class="clear-btn" (click)="clearAllFilters()">Clear All</button>
@@ -81,67 +129,75 @@
         {{ selectedCount }} row(s) selected
       </div>
 
-      <table>
-        <thead>
-          <tr>
-            <th>
-              <input type="checkbox" [checked]="allSelected" (change)="allSelected = $event.target.checked; toggleAll()"
-                (click)="$event.stopPropagation()" />
-            </th>
-            <th class="faded">CONTRACT</th>
-            <th class="faded">CLIENT</th>
-            <th class="faded">PROJECT</th>
-            <th class="faded">UNITS</th>
-            <th class="faded">START</th>
-            <th class="faded">END</th>
-            <th class="faded">DAYS LEFT</th>
-            <th class="faded">CYCLE</th>
-            <th class="faded">VALUE</th>
-            <th class="faded">NEXT BILL</th>
-            <th class="faded">STATUS</th>
-            <th class="faded">ACTION</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let contract of pagedContracts" (click)="openDetails(contract)">
-            <td data-label="Select">
-              <input type="checkbox" [(ngModel)]="contract.selected" (change)="updateAllSelected()"
-                (click)="$event.stopPropagation()" />
-            </td>
-            <td class="faded" data-label="Contract">
-              <div class="contract-info-cell">
-                <span class="contract-name-text" [title]="contract.Title">CTR-{{contract.id}}</span>
-                <span class="contract-id-subtext">{{contract.Title}}</span>
-              </div>
-            </td>
-            <td class="faded" data-label="Client">
-              <span class="text-ellipsis" [title]="contract.Client">{{contract.Client}}</span>
-            </td>
-            <td class="faded" data-label="Project">
-              <span class="text-ellipsis" [title]="contract.Project">{{contract.Project}}</span>
-            </td>
-            <td class="faded" data-label="Units">{{contract.UnitsCount}} selected</td>
-            <td class="faded" data-label="Start">{{contract.StartDate}}</td>
-            <td class="faded" data-label="End">{{contract.EndDate}}</td>
-            <td class="faded" data-label="Days Left">
-              <span
-                [ngClass]="{'expired-text': contract.DaysLeft === 'Expired', 'days-left-text': contract.DaysLeft !== 'Expired'}">
-                {{contract.DaysLeft}}
-              </span>
-            </td>
-            <td class="faded" data-label="Cycle">{{contract.Cycle}}</td>
-            <td class="faded" data-label="Value">{{contract.Value | currency}}</td>
-            <td class="faded" data-label="Next Bill">{{contract.NextBill}}</td>
-            <td data-label="Status">
-              <span class="status-pill"
-                [ngClass]="'status-' + contract.Status?.replace(' ', '-')">{{ contract.Status }}</span>
-            </td>
-            <td (click)="$event.stopPropagation()">
-              <button class="open-btn" (click)="openDetails(contract)">Open</button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+      <div class="table-container">
+        <table class="custom-table">
+          <thead>
+            <tr>
+              <th class="checkbox-col">
+                <input type="checkbox" [checked]="allSelected"
+                  (change)="allSelected = $event.target.checked; toggleAll()" (click)="$event.stopPropagation()" />
+              </th>
+              <th>CONTRACT</th>
+              <th>CLIENT</th>
+              <th>PROJECT</th>
+              <th>UNITS</th>
+              <th>START</th>
+              <th>END</th>
+              <th>DAYS LEFT</th>
+              <th>FREQUENCY</th>
+              <!-- <th>VALUE</th> -->
+              <th>NEXT BILL</th>
+              <!-- <th>STATUS</th> -->
+              <th>ACTION</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let contract of pagedContracts" (click)="openDetails(contract)">
+              <td class="checkbox-col" data-label="Select" (click)="$event.stopPropagation()">
+                <input type="checkbox" [(ngModel)]="contract.selected" (change)="updateAllSelected()" />
+              </td>
+              <td data-label="Contract">
+                <div class="contract-info-cell">
+                  <span class="contract-name-text" [title]="contract.Title">CTR-{{contract.id}}</span>
+                  <span class="text-ellipsis contract-id-subtext">{{contract.Title}}</span>
+                </div>
+              </td>
+              <td data-label="Client">
+                <span class="text-ellipsis" [title]="contract.Client">{{contract.Client}}</span>
+              </td>
+              <td data-label="Project">
+                <span class="text-ellipsis" [title]="contract.Project">{{contract.Project}}</span>
+              </td>
+              <td data-label="Units">
+                <div class="units-cell" *ngIf="contract.Units.length">
+                  <span class="unit-chip" *ngFor="let unit of contract.Units" [title]="unit.name">
+                    {{ unit.name }}
+                  </span>
+                </div>
+                <span *ngIf="!contract.Units.length">No units</span>
+              </td>
+              <td data-label="Start">{{contract.StartDate}}</td>
+              <td data-label="End">{{contract.EndDate}}</td>
+              <td data-label="Days Left">
+                <span
+                  [ngClass]="{'expired-text': contract.DaysLeft === 'Expired', 'days-left-text': contract.DaysLeft !== 'Expired'}">
+                  {{contract.DaysLeft}}
+                </span>
+              </td>
+              <td data-label="Frequency">{{contract.Cycle}}</td>
+              <!-- <td data-label="Value">{{contract.Value | currency}}</td> -->
+              <td data-label="Next Bill">{{contract.NextBill}}</td>
+              <!-- <td data-label="Status">
+                <span class="status-pill"
+                  [ngClass]="'status-' + contract.Status?.replace(' ', '-')">{{ contract.Status }}</span>
+              </td> -->
+              <td data-label="Action" (click)="$event.stopPropagation()">
+                <button class="open-btn" (click)="openDetails(contract)">Open</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
       <div class="pagination" *ngIf="totalPages > 1">
         <button class="page-btn" [disabled]="page === 1" (click)="setPage(page-1)">&lt;</button>
         <ng-container *ngFor="let p of visiblePages">
@@ -156,22 +212,37 @@
 <div class="details-overlay" *ngIf="showDetails">
   <div class="details-panel">
     <button class="close-btn" (click)="closeDetails()">✕</button>
-    <h2>Contract Details</h2>
-    <p><strong>Title:</strong> {{ selected?.Title }}</p>
-    <p><strong>Client:</strong> {{ selected?.Client }}</p>
-    <p><strong>Type:</strong> {{ selected?.Type }}</p>
-    <p><strong>Status:</strong> {{ selected?.Status }}</p>
-    <p><strong>Value:</strong> {{ selected?.Value || 0 }}</p>
-    <p><strong>Start Date:</strong> {{selected?.StartDate }}</p>
-    <p><strong>End Date:</strong> {{ selected?.EndDate }}</p>
-    <p><strong>Terms:</strong> {{ selected?.Terms }}</p>
-    <div *ngIf="selected?.raw?.Units?.length" style="margin-top:12px;">
-      <h3>Linked Units</h3>
-      <ul>
-        <li *ngFor="let u of selected.raw.Units">
-          {{ u.serial }} - {{ u.model }} ({{ u.type }})
-        </li>
-      </ul>
+    <div class="details-heading">
+      <div><span class="details-kicker">Contract</span>
+        <h3>{{ selected?.Title }}</h3>
+      </div>
+      <span class="detail-chip"
+        [ngClass]="'status-' + selected?.Status?.replace(' ', '-')">{{ selected?.Status }}</span>
+    </div>
+    <div class="details-summary">
+      <div><span>Contract value</span><strong>{{ selected?.Value | currency }}</strong></div>
+      <div><span>Visit frequency</span><strong>{{ selected?.Cycle || 'One-off' }}</strong></div>
+      <div><span>Days remaining</span><strong>{{ selected?.DaysLeft }}</strong></div>
+    </div>
+    <div class="details-grid">
+      <p><strong>Client</strong><span>{{ selected?.Client }}</span></p>
+      <p><strong>Project</strong><span>{{ selected?.Project }}</span></p>
+      <p><strong>Type</strong><span>{{ selected?.Type }}</span></p>
+      <p><strong>Billing
+          frequency</strong><span>{{ selected?.raw?.billingFrequency || selected?.raw?.BillingFrequency || selected?.Cycle || 'Monthly' }}</span>
+      </p>
+      <p><strong>Start date</strong><span>{{ selected?.StartDate }}</span></p>
+      <p><strong>End date</strong><span>{{ selected?.EndDate || 'Ongoing' }}</span></p>
+      <p><strong>Next visit</strong><span>{{ selected?.NextBill || '—' }}</span></p>
+      <p><strong>Terms</strong><span>{{ selected?.Terms || '—' }}</span></p>
+    </div>
+    <div class="detail-section" *ngIf="selected?.Units?.length">
+      <span class="section-label">Linked units</span>
+      <div class="chips-row">
+        <span class="detail-chip chip-unit" *ngFor="let unit of selected?.Units" [title]="unit.type || ''">
+          {{ unit.name }}
+        </span>
+      </div>
     </div>
   </div>
 </div>

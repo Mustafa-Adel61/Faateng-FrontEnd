@@ -1,27 +1,29 @@
-import { Component, EventEmitter, Input, Output, OnChanges, SimpleChanges, inject } from '@angular/core';
+import { Component, EventEmitter, Input, Output, OnChanges, OnDestroy, OnInit, SimpleChanges, inject } from '@angular/core';
 import { NgIf, NgFor, NgClass } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TaskService } from '../../../core/task.service';
 import { AuthService } from '../../../core/auth';
 import { ResourceService } from '../../../core/resource.service';
+import { ChecklistService } from '../../services/checklist.service';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { ToastService } from '../../services/toast.service';
+import { Subject, catchError, debounceTime, distinctUntilChanged, map, of, switchMap, takeUntil, tap } from 'rxjs';
 
 @Component({
   selector: 'app-shared-task-details',
   standalone: true,
-  imports: [NgIf, NgFor, FormsModule,NgClass],
+  imports: [NgIf, NgFor, FormsModule, NgClass],
   templateUrl: './shared-task-details.html',
   styleUrl: './shared-task-details.css'
 })
-export class SharedTaskDetails implements OnChanges {
+export class SharedTaskDetails implements OnInit, OnDestroy, OnChanges {
   @Input() visible: boolean = false;
   @Input() task: any = null;
   @Input() statuses: string[] = [];
   @Input() taskId: number | null = null;
-  @Input() role: 'admin'|'manager'|'dispatcher'|'technician'|'client'|'finance'|null = null;
-  @Input() focusEdit: 'assignees'|'priority'|'objective'|null = null;
+  @Input() role: 'admin' | 'manager' | 'dispatcher' | 'technician' | 'client' | 'finance' | null = null;
+  @Input() focusEdit: 'assignees' | 'priority' | 'objective' | null = null;
   @Output() close = new EventEmitter<void>();
   @Output() changeStatus = new EventEmitter<string>();
   @Output() updated = new EventEmitter<any>();
@@ -30,12 +32,33 @@ export class SharedTaskDetails implements OnChanges {
   private taskService: TaskService = inject(TaskService); 
   private auth: AuthService = inject(AuthService);
   private resource: ResourceService = inject(ResourceService);
+  private checklistService: ChecklistService = inject(ChecklistService);
   private http: HttpClient = inject(HttpClient);
   private router: Router = inject(Router);
+  
+  // Temporary state for pending changes
+  tempTask: any = null;
+  tempPriority: string = '';
+  tempObjective: string = '';
+  tempAddress: string = '';
+  tempLat: number | null = null;
+  tempLng: number | null = null;
+  tempTeam: string = '';
+  tempSelectedAssigneeId: string = '';
+  tempDueInput: string = '';
+  tempSlaDueInput: string = '';
+  
   dueInput: string = '';
   slaDueInput: string = '';
   savingTiming = false;
   private lastLoadedId: number | null = null;
+  private lastStatus = '';
+  showStatusConfirmation = false;
+  pendingStatus = '';
+  pendingPreviousStatus = '';
+  pendingStatusReason = '';
+  checklistId: number | null = null;
+  hasChecklist: boolean = false;
   review: any = { date: false, objective: false, address: false, assignee: false, team: false, units: false, checklist: false, priority: false };
   technicians: { id: string, name: string }[] = [];
   selectedTechnicianIds: string[] = [];
@@ -52,6 +75,39 @@ export class SharedTaskDetails implements OnChanges {
   showAddressDropdown = false;
   latDraft: number | null = null;
   lngDraft: number | null = null;
+  private readonly addressInput$ = new Subject<string>();
+  private readonly destroy$ = new Subject<void>();
+  private readonly addressCache = new Map<string, { ts: number; data: { display_name: string; lat: string; lon: string }[] }>();
+
+  ngOnInit(): void {
+    this.role = (this.role || this.auth.currentRole()) as typeof this.role;
+    this.addressInput$
+      .pipe(
+        map(v => String(v || '').trim()),
+        debounceTime(250),
+        distinctUntilChanged(),
+        switchMap(q => {
+          if (q.length < 3) return of([]);
+          const cached = this.addressCache.get(q);
+          if (cached && Date.now() - cached.ts < 5 * 60 * 1000) return of(cached.data);
+          const url = `https://nominatim.openstreetmap.org/search?format=json&limit=6&countrycodes=eg,lb&accept-language=ar&q=${encodeURIComponent(q)}`;
+          return this.http.get<any[]>(url).pipe(
+            tap((res: any[]) => this.addressCache.set(q, { ts: Date.now(), data: (res || []) as any })),
+            catchError(() => of([]))
+          );
+        }),
+        takeUntil(this.destroy$)
+      )
+      .subscribe((res: any) => {
+        this.addressSuggestions = res || [];
+        this.showAddressDropdown = String(this.addressQuery || '').trim().length >= 3;
+      });
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
 
   get showChecklistBtn(): boolean {
     if (this.role !== 'technician' || !this.task) return false;
@@ -60,74 +116,221 @@ export class SharedTaskDetails implements OnChanges {
     return s !== 'scheduled' && s !== 'draft';
   }
 
+  // ================== Unit Picker Popup ==================
+  // لما التاسك يكون فيها أكتر من unit بنعرض popup عشان يختار هيشتغل على أنهي unit
+  showUnitPicker = false;
+  unitPickerMode: 'checklist' | 'view' = 'checklist';
+  pickerUnits: { id: number; name: string; type?: string; done?: boolean; submissionId?: number }[] = [];
+
   openChecklist() {
+    if (this.role === 'client') return;
     if (!this.task) return;
-    
-    const allowedTypes = [
-      'Elevator', 'Escalator', 'Moving Walk',
-      'AHU', 'FCU', 'VRF / DX', 'Chiller', 'Cooling Tower',
-      'Pump', 'Exhaust/Supply Fan', 'Package / Rooftop Unit'
-    ];
-
-    // 1. Try exact match from backend unitType
-    let unitType = '';
-    if (this.task.unitType) {
-      unitType = allowedTypes.find(t => t.toLowerCase() === this.task.unitType.toLowerCase()) || '';
+    const unitList = this.task.unitList || [];
+    if (unitList.length > 1) {
+      this.unitPickerMode = 'checklist';
+      this.pickerUnits = unitList.map((u: any) => ({ ...u }));
+      this.showUnitPicker = true;
+      return;
     }
-    
-    // 2. Fallback to inference from units string if no exact match
-    if (!unitType) {
-      if (this.task.units) {
-        const unitsLower = this.task.units.toLowerCase();
-        if (unitsLower.includes('elevator')) unitType = 'Elevator';
-        else if (unitsLower.includes('escalator')) unitType = 'Escalator';
-        else if (unitsLower.includes('moving walk')) unitType = 'Moving Walk';
-        else if (unitsLower.includes('ahu')) unitType = 'AHU';
-        else if (unitsLower.includes('fcu')) unitType = 'FCU';
-        else if (unitsLower.includes('vrf')) unitType = 'VRF / DX';
-        else if (unitsLower.includes('chiller')) unitType = 'Chiller';
-        else if (unitsLower.includes('cooling tower')) unitType = 'Cooling Tower';
-        else if (unitsLower.includes('pump')) unitType = 'Pump';
-        else if (unitsLower.includes('fan')) unitType = 'Exhaust/Supply Fan';
-        else if (unitsLower.includes('package')) unitType = 'Package / Rooftop Unit';
-      }
-    }
+    this.proceedChecklist(unitList[0]);
+  }
 
-    // Default to Elevator if all fails
-    if (!unitType) unitType = 'Elevator';
-
-    let variant = this.task.unitVariant || 'Standard';
-    let frequency = this.task.frequency || 'Monthly';
-    
-    const queryParams = {
+  proceedChecklist(unit?: { id: number; name: string }) {
+    if (!this.task) return;
+    this.showUnitPicker = false;
+    const numericUnitId = unit?.id ?? this.task.unitId ?? (this.task.unit?.id ?? null);
+    const queryParams: any = {
       site: this.task.name || '',
-      unitId: this.task.units || '',
-      technician: this.task.assignee || '',
-      system: unitType,
-      variant: variant,
-      frequency: frequency,
-      taskId: this.taskId
+      unitId: numericUnitId != null ? String(numericUnitId) : (this.task.units || ''),
+      technician: this.task.assignee || ''
     };
+    if (unit?.name) queryParams.unitName = unit.name;
+    else if (this.task?.unit?.name) queryParams.unitName = this.task.unit.name;
+    if (this.task?.id != null) queryParams.taskId = this.task.id;
 
-    this.router.navigate(['/dashboard/technician/checklist'], { queryParams });
+    const role = this.role || this.auth.currentRole() || 'technician';
+    this.router.navigate([`/dashboard/${role}/checklist`], { queryParams });
     this.onClose();
   }
 
-  onClose() { this.close.emit(); }
-  onStatusChange() {
-    const s = this.task?.status || 'Scheduled';
-    this.changeStatus.emit(s);
+  viewChecklist() {
+    if (this.role === 'client') return;
+    if (!this.checklistId) return;
+    const unitList = this.task?.unitList || [];
+    if (unitList.length > 1 && this.task?.id != null) {
+      // نجيب كل الـ submissions بتاعة التاسك عشان نظهر أنهي units خلصت
+      this.checklistService.getSubmissionsForTask(this.task.id).subscribe({
+        next: (subs: any[]) => {
+          this.unitPickerMode = 'view';
+          this.pickerUnits = unitList.map((u: any) => {
+            const sub = subs.find(s => String(s.unitId) === String(u.id));
+            return { ...u, done: !!sub, submissionId: sub?.id };
+          });
+          this.showUnitPicker = true;
+        },
+        error: () => {
+          this.toast.show('Failed to load checklists', 'error');
+        }
+      });
+      return;
+    }
+    this.proceedView(null);
   }
+
+  proceedView(unit: { id: number; submissionId?: number } | null) {
+    if (!this.checklistId) return;
+    let targetId = this.checklistId;
+    if (unit?.submissionId) targetId = unit.submissionId;
+    const role = this.role || this.auth.currentRole() || 'technician';
+    this.router.navigate([`/dashboard/${role}/checklist-details`, targetId]);
+    this.onClose();
+  }
+
+  onPickUnit(unit: { id: number; name: string; submissionId?: number }) {
+    if (this.unitPickerMode === 'checklist') {
+      this.proceedChecklist(unit);
+    } else {
+      this.proceedView(unit);
+    }
+  }
+
+  closeUnitPicker() {
+    this.showUnitPicker = false;
+    this.pickerUnits = [];
+  }
+
+  onClose() { this.close.emit(); }
+  
+  // onStatusChange() {
+   // // Do NOT emit changeStatus or make API calls immediately!
+    // // We'll handle this in confirm() method
+  // }
+   onStatusChange() {
+    if (this.role === 'client') return;
+    const s = this.task?.status || 'Scheduled';
+    const previousStatus = this.lastStatus || s;
+    const isManagement = this.role === 'admin' || this.role === 'manager' || this.role === 'dispatcher';
+    const statusChanged = s !== previousStatus;
+    const dispatchWithoutTechnician = s === 'Dispatched' && !this.task?.assigneeId && !this.task?.assignee;
+    const unexpectedTransition = this.isUnexpectedTransition(previousStatus, s);
+    if (statusChanged && isManagement && (dispatchWithoutTechnician || unexpectedTransition)) {
+      this.pendingStatus = s;
+      this.pendingPreviousStatus = previousStatus;
+      this.pendingStatusReason = dispatchWithoutTechnician
+        ? 'A task cannot be dispatched without an assigned technician. Assign a technician first so the system knows who is responsible for the work.'
+        : `This is an unusual workflow transition from ${previousStatus} to ${s}. It may bypass scheduling, technician execution, review, or report generation.`;
+      this.showStatusConfirmation = true;
+      this.task.status = previousStatus;
+      return;
+    }
+    this.saveStatus(s, previousStatus);
+  }
+
+  confirmStatusChange() {
+    if (!this.task || !this.pendingStatus) return;
+    const status = this.pendingStatus;
+    const previousStatus = this.pendingPreviousStatus;
+    this.showStatusConfirmation = false;
+    this.task.status = status;
+    this.saveStatus(status, previousStatus);
+  }
+
+  cancelStatusChange() {
+    if (this.task) this.task.status = this.pendingPreviousStatus || this.task.status;
+    this.showStatusConfirmation = false;
+    this.pendingStatus = '';
+    this.pendingPreviousStatus = '';
+  }
+
+  private saveStatus(s: string, previousStatus: string) {
+    this.changeStatus.emit(s);
+    if (this.task?.id != null) {
+      // Auto-save: يتم حفظ تغيير الحالة فوراً بدون الحاجة للـ Confirm
+      this.taskService.updateStatus(this.task.id, s).subscribe({
+        next: () => {
+          this.lastStatus = s;
+          this.updated.emit({ id: this.task.id, status: s });
+          this.toast.show('Status updated successfully', 'success');
+        },
+        error: () => {
+          this.task.status = previousStatus;
+          this.toast.show('Failed to update status', 'error');
+        }
+      });
+    }
+  }
+
+  private isUnexpectedTransition(from: string, to: string): boolean {
+    const normalTransitions: Record<string, string[]> = {
+      Draft: ['Scheduled', 'Dispatched', 'Backlog'],
+      Scheduled: ['Dispatched', 'Backlog'],
+      Dispatched: ['On-Site', 'Scheduled', 'Backlog'],
+      'On-Site': ['Waiting for Parts', 'QA/Review', 'Dispatched'],
+      'Waiting for Parts': ['On-Site', 'QA/Review', 'Dispatched'],
+      'QA/Review': ['Closed', 'On-Site', 'Waiting for Parts'],
+      Backlog: ['Draft', 'Scheduled', 'Dispatched'],
+      Closed: ['QA/Review']
+    };
+    return !(normalTransitions[from] || []).includes(to);
+  }
+  startEdit(field: string) {
+    // Initialize temp values when starting edit
+    if (field === 'priority') {
+      this.tempPriority = this.priorityDraft;
+    } else if (field === 'objective') {
+      this.tempObjective = this.objectiveDraft;
+    } else if (field === 'address') {
+      this.tempAddress = this.addressDraft;
+      this.tempLat = this.latDraft;
+      this.tempLng = this.lngDraft;
+    } else if (field === 'team') {
+      this.tempTeam = this.teamDraft;
+    } else if (field === 'assignees') {
+      this.tempSelectedAssigneeId = this.selectedAssigneeId;
+    } else if (field === 'timing') {
+      this.tempDueInput = this.dueInput;
+      this.tempSlaDueInput = this.slaDueInput;
+    }
+  }
+  
+  cancelEdit(field: string) {
+    if (field === 'priority') {
+      this.priorityDraft = this.tempPriority;
+      this.editing.priority = false;
+    } else if (field === 'objective') {
+      this.objectiveDraft = this.tempObjective;
+      this.editing.objective = false;
+    } else if (field === 'address') {
+      this.addressDraft = this.tempAddress;
+      this.latDraft = this.tempLat;
+      this.lngDraft = this.tempLng;
+      this.editing.address = false;
+    } else if (field === 'team') {
+      this.teamDraft = this.tempTeam;
+      this.editing.team = false;
+    } else if (field === 'assignees') {
+      this.selectedAssigneeId = this.tempSelectedAssigneeId;
+      this.editing.assignees = false;
+    } else if (field === 'timing') {
+      this.dueInput = this.tempDueInput;
+      this.slaDueInput = this.tempSlaDueInput;
+      this.editing.timing = false;
+    }
+  }
+
   canConfirm(): boolean {
     const r = this.review;
     return !!(r.date && r.objective && r.address && r.assignee && r.team && r.units && r.checklist && r.priority);
   }
+  
   confirmAndSchedule() {
     if (!this.canConfirm()) return;
     this.task.status = 'Scheduled';
-    this.onStatusChange();
+    this.confirm();
   }
+  
   ngOnChanges(changes: SimpleChanges): void {
+    this.role = (this.role || this.auth.currentRole()) as typeof this.role;
     const id = this.taskId ?? null;
     if (id && this.visible && id !== this.lastLoadedId) {
       this.lastLoadedId = id;
@@ -142,6 +345,15 @@ export class SharedTaskDetails implements OnChanges {
         const dueStr = fmt(startDate);
         const endOutStr = fmt(endDate);
         const slaOutStr = fmt(slaDate);
+
+        // كل الـ units المرتبطة بالتاسك (لو التاسك من كونتراكت فيه أكتر من unit)
+        const rawUnits: any[] = ((t as any)?.units || []).filter((u: any) => u && u.id != null);
+        const unitList = rawUnits.map((u: any) => ({
+          id: Number(u.id),
+          name: `${u.model} (${u.serial})`,
+          type: u.type || ''
+        }));
+
         this.task = {
           id: t.id,
           name: t.title,
@@ -149,7 +361,11 @@ export class SharedTaskDetails implements OnChanges {
           slaStatus: (t as any)?.slaStatus || 'Pending',
           priority: (t as any)?.priority || 'Normal',
           team: (t as any)?.team || 'Ops',
-          units: (t as any)?.unit ? `${(t as any).unit.model} (${(t as any).unit.serial})` : '',
+          unitList,
+          units: unitList.length
+            ? unitList.map((u: any) => u.name).join(', ')
+            : ((t as any)?.unit ? `${(t as any).unit.model} (${(t as any).unit.serial})` : ''),
+          unitId: unitList[0]?.id ?? (t as any)?.unit?.id ?? (t as any)?.unitId ?? null,
           unitType: (t as any)?.unit?.type || '',
           unitVariant: (t as any)?.unit?.variant || '',
           frequency: (t as any)?.contract?.visitFrequency || 'Monthly',
@@ -162,6 +378,7 @@ export class SharedTaskDetails implements OnChanges {
           assignee: (t as any)?.assigneeUser?.fullName || (t as any)?.assigneeUser?.email || (t as any)?.assigneeUserId || '',
           assigneeId: (t as any)?.assigneeUserId || ''
         };
+        this.lastStatus = this.task.status || '';
         this.dueInput = dueStr;
         this.slaDueInput = endOutStr;
         this.objectiveDraft = this.task.objective || '';
@@ -169,6 +386,24 @@ export class SharedTaskDetails implements OnChanges {
         this.teamDraft = this.task.team || '';
         this.priorityDraft = this.task.priority || 'Normal';
         this.selectedAssigneeId = String((t as any)?.assigneeUserId || '');
+
+        // Check for checklist
+        this.checklistService.getSubmissionByTaskId(id).subscribe({
+          next: (submission) => {
+            if (submission) {
+              this.hasChecklist = true;
+              this.checklistId = submission.id!;
+            } else {
+              this.hasChecklist = false;
+              this.checklistId = null;
+            }
+          },
+          error: () => {
+            this.hasChecklist = false;
+            this.checklistId = null;
+          }
+        });
+
         // Load technicians for dropdown
         this.resource.getAll('Auth/technicians').subscribe({
           next: (list) => {
@@ -187,37 +422,14 @@ export class SharedTaskDetails implements OnChanges {
       this.editing.objective = this.focusEdit === 'objective';
     }
   }
+  
   get canEditTiming(): boolean {
     const r = this.role || this.auth.currentRole();
     return r === 'admin' || r === 'manager';
   }
-  // saveTiming() {
-  //   if (!this.taskId) return;
-  //   this.savingTiming = true;
-  //   const parseLocal = (s: string) => {
-  //     if (!s) return null;
-  //     const normalized = s.replace(' ', 'T');
-  //     const hasSeconds = /T\d{2}:\d{2}:\d{2}$/.test(normalized);
-  //     return hasSeconds ? normalized : `${normalized}:00`;
-  //   };
-  //   const startIso = parseLocal(this.dueInput);
-  //   const endIso = parseLocal(this.slaDueInput) || startIso;
-  //   if (!startIso) { this.savingTiming = false; return; }
-  //   this.taskService.updateSchedule(this.taskId, startIso, endIso!).subscribe({
-  //     next: () => { this.savingTiming = false; },
-  //     error: () => { this.savingTiming = false; }
-  //   });
-  // }
-  openStartPicker(e: Event) {
-    const el = e.target as HTMLInputElement;
-    if ((el as any).showPicker) { (el as any).showPicker(); }
-  }
-  openEndPicker(e: Event) {
-    const el = e.target as HTMLInputElement;
-    if ((el as any).showPicker) { (el as any).showPicker(); }
-  }
-
+  
   savePriority() {
+    if (this.role === 'client') return;
     if (!this.task?.id) return;
     this.savingGeneral = true;
     const v = this.priorityDraft;
@@ -235,7 +447,9 @@ export class SharedTaskDetails implements OnChanges {
       }
     });
   }
+  
   saveObjective() {
+    if (this.role === 'client') return;
     if (!this.task?.id) return;
     this.savingGeneral = true;
     this.resource.update('Tasks', String(this.task.id), { description: this.objectiveDraft }).subscribe({
@@ -252,7 +466,9 @@ export class SharedTaskDetails implements OnChanges {
       }
     });
   }
+  
   saveAddress() {
+    if (this.role === 'client') return;
     if (!this.task?.id) return;
     this.savingGeneral = true;
     const payload: any = { locationName: this.addressDraft };
@@ -274,21 +490,19 @@ export class SharedTaskDetails implements OnChanges {
       }
     });
   }
+  
   fetchAddressSuggestions(query: string) {
     this.addressQuery = query;
-    if (!query || query.length < 3) { this.addressSuggestions = []; this.showAddressDropdown = false; return; }
-    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`;
-    this.http.get<any[]>(url).subscribe({
-      next: (res) => {
-        this.addressSuggestions = res || [];
-        this.showAddressDropdown = this.addressSuggestions.length > 0;
-      },
-      error: () => {
-        this.addressSuggestions = [];
-        this.showAddressDropdown = false;
-      }
-    });
+    const q = String(query || '').trim();
+    if (!q || q.length < 3) {
+      this.addressSuggestions = [];
+      this.showAddressDropdown = false;
+      return;
+    }
+    this.showAddressDropdown = true;
+    this.addressInput$.next(q);
   }
+  
   selectSuggestion(s: { display_name: string; lat: string; lon: string }) {
     this.addressDraft = s.display_name;
     this.latDraft = Number(s.lat);
@@ -296,12 +510,15 @@ export class SharedTaskDetails implements OnChanges {
     this.addressQuery = s.display_name;
     this.showAddressDropdown = false;
   }
+  
   clearAddressSearch() {
     this.addressQuery = '';
     this.addressSuggestions = [];
     this.showAddressDropdown = false;
   }
+  
   saveTeam() {
+    if (this.role === 'client') return;
     if (!this.task?.id) return;
     this.savingGeneral = true;
     this.resource.update('Tasks', String(this.task.id), { team: this.teamDraft }).subscribe({
@@ -318,6 +535,7 @@ export class SharedTaskDetails implements OnChanges {
       }
     });
   }
+  
   addTechnician() {
     if (!this.selectedTechnicianId) return;
     if (!this.selectedTechnicianIds.includes(this.selectedTechnicianId)) {
@@ -325,18 +543,23 @@ export class SharedTaskDetails implements OnChanges {
     }
     this.selectedTechnicianId = '';
   }
+  
   removeTechnician(i: number) {
     this.selectedTechnicianIds.splice(i, 1);
   }
+  
   get filteredTechnicians(): { id: string, name: string }[] {
     return this.technicians.filter(t => !this.selectedTechnicianIds.includes(t.id));
   }
+  
   getTechnicianName(id: string): string {
     return this.technicians.find(t => t.id === id)?.name || id;
   }
+  
   get filteredTechniciansForAssign(): { id: string, name: string }[] {
     return this.technicians.filter(t => !this.selectedTechnicianIds.includes(t.id));
   }
+  
   addAssigned() {
     if (!this.selectedTechnicianId) return;
     if (!this.selectedTechnicianIds.includes(this.selectedTechnicianId)) {
@@ -344,142 +567,35 @@ export class SharedTaskDetails implements OnChanges {
     }
     this.selectedTechnicianId = '';
   }
+  
   removeAssigned(i: number) {
     this.selectedTechnicianIds.splice(i, 1);
   }
-  // get filteredTechniciansForTeam() {
-  //   return this.technicians.filter(t => !this.selectedTeamIds.includes(t.id) && t.id !== this.selectedAssigneeId);
-  // }
-  // addTeamMember() {
-  //   if (!this.selectedTeamPickId) return;
-  //   if (!this.selectedTeamIds.includes(this.selectedTeamPickId)) {
-  //     this.selectedTeamIds.push(this.selectedTeamPickId);
-  //   }
-  //   this.selectedTeamPickId = '';
-  // }
-  // removeTeamMember(i: number) {
-  //   this.selectedTeamIds.splice(i, 1);
-  // }
+  
   saveAssignee() {
+    if (this.role === 'client') return;
     if (!this.task?.id || !this.selectedAssigneeId) return;
-    const prevStatus = String(this.task.status || 'Scheduled');
+    // الـ assign بس — مفيش أي call لـ UpdateStatus غير لما الـ status يتغير فعلاً لـ Closed
     this.taskService.assign(this.task.id, this.selectedAssigneeId).subscribe({
-      next: () => {
+      next: (data: any) => {
         this.task.assignee = this.getTechnicianName(this.selectedAssigneeId);
+        this.task.status = 'Dispatched';
+        if (data?.status && String(data.status) === 'Closed') {
+          // الـ backend هو الوحيد اللي يغير الحالة لـ Closed
+          this.task.status = data.status;
+          this.changeStatus.emit(data.status);
+        }
         (this.task as any).assigneeId = this.selectedAssigneeId;
-        this.taskService.updateStatus(this.task.id, prevStatus).subscribe({
-          next: () => { 
-            this.task.status = prevStatus; 
-            this.updated.emit({ id: this.task.id, assignee: this.task.assignee, assigneeId: this.selectedAssigneeId });
-            this.notify.emit('Assignee updated'); 
-          },
-          error: () => { 
-            this.updated.emit({ id: this.task.id, assignee: this.task.assignee, assigneeId: this.selectedAssigneeId });
-            this.notify.emit('Assignee updated'); 
-          }
-        });
+        this.updated.emit({ id: this.task.id, assignee: this.task.assignee, assigneeId: this.selectedAssigneeId, status: 'Dispatched' });
+        this.notify.emit('Assignee updated');
         this.editing.assignees = false;
       },
       error: () => {}
     });
   }
-  // saveTeamMembers() {
-  //   if (!this.task?.id) return;
-  //   const extras = this.selectedTeamIds;
-  //   this.resource.update('Tasks', String(this.task.id) + '/extras', extras).subscribe({
-  //     next: () => { 
-  //       const block = 'EXTRA;' + extras.join(';') + ';';
-  //       let notes = String((this.task as any)?.notes || '');
-  //       const start = notes.indexOf('EXTRA;');
-  //       if (start >= 0) {
-  //         const end = notes.indexOf('|', start);
-  //         notes = end >= 0 ? notes.substring(0, start) + (notes.substring(end + 1)) : notes.substring(0, start);
-  //       }
-  //       notes = (notes ? (notes.endsWith('|') ? notes : notes + '|') : '') + block;
-  //       (this.task as any).notes = notes;
-  //       this.updated.emit({ id: this.task.id, notes: notes });
-  //       this.notify.emit('Additional technicians updated');
-  //       this.editing.team = false;
-  //     },
-  //     error: () => {}
-  //   });
-  // }
-  // get teamNames(): string {
-  //   return this.selectedTeamIds.map(id => this.getTechnicianName(id)).join(', ');
-  // }
-  saveAssignees() {
-    if (!this.task?.id) return;
-    // Persist first technician as primary assignee only (Team stays independent)
-    const [primary, ...rest] = this.selectedTechnicianIds;
-    if (primary) {
-      const prevStatus = String(this.task.status || 'Scheduled');
-      this.taskService.assign(this.task.id, primary).subscribe({
-        next: () => {
-          this.task.assignee = this.getTechnicianName(primary);
-          (this.task as any).assigneeId = primary;
-          const afterStatus = () => {
-            // Save extras (additional technicians) into notes
-            this.resource.update('Tasks', String(this.task.id) + '/extras', rest).subscribe({
-              next: () => {
-                const block = 'EXTRA;' + rest.join(';') + ';';
-                let notes = String((this.task as any)?.notes || '');
-                const start = notes.indexOf('EXTRA;');
-                if (start >= 0) {
-                  const end = notes.indexOf('|', start);
-                  notes = end >= 0 ? notes.substring(0, start) + (notes.substring(end + 1)) : notes.substring(0, start);
-                }
-                notes = (notes ? (notes.endsWith('|') ? notes : notes + '|') : '') + block;
-                (this.task as any).notes = notes;
-                this.selectedTechnicianIds = [primary, ...rest];
-                this.updated.emit({ id: this.task.id, assignee: this.task.assignee, assigneeId: primary, notes });
-                this.toast.show('Technicians updated successfully', 'success');
-                this.editing.assignees = false;
-              },
-              error: () => {
-                this.selectedTechnicianIds = [primary, ...rest];
-                this.updated.emit({ id: this.task.id, assignee: this.task.assignee, assigneeId: primary });
-                this.toast.show('Assignee updated successfully', 'success');
-                this.editing.assignees = false;
-              }
-            });
-          };
-          this.taskService.updateStatus(this.task.id, prevStatus).subscribe({ next: afterStatus, error: afterStatus });
-        },
-        error: () => { 
-          this.updated.emit({ id: this.task.id, assignee: this.task.assignee, assigneeId: primary });
-          this.toast.show('Assignee updated successfully', 'success'); 
-          this.editing.assignees = false;
-        }
-      });
-    } else {
-      // No primary selected -> unassign all and clear extras
-      this.resource.update('Tasks', String(this.task.id) + '/unassign', null).subscribe({
-        next: () => {
-          this.resource.update('Tasks', String(this.task.id) + '/extras', []).subscribe({
-            next: () => {
-              (this.task as any).assigneeId = '';
-              this.task.assignee = '';
-              const notes = String((this.task as any)?.notes || '');
-              const start = notes.indexOf('EXTRA;');
-              (this.task as any).notes = start >= 0 ? notes.substring(0, start) : notes;
-              this.updated.emit({ id: this.task.id, assignee: '', assigneeId: '', notes: (this.task as any).notes });
-              this.toast.show('Technicians cleared successfully', 'success');
-              this.editing.assignees = false;
-            },
-            error: () => { 
-              this.toast.show('Failed to clear technicians', 'error');
-              this.editing.assignees = false; 
-            }
-          });
-        },
-        error: () => { 
-          this.toast.show('Failed to unassign technician', 'error');
-          this.editing.assignees = false; 
-        }
-      });
-    }
-  }
+  
   saveTiming() {
+    if (this.role === 'client') return;
     if (!this.taskId) return;
     this.savingTiming = true;
     const parseLocal = (s: string) => {
@@ -505,22 +621,35 @@ export class SharedTaskDetails implements OnChanges {
       }
     });
   }
+  
   confirm() {
+    if (this.role === 'client') return;
     if (!this.taskId) return;
-    if (String(this.task?.status) === 'Draft') {
-      this.taskService.updateStatus(this.taskId, 'Scheduled').subscribe({
-        next: () => {
-          if (this.task) this.task.status = 'Scheduled';
-          this.toast.show('Task scheduled successfully', 'success');
-          this.onClose();
-        },
-        error: () => {
-          this.toast.show('Failed to schedule task', 'error');
-        }
-      });
-    } else {
-      this.toast.show('Changes confirmed successfully', 'success');
-      this.onClose();
+    // First make API call to update status
+    this.taskService.updateStatus(this.taskId, this.task?.status || '').subscribe({
+      next: () => {
+              this.changeStatus.emit(this.task.status);   // ✅ أضف السطر ده
+        this.toast.show('Status updated successfully', 'success');
+        this.onClose();
+      },
+      error: () => {
+        this.toast.show('Failed to update status', 'error');
+      }
+    });
+  }
+
+  openStartPicker(event: Event) {
+    this.forceDatePicker(event);
+  }
+
+  openEndPicker(event: Event) {
+    this.forceDatePicker(event);
+  }
+
+  forceDatePicker(event: Event) {
+    const target = event.target as HTMLInputElement;
+    if (target.showPicker) {
+      target.showPicker();
     }
   }
 }

@@ -1,12 +1,8 @@
 <!-- admin,manager,finanace -->
 <app-loading [loading]="loading"></app-loading>
-<app-shared-page-header
- [createButtonLabel]="'CREATE INVOICE'" 
-  [showCreateVisitButton]="true"
-   [showDropdown]="false"
-  (createVisit)="openCreate()"
->
-  <span breadcrumb>FINANCE &gt; BILLING</span>
+<app-shared-page-header [createButtonLabel]="'CREATE BILLING SCHEDULE'" [showCreateVisitButton]="true"
+  [showDropdown]="false" (createVisit)="openCreate()">
+  <!-- <span breadcrumb>FINANCE &gt; BILLING</span> -->
 
 </app-shared-page-header>
 <!-- <app-create-new-fake-billing
@@ -15,57 +11,78 @@
   (save)="addTask($event)">
 </app-create-new-fake-billing> -->
 <!-- اشيل الكومنت من هنا بس  -->
-<app-create-new-billing
-  *ngIf="showCreate"
-  (close)="closeCreate()"
-  (save)="addTask($event)">
+<app-create-new-billing *ngIf="showCreate" [saving]="savingSchedule" (close)="closeCreate()" (save)="addTask($event)">
 </app-create-new-billing>
 
-  <h2>Invoice</h2>
+<h2>Billing Schedules</h2>
 
 
-  <!-- 📊 Status Summary Cards -->
+<!-- 📊 Status Summary Cards -->
 <div class="status-summary">
-  <div class="summary-card">
-    <span class="label">Outstanding</span>
-    <span class="count">$41,000.00</span>
+  <div class="summary-card review">
+    <div class="card-icon">💵</div>
+    <div class="card-content">
+      <span class="label">Outstanding</span>
+      <span class="count">$41,000.00</span>
+    </div>
   </div>
-  <div class="summary-card">
-    <span class="label">Overdue</span>
-    <span class="count">$0.00</span>
+  <div class="summary-card critical">
+    <div class="card-icon">⏰</div>
+    <div class="card-content">
+      <span class="label">Overdue</span>
+      <span class="count">$0.00</span>
+    </div>
   </div>
-  <div class="summary-card">
-    <span class="label">Paid (MTD)</span>
-    <span class="count">$0.00</span>
+  <div class="summary-card approved">
+    <div class="card-icon">✓</div>
+    <div class="card-content">
+      <span class="label">Paid (MTD)</span>
+      <span class="count">$0.00</span>
+    </div>
   </div>
-  <div class="summary-card">
-    <span class="label">Avg Days to Pay</span>
-    <span class="count">50d</span>
+  <div class="summary-card total">
+    <div class="card-icon">📅</div>
+    <div class="card-content">
+      <span class="label">Avg Days to Pay</span>
+      <span class="count">50d</span>
+    </div>
   </div>
-  <div class="summary-card">
-    <span class="label">Aging 0-30</span>
-    <span class="count">$41,000.00</span>
+  <div class="summary-card active">
+    <div class="card-icon">🕒</div>
+    <div class="card-content">
+      <span class="label">Aging 0-30</span>
+      <span class="count">$41,000.00</span>
+    </div>
   </div>
-  <div class="summary-card">
-    <span class="label">Aging 31-60</span>
-    <span class="count">$0.00</span>
+  <div class="summary-card review">
+    <div class="card-icon">🕒</div>
+    <div class="card-content">
+      <span class="label">Aging 31-60</span>
+      <span class="count">$0.00</span>
+    </div>
   </div>
-  <div class="summary-card">
-    <span class="label">Aging 61-90</span>
-    <span class="count">$0.00</span>
+  <div class="summary-card overdue">
+    <div class="card-icon">🕒</div>
+    <div class="card-content">
+      <span class="label">Aging 61-90</span>
+      <span class="count">$0.00</span>
+    </div>
   </div>
-  <div class="summary-card">
-    <span class="label">Aging 90+</span>
-    <span class="count">$0.00</span>
+  <div class="summary-card critical">
+    <div class="card-icon">🕒</div>
+    <div class="card-content">
+      <span class="label">Aging 90+</span>
+      <span class="count">$0.00</span>
+    </div>
   </div>
 </div>
 
-  <div class="task-toolbar">
+<div class="task-toolbar">
   <!-- Left side: actions -->
   <div class="toolbar-left">
 
     <button class="icon-btn">+</button>
-    <button class="icon-btn" (click)="toggleFilterBuilder()">
+    <button class="icon-btn" [class.active]="showFilterBuilder" (click)="toggleFilterBuilder()">
       <img src="/assets/images/Vector3.png" alt="">
     </button> <!-- هنا تحط أيقونة الفلتر -->
     <button class="icon-btn">⇅</button> <!-- هنا أيقونة sort -->
@@ -73,171 +90,184 @@
 
   <!-- Right side: search -->
   <div class="toolbar-right">
-     <div class="search-input">
-            <button><img class="search-icon" src="/assets/images/search.png" alt=""></button>
-            <input type="text"
-             class="forSearch"
-             [(ngModel)]="searchText" 
-             placeholder="Search" />
-          </div>
+    <div class="search-input">
+      <button><img class="search-icon" src="/assets/images/search.png" alt=""></button>
+      <input type="text" class="forSearch" [(ngModel)]="searchText" placeholder="Search" />
+    </div>
   </div>
 </div>
- <!-- Filter Builder -->
-      <div class="filter-builder" *ngIf="showFilterBuilder">
-        <h4>Add filter</h4>     
-    <div class="filter-row">
-    <select [(ngModel)]="newFilter.field">
-    <option value="">Select Field</option>
-    <option value="Invoice">Invoice</option>
-    <option value="Client">Client</option>
-    <option value="Date">Date</option>
-    <option value="Due">Due</option>
-    <option value="Amount">Amount</option>
-    <option value="Balance">Balance</option>
-    <option value="Status">Status</option>
-  </select>
-
-  <!-- ✅ لو الفيلد Date يظهر اتنين input -->
-<div *ngIf="newFilter.field === 'Date'||newFilter.field === 'Due'" class="date-range-inputs">
-  <div class="date-field">
-    <label>From</label>
-    <input type="date" [(ngModel)]="newFilter.dateFrom"  (click)="forceDatePicker($event)" />
+<!-- Filter Builder Panel -->
+<div class="filter-builder-panel" *ngIf="showFilterBuilder">
+  <div class="filter-builder-header">
+    <h4>Filter Options</h4>
+    <button class="close-panel-btn" (click)="showFilterBuilder = false">×</button>
   </div>
-  <div class="date-field">
-    <label>To</label>
-    <input type="date" [(ngModel)]="newFilter.dateTo" (click)="forceDatePicker($event)"  />
+  <div class="filter-grid">
+    <div class="filter-field-group">
+      <label>Invoice</label>
+      <select [(ngModel)]="quickInvoice" (change)="applyQuickFilter('Invoice', quickInvoice)">
+        <option value="">All Invoices</option>
+        <option *ngFor="let v of getFilterValues('Invoice')" [value]="v">{{ v }}</option>
+      </select>
+    </div>
+    <div class="filter-field-group">
+      <label>Client</label>
+      <select [(ngModel)]="quickClient" (change)="applyQuickFilter('Client', quickClient)">
+        <option value="">All Clients</option>
+        <option *ngFor="let v of getFilterValues('Client')" [value]="v">{{ v }}</option>
+      </select>
+    </div>
+    <div class="filter-field-group">
+      <label>Date</label>
+      <select [(ngModel)]="quickDate" (change)="applyQuickFilter('Date', quickDate)">
+        <option value="">All Dates</option>
+        <option *ngFor="let v of getFilterValues('Date')" [value]="v">{{ v }}</option>
+      </select>
+    </div>
+    <div class="filter-field-group">
+      <label>Due</label>
+      <select [(ngModel)]="quickDue" (change)="applyQuickFilter('Due', quickDue)">
+        <option value="">All Due Dates</option>
+        <option *ngFor="let v of getFilterValues('Due')" [value]="v">{{ v }}</option>
+      </select>
+    </div>
+    <div class="filter-field-group">
+      <label>Amount</label>
+      <select [(ngModel)]="quickAmount" (change)="applyQuickFilter('Amount', quickAmount)">
+        <option value="">All Amounts</option>
+        <option *ngFor="let v of getFilterValues('Amount')" [value]="v">{{ v }}</option>
+      </select>
+    </div>
+    <div class="filter-field-group">
+      <label>Balance</label>
+      <select [(ngModel)]="quickBalance" (change)="applyQuickFilter('Balance', quickBalance)">
+        <option value="">All Balances</option>
+        <option *ngFor="let v of getFilterValues('Balance')" [value]="v">{{ v }}</option>
+      </select>
+    </div>
+    <div class="filter-field-group">
+      <label>Status</label>
+      <select [(ngModel)]="quickStatus" (change)="applyQuickFilter('Status', quickStatus)">
+        <option value="">All Statuses</option>
+        <option *ngFor="let v of getFilterValues('Status')" [value]="v">{{ v }}</option>
+      </select>
+    </div>
+  </div>
+  <div class="filter-panel-actions">
+    <button class="clear-btn" *ngIf="activeFilters.length" (click)="clearAllFilters()">Clear All Filters</button>
+    <button class="cancel-btn" (click)="showFilterBuilder = false">Close</button>
   </div>
 </div>
+<!-- Active filters -->
+<div class="active-filters" *ngIf="activeFilters.length">
+  <span class="af-label">Active Filters:</span>
+  <span class="filter-chip" *ngFor="let f of activeFilters; let i = index">
+    <span class="chip-field">{{ f.field }}:</span>
+    <ng-container *ngIf="f.field !== 'Date'&&f.field !== 'Due'">
+      <span class="chip-value">{{ f.value }}</span>
+    </ng-container>
+    <ng-container *ngIf="f.field === 'Date'||f.field === 'Due'">
+      <span class="chip-value">{{ f.dateFrom || '...' }} → {{ f.dateTo || '...' }}</span>
+    </ng-container>
+    <button (click)="removeFilter(i)">×</button>
+  </span>
 
-  <!-- باقي الفيلدات العادية -->
-  <select *ngIf="newFilter.field !== 'Date'&& newFilter.field !== 'Due'&& getFilterValues(newFilter.field).length"
-          [(ngModel)]="newFilter.value">
-    <option *ngFor="let v of getFilterValues(newFilter.field)" [value]="v">{{ v }}</option>
-  </select>
-
-  <button class="add-btn" (click)="applyFilter()">Apply</button>
-  <button class="add-btn" (click)="showFilterBuilder=false" style="background:#ccc;color:#000">Close</button>
+  <button class="clear-btn" (click)="clearAllFilters()">Clear All</button>
 </div>
-      </div>
-      <!-- Active filters -->
-      <div class="active-filters" *ngIf="activeFilters.length">
-     <span class="filter-chip" *ngFor="let f of activeFilters; let i = index">
-  <ng-container *ngIf="f.field !== 'Date'&&f.field !== 'Due'">
-    {{ f.field }}: <strong>{{ f.value }}</strong>
-  </ng-container>
-  <ng-container *ngIf="f.field === 'Date'||f.field === 'Due'">
-    {{ f.field }}: <strong>{{ f.dateFrom || '...' }} → {{ f.dateTo || '...' }}</strong>
-  </ng-container>
-  <button (click)="removeFilter(i)">×</button>
-</span>
-
-        <button class="clear-btn" (click)="clearAllFilters()">Clear All</button>
-      </div>
 <!-- selected count -->
 <div class="selected-count" *ngIf="selectedCount > 0">
   {{ selectedCount }} row(s) selected
 </div>
-      <table>
-        <thead>
-          <tr>
-            <th>
-            <input 
-               type="checkbox" 
-               [checked]="allSelected" 
-               (change)="allSelected = $event.target.checked; toggleAll()" 
-               (click)="$event.stopPropagation()"/>
-            </th>
-            <th class="faded">Invoice</th>
-            <th class="faded">Client</th>
-            <th class="faded">Issued</th>
-            <th class="faded">Due</th>
-            <th class="faded">Amount</th>
-            <th class="faded">Balance</th>
-            <th class="faded">Status</th>
-            <th class="faded">Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let task of pagedTasks" (click)="openDetails(task)">
-          <td>
-              <!-- <input type="checkbox" [(ngModel)]="task.selected" (change)="updateAllSelected()" /> -->
-              <input 
-      type="checkbox" 
-      [(ngModel)]="task.selected" 
-      (change)="updateAllSelected()" 
-      (click)="$event.stopPropagation()"
-        />
+<div class="table-container">
+  <table class="custom-table">
+    <thead>
+      <tr>
+        <th class="checkbox-col">
+          <input type="checkbox" [checked]="allSelected" (change)="allSelected = $event.target.checked; toggleAll()"
+            (click)="$event.stopPropagation()" />
+        </th>
+        <th>Billing</th>
+        <th>Client</th>
+        <th>Start Date</th>
+        <th>Next Invoice</th>
+        <th>Amount</th>
+        <th>Status</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let task of pagedTasks" (click)="openDetails(task)">
+        <td class="checkbox-col" data-label="Select" (click)="$event.stopPropagation()">
+          <input type="checkbox" [(ngModel)]="task.selected" (change)="updateAllSelected()" />
         </td>
-          <td class="faded" data-label="Invoice">{{task.Invoice}}</td>
-          <td class="faded" data-label="Client">{{task.Client}}</td>
-          <td class="faded" data-label="Date">{{task.Date}}</td>
-          <td class="faded" data-label="Due">{{task.Due}}</td>
-          <td class="faded" data-label="Amount">{{task.Amount}}$</td>
-          <td class="faded" data-label="Balance">{{task.Balance}}</td>
-           <td>
-              <span class="status-pill" [ngClass]="'status-' + task.Status?.replace(' ', '-')">{{ task.Status }}</span>
-            </td>  
-           <td (click)="$event.stopPropagation()">
-                <select class="action-row" (change)="onSelectChange(task, $event)">
-                <option value="">Actions</option>
-                <option value="view">ReView</option>
-                <!-- <option value="edit">Edit</option> -->
-                <option value="delete" *ngIf="role === 'admin'">Delete</option>
-                </select>
-           </td>
-</tr>
-        </tbody>
-      </table>
+        <td data-label="Billing">{{task.Invoice}}</td>
+        <td data-label="Client">{{task.Client}}</td>
+        <td data-label="Date">{{task.Date | date:'mediumDate'}}</td>
+        <td data-label="Due">{{task.Due | date:'mediumDate'}}</td>
+        <td data-label="Amount">{{task.Amount}}$</td>
+        <td data-label="Status">
+          <span class="status-pill" [ngClass]="'status-' + task.Status?.replace(' ', '-')">{{ task.Status }}</span>
+        </td>
+        <td data-label="Action" (click)="$event.stopPropagation()">
+          <select class="action-row" (change)="onSelectChange(task, $event)">
+            <option value="">Actions</option>
+            <option value="view">View</option>
+            <option value="generate" *ngIf="task.Status === 'Active'">Generate Invoice</option>
+            <!-- <option value="edit">Edit</option> -->
+            <option value="delete" *ngIf="role === 'admin'">Delete</option>
+          </select>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
 
-      <!-- Pagination -->
-      <div class="pagination" *ngIf="totalPages > 1">
-        <button class="page-btn" [disabled]="page === 1" (click)="setPage(page-1)">&lt;</button>
+<!-- Pagination -->
+<div class="pagination" *ngIf="totalPages > 1">
+  <button class="page-btn" [disabled]="page === 1" (click)="setPage(page-1)">&lt;</button>
 
-        <ng-container *ngFor="let p of visiblePages">
-          <button class="page-btn" [class.active]="p === page" (click)="setPage(p)">{{p}}</button>
-        </ng-container>
+  <ng-container *ngFor="let p of visiblePages">
+    <button class="page-btn" [class.active]="p === page" (click)="setPage(p)">{{p}}</button>
+  </ng-container>
 
-        <button class="page-btn" [disabled]="page === totalPages" (click)="setPage(page+1)">&gt;</button>
-      </div>
+  <button class="page-btn" [disabled]="page === totalPages" (click)="setPage(page+1)">&gt;</button>
+</div>
 
 
-      <!-- details panel (simple modal-ish) -->
+<!-- details panel (simple modal-ish) -->
 <div class="details-overlay" *ngIf="showDetails">
   <div class="details-panel">
     <button class="close-btn" (click)="closeDetails()">×</button>
-    <h3>{{ selectedTask?.Invoice }}</h3>
-
-<!-- عملت الشرط دا عشان لو فيها null ميدخلش اصلا  -->
-   <p *ngIf="selectedTask">
-  <strong>Status </strong>
-  <select [(ngModel)]="selectedTask.Status" (change)="updateTaskStatus(selectedTask)">
-    <option *ngFor="let s of getSortedStatuses(selectedTask.Status)" [value]="s">
-      {{ s }}
-    </option>
-  </select>
-</p>
-
-    <p><strong>Client:</strong> {{ selectedTask?.Client }}</p>
-    <p><strong>Date:</strong> {{ selectedTask?.Date }}</p>
-    <p><strong>Due:</strong> {{ selectedTask?.Due }}</p>
-    <p><strong>Amount:</strong> {{ selectedTask?.Amount }}</p>
-    <p><strong>Balance:</strong> {{ selectedTask?.Balance }}</p>
-    <p><strong>Photo:</strong></p>
-        <!-- photo -->
-      <div class="photoGallery">
-        
-      <div class="thumbnail-row" *ngIf="selectedTask?.photos">
-        <img 
-          *ngFor="let photo of selectedTask?.photos" 
-          [src]="photo" 
-          alt="Thumbnail" 
-          (click)="setMainImage(photo)" 
-          [class.active-thumbnail]="photo === mainImage"
-        >
+    <div class="details-heading">
+      <div>
+        <span class="details-kicker">Billing schedule</span>
+        <h3>{{ selectedTask?.Invoice }}</h3>
       </div>
-      <div class="main-photo-area">
-          <img [src]="mainImage" alt="Main Work Photo" *ngIf="mainImage" class="main-report-photo">
-        </div>
+      <span class="detail-chip"
+        [ngClass]="'status-' + selectedTask?.Status?.replace(' ', '-')">{{ selectedTask?.Status }}</span>
+    </div>
+    <div class="details-summary">
+      <div><span>Cycle amount</span><strong>{{ selectedTask?.AmountPerCycle | number:'1.2-2' }}$</strong></div>
+      <div><span>Next invoice</span><strong>{{ selectedTask?.Due | date:'mediumDate' }}</strong></div>
+      <div><span>Frequency</span><strong>{{ selectedTask?.Frequency }}</strong></div>
+    </div>
+    <div class="details-grid">
+      <p><strong>Client</strong><span>{{ selectedTask?.Client }}</span></p>
+      <p><strong>Project</strong><span>{{ selectedTask?.Project || 'Not linked' }}</span></p>
+      <p><strong>Payment terms</strong><span>{{ selectedTask?.PaymentTermsDays }} days</span></p>
+      <p><strong>Auto generate</strong><span>{{ selectedTask?.AutoGenerateInvoices ? 'Yes' : 'No' }}</span></p>
+      <p><strong>Start date</strong><span>{{ selectedTask?.Date | date:'mediumDate' }}</span></p>
+      <p><strong>End
+          date</strong><span>{{ selectedTask?.EndDate ? (selectedTask?.EndDate | date:'mediumDate') : 'Ongoing' }}</span>
+      </p>
+    </div>
+    <div class="detail-section" *ngIf="selectedTask?.ContractTitle || selectedTask?.UnitNames?.length">
+      <span class="section-label">Related records</span>
+      <div class="chips-row">
+        <span class="detail-chip chip-contract" *ngIf="selectedTask?.ContractTitle">Contract:
+          {{ selectedTask?.ContractTitle }}</span>
+        <span class="detail-chip chip-unit" *ngFor="let unit of selectedTask?.UnitNames">Unit: {{ unit }}</span>
+      </div>
     </div>
   </div>
 </div>

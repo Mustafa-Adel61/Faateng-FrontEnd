@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, ElementRef, EventEmitter, Output, ViewChild } from '@angular/core';
+import { Component, ElementRef, EventEmitter, Input, OnInit, Output, ViewChild } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { ResourceService } from '../../../core/resource.service';
 
@@ -10,90 +10,114 @@ import { ResourceService } from '../../../core/resource.service';
   standalone: true,
   styleUrl: './create-new-report.css'
 })
-export class CreateNewReport {
+export class CreateNewReport implements OnInit {
 
  @Output() close = new EventEmitter<void>();
  @Output() save = new EventEmitter<any>(); // لإرسال بيانات الـ Report الجديدة
+ @Input() saving = false; // Parent-driven: true while the POST is still in flight
  @ViewChild('fileInput') fileInputRef!: ElementRef<HTMLInputElement>;
-//for image 
- selectedFile: File | null = null;
-  fileContent: string | ArrayBuffer | null = null;
-  maxFileSize = 5; // MB
-  allowedFileTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'application/pdf'];
-  errorMessage = '';
-    previewUrl: string | null = null;
 
-  technicians: { id: string, name: string }[] = [];
-  projects: any[] = [];
-  units: any[] = [];
-  VisitType = ['Installation', 'Maintenance', 'Update'];
-  Status = ['Submitted', 'Returned', 'Approved', 'Rejected'];
+ technicians: { id: string, name: string }[] = [];
+ projects: any[] = [];
+ units: any[] = [];
+ VisitType = ['Installation', 'Maintenance', 'Update'];
+ Status = ['Submitted', 'Returned', 'Approved', 'Rejected'];
 
-  // متغيرات الـ Form لتمثيل الحقول في الصورة
-  form = {
-    systemId: '',
-    unitType: '',
-    maintenanceVisits: '',
-    date: '',
-    assignedTechnician: '',
-    assignedTechnicianName: '',
-    visitType: '',
-    status: '',
-    comments: '',
-    photos: [] as string[],
-    files: [] as { name: string; type: string; url: string }[],
-    projectId: ''
-  };
+ // ✅ رقم التقرير يتولد تلقائياً بشكل MR-001 و uniqe
+ autoReportId = '';
 
-  constructor(private resource: ResourceService) {}
+ form = {
+   unitIds: [] as number[],      // ⬅️ أكتر من Unit
+   visitType: '',
+   date: '',
+   assignedTechnician: '',
+   assignedTechnicianName: '',
+   status: '',
+   comments: '',
+   photos: [] as string[],
+   files: [] as { name: string; type: string; url: string }[],
+   projectId: ''
+ };
 
-  ngOnInit() {
-    this.resource.getAll('Projects').subscribe(items => this.projects = items || []);
-    this.resource.getAll('Auth/technicians').subscribe(items => this.technicians = (items || []).map((x: any) => ({ id: x.id, name: x.name })));
-  }
+ constructor(private resource: ResourceService) {}
 
-  onProjectChange() {
-    const pid = this.form.projectId ? Number(this.form.projectId) : undefined;
-    const params: Record<string, string> = {};
-    if (pid) params['projectId'] = String(pid);
-    this.resource.getAll('Units', params).subscribe(items => this.units = items || []);
-  }
- 
-  onTechnicianChange() {
-    const found = this.technicians.find(t => t.id === this.form.assignedTechnician);
-    this.form.assignedTechnicianName = found?.name || '';
-  }
+ ngOnInit() {
+   this.resource.getAll('Projects').subscribe(items => this.projects = items || []);
+   this.resource.getAll('Auth/technicians').subscribe(items => this.technicians = (items || []).map((x: any) => ({ id: x.id, name: x.name })));
+   this.generateReportId();
+ }
+
+ // توليد الرقم التالي MR-XXX من كل التقارير الموجودة
+ generateReportId() {
+   this.resource.getAll('Reports').subscribe(items => {
+     let max = 0;
+     (items || []).forEach((r: any) => {
+       const m = /^MR-(\d+)$/i.exec(String(r.reportId || ''));
+       if (m) max = Math.max(max, parseInt(m[1], 10));
+     });
+     this.autoReportId = `MR-${String(max + 1).padStart(3, '0')}`;
+   });
+ }
+
+ onProjectChange() {
+   const pid = this.form.projectId ? Number(this.form.projectId) : undefined;
+   const params: Record<string, string> = {};
+   if (pid) params['projectId'] = String(pid);
+   this.resource.getAll('Units', params).subscribe(items => {
+     this.units = items || [];
+     // امسح الوحدات اللي كانت مختارة لو المشروع اتغير
+     const validIds = new Set(this.units.map((u: any) => Number(u.id)));
+     this.form.unitIds = this.form.unitIds.filter(id => validIds.has(id));
+   });
+ }
+
+ onUnitToggle(unitId: number) {
+   const idx = this.form.unitIds.indexOf(unitId);
+   if (idx > -1) this.form.unitIds.splice(idx, 1);
+   else this.form.unitIds.push(unitId);
+ }
+
+ isUnitSelected(u: any): boolean {
+   return u?.id != null && this.form.unitIds.includes(Number(u.id));
+ }
+
+ toggleUnit(u: any) {
+   if (u?.id == null) return;
+   this.onUnitToggle(Number(u.id));
+ }
+
+ onTechnicianChange() {
+   const found = this.technicians.find(t => t.id === this.form.assignedTechnician);
+   this.form.assignedTechnicianName = found?.name || '';
+ }
 
  triggerFileInput() {
-    if (this.fileInputRef) {
-      // الضغط برمجياً على حقل الـ input type="file" الأصلي
-      this.fileInputRef.nativeElement.click();
-    }
-  }
-  // الدوال
-  doClose() {
-    this.close.emit();
-  }
+    if (this.fileInputRef) {
+      this.fileInputRef.nativeElement.click();
+    }
+  }
+  doClose() {
+    this.close.emit();
+  }
 submitted = false;
   doSave() {
+    if (this.saving) return;
    this.submitted = true;
 
-  if (!this.form.systemId ||
-      !this.form.status) {
-    return; // ❌ يمنع الحفظ
-  }
+ if (!this.form.unitIds.length || !this.form.status) {
+   return; // ❌ يمنع الحفظ
+ }
 
     // إرسال بيانات الـ Report الجديدة
     this.save.emit(this.form);
   }
 
-    // دالة لفتح محدد التاريخ/الوقت عند النقر (كما فعلنا سابقاً)
     forceDatePicker(event: Event) {
-        const target = event.target as HTMLInputElement;
-        if (target.showPicker) {
-              target.showPicker();
-        }
-    }
+        const target = event.target as HTMLInputElement;
+        if (target.showPicker) {
+              target.showPicker();
+        }
+    }
   openFilePicker() {
   const input = document.createElement('input');
   input.type = 'file';
@@ -105,17 +129,11 @@ submitted = false;
     const files = target.files;
     if (!files || files.length === 0) return;
 
-    // حول FileList لمصفوفة File[]
     const filesArray: File[] = Array.from(files);
 
     filesArray.forEach((file: File) => {
-      if (file.size > this.maxFileSize * 1024 * 1024) {
+      if (file.size > 5 * 1024 * 1024) {
         console.warn(`File too large: ${file.name}`);
-        return;
-      }
-
-      if (!this.allowedFileTypes.includes(file.type)) {
-        console.warn(`Unsupported type: ${file.type}`);
         return;
       }
 
@@ -134,7 +152,6 @@ submitted = false;
     });
   };
 
-  // افتح File Picker يدويًا
   input.click();
 }
 

@@ -13,6 +13,7 @@ import { Loading } from '../../../Shared/shared-components/loading/loading';
 export class CreateNewInvoice implements OnInit {
 
  @Input() workOrder: any = null;
+ @Input() saving: boolean = false; // Parent-driven: true while the POST is still in flight
  @Output() close = new EventEmitter<void>();
  @Output() save = new EventEmitter<any>(); // لإرسال بيانات الـ Report الجديدة
 
@@ -38,21 +39,18 @@ export class CreateNewInvoice implements OnInit {
   private markLoadingEnd() { this.pendingLoads = Math.max(0, this.pendingLoads - 1); if (this.pendingLoads === 0) this.loading = false; }
 
  ngOnInit() {
+  const today = new Date();
+  this.form.Date = today.toISOString().split('T')[0];
+  const due = new Date(today);
+  due.setDate(due.getDate() + 30);
+  this.form.Due = due.toISOString().split('T')[0];
+
     this.markLoadingStart();
     this.resource.getAll('Users/clients').subscribe({
       next: (list) => {
         this.clients = (list || []).map((c: any) => ({ id: c.id, name: c.name }));
       },
-      error: () => { this.clients = []; },
-      complete: () => { this.markLoadingEnd(); }
-    });
-
-    this.markLoadingStart();
-    this.resource.getAll('Lookups/Projects').subscribe({
-      next: (list) => {
-        this.projects = list || [];
-      },
-      error: () => { this.projects = []; },
+      error: () => { this.clients = []; this.markLoadingEnd(); },
       complete: () => { this.markLoadingEnd(); }
     });
 
@@ -68,19 +66,34 @@ export class CreateNewInvoice implements OnInit {
     }
  }
 
+ onClientChange() {
+    this.selectedProjectId = null;
+    this.projects = [];
+    if (!this.selectedClientId) return;
+
+    this.markLoadingStart();
+    this.resource.getAll(`Projects?clientId=${encodeURIComponent(this.selectedClientId)}`).subscribe({
+      next: (list) => { this.projects = list || []; },
+      error: () => { this.projects = []; this.markLoadingEnd(); },
+      complete: () => { this.markLoadingEnd(); }
+    });
+ }
+
 
   // الدوال
   doClose() {
     this.close.emit();
   }
-  submitted = false;
-  doSave() {
+  submitted = false;
+  doSave() {
+      if (this.saving) return;
       this.submitted = true;
     if(
     !this.selectedClientId||
     !this.selectedProjectId||
     !this.form.Date||
-      !this.form.Due
+      !this.form.Due ||
+      !this.form.Amount || this.form.Amount <= 0
   ){
     return; // ❌ يمنع الحفظ
   }

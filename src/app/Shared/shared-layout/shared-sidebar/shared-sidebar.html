@@ -5,19 +5,34 @@
     <ng-container *ngIf="role==='admin'">
       <li class="section-title">DISPATCHING</li>
 
+
       <li class="has-children" (click)="toggle('tasks')" [class.open]="tasksOpen">
         <span class="label">
           <a [routerLink]="['tasks']" routerLinkActive="active" (click)="$event.stopPropagation();scrollToTop()">Task
             List</a>
         </span>
-        <span class="arrow"><img src="/assets/images/Vector.png" alt=""></span>
+        <!-- <span class="arrow"><img src="/assets/images/Vector.png" alt=""></span> -->
       </li>
 
-      <li><a [routerLink]="['calendar']" routerLinkActive="active" (click)="scrollToTop()">Calendar</a></li>
+      <li>
+        <a [routerLink]="['calendar']" routerLinkActive="active" (click)="scrollToTop()">Calendar</a></li>
       <!-- <li><a [routerLink]="['dispatcher']" routerLinkActive="active"(click)="scrollToTop()">Dispatcher</a></li> -->
       <!-- <li><a [routerLink]="['technician']" routerLinkActive="active"(click)="scrollToTop()">Technician</a></li> -->
       <li><a [routerLink]="['suggested-repairs']" routerLinkActive="active" (click)="scrollToTop()">Suggested
-          Repairs</a></li>
+          Repairs
+          <span class="notification-badge" *ngIf="notifications.suggestedRepairCount() > 0">
+            {{ notifications.suggestedRepairCount() }}
+          </span>
+        </a></li>
+      <li>
+        <a [routerLink]="['service-requests']" routerLinkActive="active" (click)="scrollToTop()">Service
+          Requests
+          <span class="notification-badge" *ngIf="notifications.serviceRequestCount() > 0">
+            {{ notifications.serviceRequestCount() }}
+          </span>
+        </a>
+      </li>
+
       <li><a [routerLink]="['proposal-generator']" routerLinkActive="active" (click)="scrollToTop()">Proposal
           Generator</a></li>
 
@@ -28,40 +43,80 @@
 
       <li class="section-title">CRM</li>
       <li><a [routerLink]="['projects']" routerLinkActive="active" (click)="scrollToTop()">Projects</a></li>
-      <li><a [routerLink]="['units']" routerLinkActive="active" (click)="scrollToTop()">Units</a></li>
       <li><a [routerLink]="['contracts']" routerLinkActive="active" (click)="scrollToTop()">Contracts</a></li>
+      <li><a [routerLink]="['units']" routerLinkActive="active" (click)="scrollToTop()">Units</a></li>
 
       <li class="section-title">FINANCIAL</li>
       <li><a [routerLink]="['billing']" routerLinkActive="active" (click)="scrollToTop()">Billing</a></li>
-      <li><a [routerLink]="['invoices']" routerLinkActive="active" (click)="scrollToTop()">Invoices</a></li>
+      <li><a [routerLink]="['invoices']" routerLinkActive="active" (click)="scrollToTop()">Invoices
+          <span class="notification-badge" *ngIf="notifications.invoiceDueCount() > 0">
+            {{ notifications.invoiceDueCount() }}
+          </span>
+        </a></li>
 
       <li class="section-title">LIBRARY</li>
       <li><a [routerLink]="['inventory']" routerLinkActive="active" (click)="scrollToTop()">Inventory</a></li>
       <li><a [routerLink]="['fault-code']" routerLinkActive="active" (click)="scrollToTop()">Fault Code</a></li>
       <li><a [routerLink]="['manual']" routerLinkActive="active" (click)="scrollToTop()">Unit Manual</a></li>
       <li><a [routerLink]="['training']" routerLinkActive="active" (click)="scrollToTop()">Training</a></li>
-      <li><a [routerLink]="getChecklistLink()" routerLinkActive="active" (click)="scrollToTop()">Checklist</a></li>
+      <li *ngIf="role === 'admin' || role === 'manager' || role === 'dispatcher'">
+        <a routerLink="/dashboard/admin/checklists" routerLinkActive="active"
+          [routerLinkActiveOptions]="{ exact: true }" (click)="scrollToTop()">
+          Checklist Library
+        </a>
+      </li>
+      <li *ngIf="role === 'admin' || role === 'manager' || role === 'dispatcher'">
+        <a routerLink="/dashboard/admin/checklists/new" routerLinkActive="active" (click)="scrollToTop()">
+          New Checklist
+        </a>
+      </li>
+      <li class="section-title">INSPECTIONS</li>
+      <!-- Admin & Manager & Dispatcher -->
+      <li *ngIf="role === 'admin' || role === 'manager' || role === 'dispatcher'">
+        <a routerLink="/dashboard/admin/submissions" routerLinkActive="active" (click)="scrollToTop()">
+          checklist Submissions
+        </a>
+      </li>
 
+      <!-- باقي المستخدمين (Technician, Client) -->
+      <li *ngIf="role !== 'admin' && role !== 'manager' && role !== 'dispatcher'">
+        <a routerLink="/dashboard/admin/checklist" routerLinkActive="active" (click)="scrollToTop()">
+          New Checklist
+        </a>
+      </li>
+      <li *ngIf="role !== 'admin' && role !== 'manager' && role !== 'dispatcher'">
+        <a routerLink="/dashboard/admin/submissions" routerLinkActive="active" (click)="scrollToTop()">
+          My Submissions
+        </a>
+      </li>
       <li class="section-title">USERS</li>
-      <li><a [routerLink]="['/register']" routerLinkActive="active" (click)="scrollToTop()">Add User</a></li>
+      <li><a [routerLink]="['register']" routerLinkActive="active" (click)="scrollToTop()">Add User</a></li>
       <li><a [routerLink]="['contacts']" routerLinkActive="active" (click)="scrollToTop()">Contacts</a></li>
     </ng-container>
     <!-- CLIENT -->
     <ng-container *ngIf="role === 'client'">
 
       <li class="section-title">Dashboard</li>
-      <li><a [routerLink]="['units']" routerLinkActive="active" (click)="scrollToTop()">Units</a></li>
+      <li><a [routerLink]="['overview']" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }"
+          (click)="scrollToTop()">Home</a></li>
+      <li><a [routerLink]="['units']" routerLinkActive="active" (click)="scrollToTop()">Assets</a></li>
       <li class="divider"></li>
 
       <li class="section-title">Maintenance</li>
+      <li><a [routerLink]="['maintenance']" routerLinkActive="active" (click)="scrollToTop()">Maintenance</a></li>
+      <li><a [routerLink]="['calendar']" routerLinkActive="active" (click)="scrollToTop()">Calendar</a></li>
       <li><a [routerLink]="['service-requests']" routerLinkActive="active" (click)="scrollToTop()">Service Requests</a>
       </li>
-      <li><a [routerLink]="['history']" routerLinkActive="active" (click)="scrollToTop()">History</a></li>
+      <!-- <li><a [routerLink]="['history']" routerLinkActive="active" (click)="scrollToTop()">History</a></li> -->
 
       <li class="divider"></li>
 
       <li class="section-title">Billing</li>
-      <li><a [routerLink]="['invoices']" routerLinkActive="active" (click)="scrollToTop()">Invoices</a></li>
+      <li><a [routerLink]="['invoices']" routerLinkActive="active" (click)="scrollToTop()">Invoices
+          <span class="notification-badge" *ngIf="notifications.invoiceDueCount() > 0">
+            {{ notifications.invoiceDueCount() }}
+          </span>
+        </a></li>
 
       <li class="divider"></li>
 
@@ -73,9 +128,17 @@
       <li class="section-title">Compliance</li>
       <li><a [routerLink]="['reports-compliance']" routerLinkActive="active" (click)="scrollToTop()">Reports &
           Compliance</a></li>
+      <li class="section-title">Documents</li>
+      <li><a [routerLink]="['documents']" routerLinkActive="active" (click)="scrollToTop()">Documents</a></li>
 
-      <li class="section-title">CHECKLIST</li>
-      <li><a [routerLink]="getChecklistLink()" routerLinkActive="active" (click)="scrollToTop()">Checklist</a></li>
+      <!-- <li class="section-title">INSPECTIONS</li>
+      <li>
+        <a routerLink="/dashboard/admin/checklist" routerLinkActive="active" (click)="scrollToTop()">New Checklist</a>
+      </li>
+      <li>
+        <a routerLink="/dashboard/admin/submissions" routerLinkActive="active" (click)="scrollToTop()">My
+          Submissions</a>
+      </li> -->
     </ng-container>
 
     <!-- MANAGER -->
@@ -85,7 +148,24 @@
       <li class="section-title">DISPATCHING</li>
 
       <li>
+        <a [routerLink]="['service-requests']" routerLinkActive="active" (click)="scrollToTop()">Service Requests
+          <span class="notification-badge" *ngIf="notifications.serviceRequestCount() > 0">
+            {{ notifications.serviceRequestCount() }}
+          </span>
+        </a>
+      </li>
+
+      <li>
         <a [routerLink]="['task-list']" routerLinkActive="active" (click)="scrollToTop()">Task List</a>
+      </li>
+
+      <li>
+        <a [routerLink]="['suggested-repairs-review']" routerLinkActive="active" (click)="scrollToTop()">Suggested
+          Repairs
+          <span class="notification-badge" *ngIf="notifications.suggestedRepairCount() > 0">
+            {{ notifications.suggestedRepairCount() }}
+          </span>
+        </a>
       </li>
 
       <li>
@@ -123,12 +203,12 @@
       </li>
 
       <li>
+        <a [routerLink]="['contacts']" routerLinkActive="active" (click)="scrollToTop()">Contacts</a>
+      </li>
+      <li>
         <a [routerLink]="['units']" routerLinkActive="active" (click)="scrollToTop()">Units</a>
       </li>
 
-      <li>
-        <a [routerLink]="['contacts']" routerLinkActive="active" (click)="scrollToTop()">Contacts</a>
-      </li>
 
       <li class="divider"></li>
 
@@ -152,14 +232,38 @@
       </li>
 
       <li>
-        <a [routerLink]="getChecklistLink()" routerLinkActive="active" (click)="scrollToTop()">Checklist</a>
+        <a routerLink="/dashboard/manager/checklists" routerLinkActive="active" (click)="scrollToTop()">Checklist
+          Library</a>
+      </li>
+      <li>
+        <a routerLink="/dashboard/admin/checklists/new" routerLinkActive="active" (click)="scrollToTop()">New
+          Checklist</a>
+      </li>
+
+      <li class="divider"></li>
+
+      <li class="section-title">INSPECTIONS</li>
+      <li>
+        <a routerLink="/dashboard/manager/submissions" routerLinkActive="active" (click)="scrollToTop()">Submissions</a>
       </li>
     </ng-container>
 
     <!-- DISPATCHER -->
     <ng-container *ngIf="role==='dispatcher'">
       <li class="section-title">DISPATCHING</li>
-      <li><a [routerLink]="['service-requests']" routerLinkActive="active" (click)="scrollToTop()">Service Requests</a>
+      <li>
+        <a [routerLink]="['service-requests']" routerLinkActive="active" (click)="scrollToTop()">Service Requests
+          <span class="notification-badge" *ngIf="notifications.serviceRequestCount() > 0">
+            {{ notifications.serviceRequestCount() }}
+          </span>
+        </a>
+      </li>
+      <li>
+        <a [routerLink]="['suggested-repairs']" routerLinkActive="active" (click)="scrollToTop()">Suggested Repairs
+          <span class="notification-badge" *ngIf="notifications.suggestedRepairCount() > 0">
+            {{ notifications.suggestedRepairCount() }}
+          </span>
+        </a>
       </li>
       <li><a [routerLink]="['task-list']" routerLinkActive="active" (click)="scrollToTop()">Task List</a></li>
       <li><a [routerLink]="['calendar']" routerLinkActive="active" (click)="scrollToTop()">Calendar</a></li>
@@ -176,7 +280,20 @@
       <li><a [routerLink]="['fault-codes']" routerLinkActive="active" (click)="scrollToTop()">Fault Codes</a></li>
       <li><a [routerLink]="['unit-manuals']" routerLinkActive="active" (click)="scrollToTop()">Unit Manuals</a></li>
       <li><a [routerLink]="['training']" routerLinkActive="active" (click)="scrollToTop()">Training</a></li>
-      <li><a [routerLink]="getChecklistLink()" routerLinkActive="active" (click)="scrollToTop()">Checklist</a></li>
+
+      <li><a routerLink="/dashboard/admin/checklists" routerLinkActive="active" (click)="scrollToTop()">Checklist
+          Library</a></li>
+      <li><a routerLink="/dashboard/admin/checklists/new" routerLinkActive="active" (click)="scrollToTop()">New
+          Checklist</a></li>
+
+      <!-- <li class="divider"></li>
+      <li class="section-title">INSPECTIONS</li>
+      <li>
+        <a routerLink="/dashboard/dispatcher/checklists" routerLinkActive="active" (click)="scrollToTop()">Checklists</a>
+      </li>
+      <li>
+        <a routerLink="/dashboard/dispatcher/submissions" routerLinkActive="active" (click)="scrollToTop()">Submissions</a>
+      </li> -->
     </ng-container>
 
     <!-- TECHNICIAN -->
@@ -234,11 +351,18 @@
       </li>
 
       <li>
-        <a [routerLink]="getChecklistLink()" routerLinkActive="active" (click)="scrollToTop()">
-          Checklist
+        <a routerLink="/dashboard/technician/checklist" routerLinkActive="active" (click)="scrollToTop()">
+          New Checklist
         </a>
       </li>
 
+      <li class="divider"></li>
+      <li class="section-title">INSPECTIONS</li>
+      <li>
+        <a routerLink="/dashboard/technician/submissions" routerLinkActive="active" (click)="scrollToTop()">
+          My Submissions
+        </a>
+      </li>
 
     </ng-container>
 
@@ -251,6 +375,22 @@
       <li><a [routerLink]="['archive']" routerLinkActive="active" (click)="scrollToTop()">Archive</a></li>
       <li><a [routerLink]="['contracts']" routerLinkActive="active" (click)="scrollToTop()">Contracts</a></li>
       <li><a [routerLink]="['invoice']" routerLinkActive="active" (click)="scrollToTop()">Invoice</a></li>
+
+      <li class="divider"></li>
+      <li class="section-title">LIBRARY</li>
+      <li>
+        <a routerLink="/dashboard/admin/checklists" routerLinkActive="active" (click)="scrollToTop()">Checklist
+          Library</a>
+      </li>
+      <li>
+        <a routerLink="/dashboard/admin/checklists/new" routerLinkActive="active" (click)="scrollToTop()">New
+          Checklist</a>
+      </li>
+      <li class="divider"></li>
+      <li class="section-title">INSPECTIONS</li>
+      <li>
+        <a routerLink="/dashboard/admin/submissions" routerLinkActive="active" (click)="scrollToTop()">Submissions</a>
+      </li>
     </ng-container>
 
     <li class="divider"></li>

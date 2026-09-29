@@ -1,7 +1,12 @@
 <div class="details-overlay" *ngIf="visible">
   <div class="details-panel">
     <button class="close-btn" (click)="onClose()">×</button>
-    <h3>{{ task?.name }}</h3>
+    <div class="details-heading">
+      <div>
+        <span class="details-kicker">Task details</span>
+        <h3>{{ task?.name }}</h3>
+      </div>
+    </div>
 
     <div class="chips-row" *ngIf="task">
       <span class="chip" [ngClass]="{
@@ -27,33 +32,37 @@
         }">{{ task.priority || 'Normal' }}</span>
     </div>
 
-    <div *ngIf="task">
+    <div class="details-content" *ngIf="task">
       <strong>Status </strong>
       <div class="status-select">
-        <select [(ngModel)]="task.status" (change)="onStatusChange()">
+        <select *ngIf="role !== 'client'" [(ngModel)]="task.status" (change)="onStatusChange()">
           <option *ngFor="let s of statuses" [value]="s">
-            {{ s }}
+            {{ role === 'technician' && s === 'On-Site' ? 'Start' :
+               role === 'technician' && s === 'Waiting for Parts' ? 'Suggest Repair' :
+               role === 'technician' && s === 'QA/Review' ? 'Close' : s }}
           </option>
         </select>
+        <span *ngIf="role === 'client'">{{ task.status }}</span>
       </div>
       <div style="margin-top:10px;">
-        <p><strong>Priority:</strong> <span>{{ task?.priority || 'Normal' }}</span>
-          <button class="icon-edit" style="margin-left:8px;" (click)="editing.priority = !editing.priority">✎</button>
-        </p>
-        <div *ngIf="editing.priority" style="display:flex; gap:8px; align-items:center; margin-top:6px;">
-          <select class="select-modern" [(ngModel)]="priorityDraft">
+        <p style="margin-bottom:4px;"><strong>Priority:</strong></p>
+        <div class="status-select">
+          <select *ngIf="role !== 'technician' && role !== 'client'" [(ngModel)]="priorityDraft"
+            (change)="savePriority()" [disabled]="savingGeneral">
             <option value="Low">Low</option>
             <option value="Normal">Normal</option>
             <option value="High">High</option>
             <option value="Urgent">Urgent</option>
           </select>
-          <button class="save-btn" (click)="savePriority()" [disabled]="savingGeneral">Save</button>
+          <span *ngIf="role === 'technician' || role === 'client'">{{ task?.priority || 'Normal' }}</span>
         </div>
         <div style="margin-top:8px;">
           <p><strong>Team:</strong> <span>{{ task?.team }}</span>
-            <button class="icon-edit" style="margin-left:8px;" (click)="editing.team = !editing.team">✎</button>
+            <button *ngIf="role !== 'technician' && role !== 'client'" class="icon-edit" style="margin-left:8px;"
+              (click)="editing.team = !editing.team">✎</button>
           </p>
-          <div *ngIf="editing.team" style="display:flex; gap:8px; align-items:center; margin-top:6px;">
+          <div *ngIf="editing.team && role !== 'client'"
+            style="display:flex; gap:8px; align-items:center; margin-top:6px;">
             <input class="input-modern" type="text" [(ngModel)]="teamDraft" placeholder="Team name" style="flex:1;" />
             <button class="save-btn" (click)="saveTeam()" [disabled]="savingGeneral">Save</button>
           </div>
@@ -61,18 +70,21 @@
       </div>
       <div style="margin-top:8px;">
         <p><strong>Objective:</strong> <span>{{ task?.objective }}</span>
-          <button class="icon-edit" style="margin-left:8px;" (click)="editing.objective = !editing.objective">✎</button>
+          <button *ngIf="role !== 'technician' && role !== 'client'" class="icon-edit" style="margin-left:8px;"
+            (click)="editing.objective = !editing.objective">✎</button>
         </p>
-        <div *ngIf="editing.objective" style="display:flex; gap:8px; align-items:center; margin-top:6px;">
+        <div *ngIf="editing.objective && role !== 'client'"
+          style="display:flex; gap:8px; align-items:center; margin-top:6px;">
           <input class="input-modern" type="text" [(ngModel)]="objectiveDraft" style="flex:1;" />
           <button class="save-btn" (click)="saveObjective()" [disabled]="savingGeneral">Save</button>
         </div>
       </div>
       <div style="margin-top:8px;">
         <p><strong>Address:</strong> <span>{{ task?.address }}</span>
-          <button class="icon-edit" style="margin-left:8px;" (click)="editing.address = !editing.address">✎</button>
+          <button *ngIf="role !== 'technician' && role !== 'client'" class="icon-edit" style="margin-left:8px;"
+            (click)="editing.address = !editing.address">✎</button>
         </p>
-        <div *ngIf="editing.address" style="display:block; margin-top:6px;">
+        <div *ngIf="editing.address && role !== 'client'" style="display:block; margin-top:6px;">
           <div style="display:flex; gap:8px; align-items:center;">
             <input class="input-modern" type="text" [(ngModel)]="addressQuery"
               (ngModelChange)="fetchAddressSuggestions($event)" placeholder="Search address" style="flex:1;" />
@@ -93,10 +105,11 @@
         </div>
         <div style="margin-top:8px;">
           <p><strong>Assignee:</strong> <span>{{ task?.assignee }}</span>
-            <button class="icon-edit" style="margin-left:8px;"
+            <button *ngIf="role !== 'technician' && role !== 'client'" class="icon-edit" style="margin-left:8px;"
               (click)="editing.assignees = !editing.assignees">✎</button>
           </p>
-          <div *ngIf="editing.assignees" style="display:flex; gap:8px; align-items:center; margin-top:6px;">
+          <div *ngIf="editing.assignees && role !== 'client'"
+            style="display:flex; gap:8px; align-items:center; margin-top:6px;">
             <select class="select-modern" [(ngModel)]="selectedAssigneeId">
               <option [ngValue]="''">Select Technician</option>
               <option *ngFor="let t of technicians" [value]="t.id">{{ t.name }}</option>
@@ -106,13 +119,18 @@
         </div>
 
 
-        <p style="margin-top:8px;"><strong>Units:</strong> {{ task?.units }}</p>
-        <div style="display:flex; align-items:center; gap:8px;">
+        <p style="margin-top:8px;"><strong>Units:</strong></p>
+        <div class="details-units-list" *ngIf="task?.unitList?.length">
+          <span class="unit-chip" *ngFor="let u of task.unitList" [title]="u.name">{{ u.name }}</span>
+        </div>
+        <p style="margin-top:4px;" *ngIf="!task?.unitList?.length">{{ task?.units }}</p>
+        <div class="task-timing-summary">
           <p style="margin:0;"><strong>Start:</strong> <span *ngIf="!editing.timing">{{ task?.start }}</span></p>
           <p style="margin:0;"><strong>End:</strong> <span *ngIf="!editing.timing">{{ task?.end }}</span></p>
-          <button class="icon-edit" (click)="editing.timing = !editing.timing">✎</button>
+          <button *ngIf="role !== 'technician' && role !== 'client'" class="icon-edit"
+            (click)="editing.timing = !editing.timing">✎</button>
         </div>
-        <div *ngIf="editing.timing" class="time-row" style="margin-top:6px;">
+        <div *ngIf="editing.timing && role !== 'client'" class="time-row" style="margin-top:6px;">
           <div class="time-field">
             <span class="time-label">Start</span>
             <input class="input-modern" type="datetime-local" [(ngModel)]="dueInput"
@@ -125,15 +143,72 @@
           </div>
           <button class="save-btn" (click)="saveTiming()" [disabled]="savingTiming">Save</button>
         </div>
-        <div style="margin-top:16px; display: flex; gap: 8px;">
-          <button *ngIf="showChecklistBtn" class="save-btn" [disabled]="task?.isChecklistDone"
-            [style.opacity]="task?.isChecklistDone ? '0.5' : '1'"
-            style="flex: 1; padding:12px 16px; font-size:16px; background-color: #4caf50; border-color: #4caf50;"
-            (click)="openChecklist()">
-            {{ task?.isChecklistDone ? 'CheckList Done' : 'CheckList' }}
-          </button>
-          <button class="save-btn" style="flex: 1; padding:12px 16px; font-size:16px;"
-            (click)="confirm()">Confirm</button>
+        <div style="margin-top:16px; display: flex; flex-direction: column; gap: 8px;">
+          <div class="task-detail-actions">
+            <button *ngIf="showChecklistBtn && role !== 'client'" class="save-btn"
+              style="flex: 1; padding:12px 16px; font-size:16px; background-color: #4caf50; border-color: #4caf50;"
+              (click)="openChecklist()">
+              {{ hasChecklist ? 'Edit Checklist' : 'CheckList' }}
+            </button>
+            <button
+              *ngIf="hasChecklist && role !== 'client' && (role === 'admin' || role === 'manager' || role === 'dispatcher')"
+              class="save-btn"
+              style="flex: 1; padding:12px 16px; font-size:16px; background-color: #2196f3; border-color: #2196f3;"
+              (click)="viewChecklist()">
+              Show Checklist
+            </button>
+            <button *ngIf="role !== 'client'" class="save-btn" style="flex: 1; padding:12px 16px; font-size:16px;"
+              (click)="confirm()">Confirm</button>
+          </div>
         </div>
       </div>
     </div>
+  </div>
+</div>
+
+<div class="status-confirm-overlay" *ngIf="showStatusConfirmation" (click)="cancelStatusChange()">
+  <div class="status-confirm-modal" (click)="$event.stopPropagation()">
+    <div class="status-confirm-icon">!</div>
+    <h3>Confirm status change</h3>
+    <p>{{ pendingStatusReason }}</p>
+    <div class="status-confirm-flow">
+      <span>{{ pendingPreviousStatus }}</span>
+      <span aria-hidden="true">&rarr;</span>
+      <span>{{ pendingStatus }}</span>
+    </div>
+    <div class="status-confirm-actions">
+      <button type="button" class="status-cancel-button" (click)="cancelStatusChange()">Cancel</button>
+      <button type="button" class="status-ok-button" (click)="confirmStatusChange()">OK, Continue</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================== Unit Picker Popup ================== -->
+<div class="unit-picker-overlay" *ngIf="showUnitPicker">
+  <div class="unit-picker-modal">
+    <div class="unit-picker-header">
+      <h4>{{ unitPickerMode === 'checklist' ? 'Select Unit for Checklist' : 'Show Checklist for Unit' }}</h4>
+      <button class="close-btn" (click)="closeUnitPicker()">×</button>
+    </div>
+    <p class="unit-picker-hint" *ngIf="unitPickerMode === 'checklist'">
+      This task has multiple units — choose which unit you will perform the checklist for:
+    </p>
+    <p class="unit-picker-hint" *ngIf="unitPickerMode === 'view'">
+      This task has multiple units — choose which unit checklist to view:
+    </p>
+    <div class="unit-picker-list">
+      <button class="unit-picker-item" *ngFor="let u of pickerUnits"
+        [class.disabled]="unitPickerMode === 'view' && !u.done && !u.submissionId" (click)="onPickUnit(u)">
+        <span class="unit-picker-name">{{ u.name }}</span>
+        <span class="unit-picker-type" *ngIf="u.type">{{ u.type }}</span>
+        <ng-container *ngIf="unitPickerMode === 'view'">
+          <span class="unit-picker-status done" *ngIf="u.done">✓ Done</span>
+          <span class="unit-picker-status pending" *ngIf="!u.done">Not Submitted</span>
+        </ng-container>
+      </button>
+    </div>
+    <div class="unit-picker-actions">
+      <button class="cancel-btn" (click)="closeUnitPicker()">Cancel</button>
+    </div>
+  </div>
+</div>

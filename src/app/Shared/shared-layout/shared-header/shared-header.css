@@ -1,5 +1,5 @@
 /* ===== HEADER ===== */
-.app-header {
+/* .app-header {
   position: fixed;
   top: 0;
   left: 0;
@@ -12,7 +12,27 @@
   padding: 0 2rem;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
   z-index: 1000;
+} */
+.app-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  /* ← بدل 95% كانت بتسبب gap */
+  height: 90px;
+  background: #F0F0F0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 2rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  z-index: 1300;
+  box-sizing: border-box;
+  /* ← مهم مع width: 100% */
 }
+
+/* احذف الـ body rule دي خالص */
+/* body { padding-top: 90px; } ← شيلها */
 
 /* الشمال */
 .header-left {
@@ -33,7 +53,8 @@
   border: none;
   font-size: 1.8rem;
   cursor: pointer;
-  display: none; /* يظهر بس في الشاشات الصغيرة */
+  display: none;
+  /* يظهر بس في الشاشات الصغيرة */
 }
 
 /* اللوجو */
@@ -82,11 +103,146 @@
   border: 1px solid #ddd;
 }
 
-/* محتوى الصفحة مايختفيش تحت الهيدر */
-body {
-  margin: 0;
-  padding-top: 90px;
+/* ===== Notifications ===== */
+.notification-wrapper {
+  position: relative;
 }
+
+.notification-button {
+  position: relative;
+  display: flex;
+  align-items: center;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.notification-count {
+  position: absolute;
+  top: -9px;
+  right: -10px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: #d92d20;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 18px;
+  text-align: center;
+}
+
+.notification-dropdown {
+  position: absolute;
+  top: calc(100% + 14px);
+  right: -8px;
+  z-index: 1100;
+  width: 300px;
+  height: 400px;
+  padding: 8px;
+  border: 1px solid #e4e4e4;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, .16);
+}
+
+.notification-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 10px 8px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid #eee;
+  color: #242424;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.notification-total {
+  min-width: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: #d92d20;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 20px;
+  text-align: center;
+}
+
+.notification-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 11px 10px;
+  color: #242424;
+  font-size: 13px;
+  text-decoration: none;
+  border-radius: 6px;
+}
+
+.notification-item__label {
+  line-height: 1.35;
+}
+
+.notification-item:hover {
+  background: #f8f5e8;
+}
+
+.notification-item strong {
+  color: #d92d20;
+}
+
+.empty-notifications {
+  margin: 8px 10px;
+  color: #777;
+  font-size: 13px;
+}
+
+/* Invoice rows nested under their notification item */
+.notification-details {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0 0 6px;
+  padding: 2px 0 4px 10px;
+  border-left: 2px solid #eee7c8;
+  margin-left: 10px;
+}
+
+.notification-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 7px 10px;
+  border-radius: 6px;
+  text-decoration: none;
+  color: #242424;
+}
+
+.notification-detail:hover {
+  background: #f8f5e8;
+}
+
+.notification-detail__title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #18181b;
+}
+
+.notification-detail__meta {
+  font-size: 11.5px;
+  color: #6b7280;
+}
+
+.notification-detail__meta.is-overdue {
+  color: #d92d20;
+  font-weight: 600;
+}
+
 
 /* ===== RESPONSIVE ===== */
 @media (max-width: 900px) {
@@ -143,7 +299,8 @@ body {
   .sidebar-toggle {
     display: inline-block;
     position: absolute;
-    left: 0;           /* أقصى الشمال */
+    left: 0;
+    /* أقصى الشمال */
     top: 50%;
     transform: translateY(-50%);
   }
@@ -152,11 +309,12 @@ body {
     width: 120px;
     height: auto;
   }
+
   .pointImage {
-  position: absolute;
-  height: 14px;
-  width: 15px;
-  right: 1px;
-  top: 6px;
-}
+    position: absolute;
+    height: 14px;
+    width: 15px;
+    right: 1px;
+    top: 6px;
+  }
 }

@@ -1,157 +1,189 @@
-import { NgIf, NgFor, NgClass } from '@angular/common';
+import { CommonModule, NgIf, NgFor, NgClass } from '@angular/common';
 import { Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { SharedPageHeader } from '../../../Shared/shared-layout/shared-page-header/shared-page-header';
 import { CreateNewReport } from "../create-new-report/create-new-report";
 import { ResourceService } from '../../../core/resource.service';
 import { ToastService } from '../../../Shared/services/toast.service';
 import { Loading } from '../../../Shared/shared-components/loading/loading';
-interface Task {
-    id?: number;
-    selected: boolean;
-    Report:string;
-  	Visit:string[];
-    Site_Unit:string;
-    Template:string;	
-    Tech:string;
-    Date:string;	
-    Score?:number;
-    Critical?:number;	
-    Status?:'Submitted' | 'Returned' | 'Approved' | string; 	
-    images?:string[];
+import { ChecklistService } from '../../../Shared/services/checklist.service';
+
+// وحدة جوه التقرير — بنعرض الـ Model مش الـ Serial
+interface UnitChip {
+  id: number;
+  model: string;
+  serial: string;
 }
+
+interface ReportRow {
+  id?: number;
+  selected: boolean;
+  projectId?: number;
+  ProjectName: string;
+  Type: string;          // Report Type = نوع الزيارة (Installation / Maintenance / Update)
+  ReportId: string;
+  Units: UnitChip[];
+  DateRaw: string;
+  Date: string;
+  Status: string;
+  Tech: string;
+  WorkPerformed: string;
+  Comments: string;
+  Photos: string[];
+  Visits: string[];
+  TaskId?: number;
+}
+
 @Component({
   selector: 'app-reports-review-queue',
-  imports: [FormsModule, NgIf, NgFor, NgClass, SharedPageHeader, CreateNewReport, Loading],
+  imports: [FormsModule, NgIf, NgFor, NgClass, CommonModule, SharedPageHeader, CreateNewReport, Loading],
   templateUrl: './reports-review-queue.html',
   styleUrl: './reports-review-queue.css'
 })
 export class ReportsReviewQueue {
-  showCreateReportModal: boolean = false;  
+  showCreateReportModal: boolean = false;
+
   // UI state
   showFilterBuilder = false;
-  // ضيفت ال data من والي 
   newFilter = { field: '', value: '', dateFrom: '', dateTo: '' };
   activeFilters: { field: string; value: string; dateFrom?: string; dateTo?: string }[] = [];
+  quickProject = '';
+  quickType = '';
+  quickStatus = '';
+
   // details panel
   showDetails = false;
-  selectedTask: Task | null = null;
-    private toast: ToastService = inject(ToastService);
+  selectedReport: ReportRow | null = null;
+  statuses = ['Submitted', 'Returned', 'Approved', 'Rejected'];
+
+  private toast: ToastService = inject(ToastService);
+  private checklistService = inject(ChecklistService);
 
   // Selection
   allSelected = false;
- //  search text
+  selectedCount = 0;
+
+  // search text
   searchText: string = '';
 
   // Pagination
   page = 1;
   pageSize = 10;
-  statuses = [
-  'Submitted',
-  'Returned',
-  'Approved',
-];
 
-  // sample tasks data (enriched with SLA fields etc)
-  tasks: Task[] = [];
+  reports: ReportRow[] = [];
   loading = false;
 
-  // constructor: init map url
- 
+  // ====== Checklist unit picker state — نفس شكل shared-task-details ======
+  showUnitPicker = false;
+  loadingSubs = false;
+  pickerUnits: { id: number; name: string; serial?: string; done?: boolean; submissionId?: number }[] = [];
+
+  constructor(private resource: ResourceService, private router: Router) {}
 
   ngOnInit(): void {
     this.loadReports();
   }
-  
-  constructor(private resource: ResourceService) {}
-  
+
   private loadReports() {
     this.loading = true;
     this.resource.getAll('Reports').subscribe({
       next: (items) => {
-        this.tasks = (items || [])
-        .filter((r: any) => String(r.status || '').toLowerCase() !== 'approved')
-        .map((r: any) => ({
-          id: r.id,
-          selected: false,
-          Report: r.reportId,
-          Visit: Array.isArray(r.maintenanceVisits) ? r.maintenanceVisits : (typeof r.maintenanceVisits === 'string' && r.maintenanceVisits ? JSON.parse(r.maintenanceVisits) : []),
-          Site_Unit: r.unit?.name || r.unitId || '',
-          Template: r.comments || r.workPerformed || '',
-          Tech: r.technicianName || '',
-          Date: r.date ? new Date(r.date).toLocaleDateString() : '',
-          Score: 0,
-          Critical: 0,
-          Status: r.status,
-          images: Array.isArray(r.photos) ? r.photos : (typeof r.photos === 'string' && r.photos ? String(r.photos).split(',') : [])
-        }));
+        this.reports = (items || [])
+          .filter((r: any) => String(r.status || '').toLowerCase() !== 'approved')
+          .map((r: any): ReportRow => {
+            const units: UnitChip[] = Array.isArray(r.units) && r.units.length
+              ? r.units.map((u: any) => ({ id: Number(u.id), model: u.model || '', serial: u.serial || '' }))
+              : (r.unitId ? [{ id: Number(r.unitId), model: r.unitModel || '', serial: r.unitSerial || '' }] : []);
+            const visits: string[] = Array.isArray(r.maintenanceVisits) ? r.maintenanceVisits : [];
+            return {
+              id: r.id,
+              selected: false,
+              projectId: r.projectId ?? undefined,
+              ProjectName: r.projectName || '—',
+              Type: visits[0] || '—',
+              ReportId: r.reportId || `MR-${r.id}`,
+              Units: units,
+              DateRaw: r.date ? new Date(r.date).toISOString() : '',
+              Date: r.date ? new Date(r.date).toLocaleDateString() : '',
+              Status: r.status || 'Submitted',
+              Tech: r.technicianName || '—',
+              WorkPerformed: r.workPerformed || '',
+              Comments: r.comments || '',
+              Photos: Array.isArray(r.photos) ? r.photos : [],
+              Visits: visits,
+              TaskId: r.taskId ?? undefined
+            };
+          });
+        this.loading = false;
       },
       error: () => {
-        this.tasks = [];
-      },
-      complete: () => { this.loading = false; }
+        this.reports = [];
+        this.loading = false;
+      }
     });
   }
-  selectedCount=0;
+
   // ---------------- selection ----------------
   toggleAll() {
-    this.pagedTasks.forEach(t => (t.selected = this.allSelected));
-    this.selectedCount=this.pagedTasks.filter(t => t.selected).length;
+    this.pagedReports.forEach(t => (t.selected = this.allSelected));
+    this.selectedCount = this.pagedReports.filter(t => t.selected).length;
   }
-numberOfSelcted:number=0;
+
   updateAllSelected() {
-    // update global checkbox according to visible (paged) items
     this.allSelected =
-      this.pagedTasks.length > 0 &&
-      this.pagedTasks.every(t => t.selected);
-      // بظبط عدد المحددين
-      this.selectedCount=this.pagedTasks.filter(t => t.selected).length;
+      this.pagedReports.length > 0 &&
+      this.pagedReports.every(t => t.selected);
+    this.selectedCount = this.pagedReports.filter(t => t.selected).length;
   }
 
-  // ---------------- pagination / filtered list getters ----------------
-get filteredTasks(): Task[] {
-  let result = this.tasks;
+  // ---------------- filtering ----------------
+  get filteredReports(): ReportRow[] {
+    let result = this.reports;
 
-  if (this.activeFilters.length) {
-    result = result.filter(task =>
-      this.activeFilters.every(f => {
-        const v = (task as any)[f.field];
-        if (v == null) return false;
+    if (this.activeFilters.length) {
+      result = result.filter(r =>
+        this.activeFilters.every(f => {
+          if (f.field === 'date') {
+            const d = r.DateRaw ? new Date(r.DateRaw) : null;
+            if (!d) return false;
+            const from = f.dateFrom ? new Date(f.dateFrom) : null;
+            const to = f.dateTo ? new Date(f.dateTo) : null;
+            if (from && d < from) return false;
+            if (to && d > to) return false;
+            return true;
+          }
+          if (f.field === 'units') {
+            return r.Units.some(u => u.model.toLowerCase() === String(f.value).toLowerCase());
+          }
+          const v = (r as any)[f.field];
+          if (v == null) return false;
+          return String(v).toLowerCase() === String(f.value).toLowerCase();
+        })
+      );
+    }
 
-        // ✅ لو الفلتر تاريخ
-        if (f.field === 'Date') {
-          const taskDate = new Date(task.Date);
-          const from = f.dateFrom ? new Date(f.dateFrom) : null;
-          const to = f.dateTo ? new Date(f.dateTo) : null;
-          if (from && taskDate < from) return false;
-          if (to && taskDate > to) return false;
-          return true;
-        }
+    if (this.searchText.trim() !== '') {
+      const s = this.searchText.toLowerCase();
+      result = result.filter(r =>
+        r.ProjectName.toLowerCase().includes(s) ||
+        r.ReportId.toLowerCase().includes(s) ||
+        r.Type.toLowerCase().includes(s) ||
+        r.Tech.toLowerCase().includes(s) ||
+        r.Units.some(u => `${u.model} ${u.serial}`.toLowerCase().includes(s))
+      );
+    }
 
-        // باقي الفلاتر العادية
-        return String(v).toLowerCase() === String(f.value).toLowerCase();
-      })
-    );
+    return result;
   }
-
-  // 🔹 فلترة البحث
-  if (this.searchText.trim() !== '') {
-    const search = this.searchText.toLowerCase();
-    result = result.filter(task => task.Site_Unit.toLowerCase().includes(search));
-  }
-
-  return result;
-}
-
-
 
   get totalPages(): number {
-    return Math.max(1, Math.ceil(this.filteredTasks.length / this.pageSize));
+    return Math.max(1, Math.ceil(this.filteredReports.length / this.pageSize));
   }
 
-  get pagedTasks(): Task[] {
+  get pagedReports(): ReportRow[] {
     const start = (this.page - 1) * this.pageSize;
-    return this.filteredTasks.slice(start, start + this.pageSize);
+    return this.filteredReports.slice(start, start + this.pageSize);
   }
 
   get visiblePages(): number[] {
@@ -162,14 +194,8 @@ get filteredTasks(): Task[] {
     } else {
       let start = this.page - Math.floor(maxButtons / 2);
       let end = this.page + Math.floor(maxButtons / 2);
-      if (start < 1) {
-        start = 1;
-        end = maxButtons;
-      }
-      if (end > this.totalPages) {
-        end = this.totalPages;
-        start = this.totalPages - maxButtons + 1;
-      }
+      if (start < 1) { start = 1; end = maxButtons; }
+      if (end > this.totalPages) { end = this.totalPages; start = this.totalPages - maxButtons + 1; }
       for (let i = start; i <= end; i++) pages.push(i);
     }
     return pages;
@@ -182,62 +208,89 @@ get filteredTasks(): Task[] {
   // ---------------- filter builder ----------------
   toggleFilterBuilder() {
     this.showFilterBuilder = !this.showFilterBuilder;
-    // reset newFilter
     this.newFilter = { field: '', value: '', dateFrom: '', dateTo: '' };
   }
 
   getFilterValues(field: string): string[] {
     if (!field) return [];
-    const values = this.tasks
-      .map(t => (t as any)[field])
-      .filter(v => v !== undefined && v !== null)
-      .map(v => String(v));
-    return Array.from(new Set(values));
+    let values: string[] = [];
+    if (field === 'units') {
+      values = this.reports.flatMap(r => r.Units.map(u => u.model));
+    } else if (field === 'ProjectName') {
+      values = this.reports.map(r => r.ProjectName);
+    } else if (field === 'Type') {
+      values = this.reports.map(r => r.Type);
+    } else if (field === 'Status') {
+      values = this.reports.map(r => r.Status);
+    }
+    const clean = values.filter(v => v !== undefined && v !== null && v !== '' && v !== '—');
+    return Array.from(new Set(clean));
   }
 
-applyFilter() {
-  if (!this.newFilter.field) return;
+  applyQuickFilter(field: string, value: string) {
+    this.activeFilters = this.activeFilters.filter(f => f.field !== field);
+    if (value) this.activeFilters.push({ field, value });
+    this.page = 1;
+  }
 
-  if (this.newFilter.field === 'Date') {
+  applyDateRange() {
     if (!this.newFilter.dateFrom && !this.newFilter.dateTo) return;
+    this.activeFilters = this.activeFilters.filter(f => f.field !== 'date');
     this.activeFilters.push({
-      field: 'Date',
+      field: 'date',
       value: `${this.newFilter.dateFrom || '...'} → ${this.newFilter.dateTo || '...'}`,
       dateFrom: this.newFilter.dateFrom,
       dateTo: this.newFilter.dateTo
     });
-  } else if (this.newFilter.value) {
-    this.activeFilters.push({ ...this.newFilter });
+    this.page = 1;
   }
 
-  this.newFilter = { field: '', value: '', dateFrom: '', dateTo: '' };
-  this.showFilterBuilder = false;
-  this.page = 1;
-}
-
+  getActiveLabel(f: { field: string }): string {
+    switch (f.field) {
+      case 'ProjectName': return 'Project';
+      case 'Type': return 'Report Type';
+      case 'Status': return 'Status';
+      case 'units': return 'Unit';
+      case 'date': return 'Date';
+      default: return f.field;
+    }
+  }
 
   removeFilter(idx: number) {
+    const removed = this.activeFilters[idx];
     this.activeFilters.splice(idx, 1);
-    // keep page valid
+    if (removed) {
+      if (removed.field === 'ProjectName') this.quickProject = '';
+      if (removed.field === 'Type') this.quickType = '';
+      if (removed.field === 'Status') this.quickStatus = '';
+    }
     if (this.page > this.totalPages) this.page = this.totalPages;
   }
 
   clearAllFilters() {
     this.activeFilters = [];
+    this.quickProject = '';
+    this.quickType = '';
+    this.quickStatus = '';
     this.page = 1;
   }
 
+  forceDatePicker(event: Event) {
+    const target = event.target as HTMLInputElement;
+    if (target.showPicker) target.showPicker();
+  }
+
   // ---------------- actions ----------------
-  performAction(task: Task, action: string) {
+  performAction(report: ReportRow, action: string) {
     if (action === 'view') {
-      this.openDetails(task);
+      this.openDetails(report);
     } else if (action === 'delete') {
-      if (!confirm(`Delete ${task.Report}?`)) return;
-      if (!task.id) return;
-      this.resource.delete('Reports', task.id).subscribe({
+      if (!confirm(`Delete ${report.ReportId}?`)) return;
+      if (!report.id) return;
+      this.resource.delete('Reports', report.id).subscribe({
         next: () => {
-          const idx = this.tasks.indexOf(task);
-          if (idx >= 0) this.tasks.splice(idx, 1);
+          const idx = this.reports.indexOf(report);
+          if (idx >= 0) this.reports.splice(idx, 1);
           if (this.page > this.totalPages) this.page = this.totalPages;
         },
         error: (err) => {
@@ -248,110 +301,149 @@ applyFilter() {
     }
   }
 
-  onSelectChange(task: any, event: Event) {
-  const selectElement = event.target as HTMLSelectElement;
-  const value = selectElement.value;
-
-  this.performAction(task, value);
-  selectElement.selectedIndex = 0;
-  selectElement.value = '';
-}
-
+  onSelectChange(report: ReportRow, event: Event) {
+    const selectElement = event.target as HTMLSelectElement;
+    const value = selectElement.value;
+    this.performAction(report, value);
+    selectElement.selectedIndex = 0;
+    selectElement.value = '';
+  }
 
   // ---------------- details panel ----------------
-  openDetails(task: Task) {
-    this.selectedTask = task;
+  openDetails(report: ReportRow) {
+    this.selectedReport = report;
     this.showDetails = true;
-    // scroll to top so details visible (optional)
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    document.body.style.overflow = 'hidden';
   }
 
   closeDetails() {
-    this.selectedTask = null;
+    this.selectedReport = null;
     this.showDetails = false;
+    document.body.style.overflow = 'auto';
   }
+
   getSortedStatuses(current: any) {
-  // الحالة الحالية تبقى أول وحدة
-  return [current, ...this.statuses.filter(s => s !== current)];
-}
+    return [current, ...this.statuses.filter(s => s !== current)];
+  }
 
-  updateTaskStatus(task: any) {
-    const index = this.tasks.findIndex(t => t.Report === task.Report);
+  updateReportStatus(report: ReportRow) {
+    const index = this.reports.findIndex(t => t.id === report.id);
     if (index === -1) return;
-    const selected = String(task.Status);
-    if (selected === 'Approved' && task.id) {
-      this.resource.update('Reports', task.id + '/approve', {}).subscribe(() => {
-        this.tasks[index].Status = 'Approved';
-        this.toast.show('تم تحديث الحالة بنجاح', 'success')
-        // أخفِ التقرير من قائمة المراجعة بعد الموافقة
-        this.tasks = this.tasks.filter(t => t.Report !== task.Report);
-
+    const selected = String(report.Status);
+    if (selected === 'Approved' && report.id) {
+      this.resource.update('Reports', report.id + '/approve', {}).subscribe(() => {
+        this.toast.show('Report Approved — moved to Archive', 'success');
+        // التقرير المعتمد ينتقل للأرشيف فيختفي من قائمة المراجعة
+        this.reports.splice(index, 1);
+        this.closeDetails();
       });
-    } else if (selected === 'Returned' && task.id) {
-      this.resource.update('Reports', task.id + '/reject', {}).subscribe(() => {
-        this.tasks[index].Status = 'Returned';
-        this.toast.show('تم تحديث الحالة بنجاح', 'success')
+    } else if ((selected === 'Rejected' || selected === 'Returned') && report.id) {
+      this.resource.update('Reports', report.id + '/reject', {}).subscribe(() => {
+        this.reports[index].Status = 'Returned';
+        this.toast.show('Report Returned for correction', 'success');
       });
-    } else {
-      this.tasks[index].Status = selected;
-        this.toast.show('تم تحديث الحالة بنجاح', 'success')
     }
   }
-  forceDatePicker(event: Event) {
-    const target = event.target as HTMLInputElement;
-    // التأكد أن الدالة موجودة قبل استدعائها
-    if (target.showPicker) {
-      target.showPicker();
-    }
-  }
- openCreateReport() {
-    this.showCreateReportModal = true;
-      document.body.style.overflow = 'hidden'; // يمنع scroll الصفحة
 
+  openInNewTab(url: string) {
+    const w = window.open('', '_blank');
+    if (!w) return;
+    const isPdf = url.startsWith('data:application/pdf') || /\.pdf($|\?)/i.test(url);
+    const content = isPdf
+      ? `<embed src="${url}" type="application/pdf" style="width:100%;height:95vh;">`
+      : `<img src="${url}" style="max-width:100%;height:auto;">`;
+    w.document.write(`<!doctype html><html><head><title>Preview</title></head><body>${content}</body></html>`);
+    w.document.close();
   }
-  // 4. دالة لإغلاق الـ Modal
-  closeCreateReport() {
-    this.showCreateReportModal = false;
-      document.body.style.overflow = 'auto'; // يرجع scroll الصفحة
-  }
-  // 5. دالة لحفظ الـ Report الجديد وإضافته للجدول
-  // 5. دالة لحفظ الـ Report الجديد وإضافته للجدول
-  saveNewReport(newReportData: any) {
-    const payload = {
-      date: newReportData.date ? new Date(newReportData.date).toISOString() : undefined,
-      technicianUserId: newReportData.assignedTechnician || null,
-      technicianName: newReportData.assignedTechnicianName || newReportData.technician || '',
-      unitId: newReportData.systemId ? Number(newReportData.systemId) : null,
-      comments: newReportData.comments || '',
-      workPerformed: newReportData.workPerformed || '',
-      status: newReportData.status || 'Submitted',
-      photos: Array.isArray(newReportData.photos) ? newReportData.photos : [],
-      maintenanceVisits: newReportData.maintenanceVisits ? [newReportData.maintenanceVisits] : []
-    };
-    this.resource.create('Reports', payload).subscribe({
-      next: (created) => {
-        const newReport: Task = {
-          id: created.id,
-          selected: false,
-          Report: created.reportId,
-          Date: created.date ? new Date(created.date).toLocaleDateString() : '',
-          Visit: Array.isArray(created.maintenanceVisits) ? created.maintenanceVisits : (created.maintenanceVisits ? JSON.parse(created.maintenanceVisits) : []),
-          Tech: created.technicianName || '',
-          Template: created.comments || created.workPerformed || '',
-          Site_Unit: created.unit?.name || created.unitId || '',
-          Critical: 0,
-          Score: 0,
-          Status: created.status,
-          images: Array.isArray(created.photos) ? created.photos : (created.photos ? String(created.photos).split(',') : [])
-        };
-        this.tasks.unshift(newReport);
-        this.closeCreateReport();
-        document.body.style.overflow = 'auto';
+
+  // ---------------- checklist unit picker — نفس شكل shared-task-details ----------------
+  // بنجيب كل الـ submissions بتاعة التاسك، وبنعرض الـ units مع علامة Done/Not Submitted
+  // والضغط على أي unit بيفتح صفحة الـ submission بتاعته علطول — من غير ما نعرض إجابات جوه popup
+  viewReportChecklist() {
+    if (!this.selectedReport) return;
+    if (!this.selectedReport?.TaskId) {
+      this.toast.show('This report is not linked to a task, so there are no checklists.', 'error');
+      return;
+    }
+    const units = this.selectedReport.Units || [];
+    this.loadingSubs = true;
+    this.checklistService.getSubmissionsForTask(this.selectedReport.TaskId).subscribe({
+      next: (subs) => {
+        const list = subs || [];
+        this.loadingSubs = false;
+        // لو التقرير فيه وحدة واحدة نفتح صفحة الـ submission بتاعتها علطول
+        if (units.length === 1) {
+          const sub = list.find(s => String(s.unitId) === String(units[0].id));
+          if (sub?.id) { this.openSubmissionPage(sub.id); }
+          else { this.toast.show('No checklist submissions for this unit yet', 'error'); }
+          return;
+        }
+        this.pickerUnits = units.map(u => {
+          const sub = list.find(s => String(s.unitId) === String(u.id));
+          return { id: u.id, name: u.model, serial: u.serial, done: !!sub, submissionId: sub?.id };
+        });
+        this.showUnitPicker = true;
       },
       error: () => {
-        this.closeCreateReport();
-        document.body.style.overflow = 'auto';
+        this.loadingSubs = false;
+        this.toast.show('Failed to load checklists', 'error');
       }
+    });
+  }
+
+  onPickUnit(u: { done?: boolean; submissionId?: number }) {
+    if (!u.submissionId) return;
+    this.closeUnitPicker();
+    this.openSubmissionPage(u.submissionId);
+  }
+
+  openSubmissionPage(submissionId: number) {
+    this.router.navigate(['/dashboard/admin/submissions', submissionId]);
+  }
+
+  closeUnitPicker() {
+    this.showUnitPicker = false;
+    this.pickerUnits = [];
+  }
+
+  // ---------------- create report modal ----------------
+  savingNewReport: boolean = false;
+
+  openCreateReport() {
+    this.showCreateReportModal = true;
+    document.body.style.overflow = 'hidden';
+  }
+
+  closeCreateReport() {
+    this.showCreateReportModal = false;
+    document.body.style.overflow = 'auto';
+  }
+
+  saveNewReport(newReportData: any) {
+    if (this.savingNewReport) return;
+    const payload = {
+      projectId: newReportData.projectId ? Number(newReportData.projectId) : null,
+      date: newReportData.date ? new Date(newReportData.date).toISOString() : undefined,
+      technicianUserId: newReportData.assignedTechnician || null,
+      technicianName: newReportData.assignedTechnicianName || '',
+      unitIds: Array.isArray(newReportData.unitIds) ? newReportData.unitIds.map((x: any) => Number(x)) : [],
+      comments: newReportData.comments || '',
+      workPerformed: '',
+      status: newReportData.status || 'Submitted',
+      photos: Array.isArray(newReportData.photos) ? newReportData.photos : [],
+      maintenanceVisits: newReportData.visitType ? [newReportData.visitType] : []
+    };
+    this.savingNewReport = true;
+    this.resource.create('Reports', payload).subscribe({
+      next: () => {
+        this.closeCreateReport();
+        this.loadReports(); // نعيد التحميل عشان نجيب الرقم والوحدات من السيرفر
+        this.toast.show('Report created successfully', 'success');
+      },
+      error: () => {
+        this.toast.show('Failed to create report', 'error');
+      },
+      complete: () => { this.savingNewReport = false; }
     });
   }
 }

@@ -1,12 +1,15 @@
 import { SharedPageHeader } from './../../shared-layout/shared-page-header/shared-page-header';
-import { NgClass, NgFor, NgIf } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { Component, Input, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CreateNewInvoice } from '../../../admin/pages/create-new-invoice/create-new-invoice';
 import { ResourceService } from '../../../core/resource.service';
+import { SidebarNotificationService } from '../../../core/sidebar-notification.service';
 import { ToastService } from '../../services/toast.service';
 import { Loading } from '../loading/loading';
+
 interface Invoice {
+  id?: number;
   selected: boolean;
   Invoice: string;
   Client: string;
@@ -14,14 +17,18 @@ interface Invoice {
   Date: string;         // date string
   Due: string;
   Amount: number;
+  PaidAmount?: number;
+  Balance?: number;
   Status?: 'Paid' | 'Overdue' | 'Draft' | 'Pending' | string;
   photos?: string[];
   WorkOrderId?: string;
+  ContractTitle?: string;
+  UnitNames?: string[];
 }
 @Component({
   selector: 'app-shared-invoice',
   standalone: true,
-  imports: [NgFor, NgIf, FormsModule, NgClass, CreateNewInvoice, SharedPageHeader, Loading],
+  imports: [CommonModule, FormsModule, CreateNewInvoice, SharedPageHeader, Loading],
   templateUrl: './shared-invoice.html',
   styleUrl: './shared-invoice.css'
 })
@@ -32,6 +39,13 @@ export class SharedInvoice {
 
   // UI state
   showFilterBuilder = false;
+  quickInvoice: string = '';
+  quickClient: string = '';
+  quickProject: string = '';
+  quickDate: string = '';
+  quickDue: string = '';
+  quickAmount: string = '';
+  quickStatus: string = '';
   // ضيفت ال data من والي 
   newFilter = { field: '', value: '', dateFrom: '', dateTo: '' };
   activeFilters: { field: string; value: string; dateFrom?: string; dateTo?: string }[] = [];
@@ -49,39 +63,47 @@ export class SharedInvoice {
   pageSize = 10;
   statuses = [
     'Paid',
+    'PartiallyPaid',
+    'Sent',
     'Overdue',
     'Draft',
-    'Pending'
   ];
 
   // Create Invoice
   showCreate = false;
+  savingInvoice = false;
 
   addTask(newInvoiceData: any) {
+    if (this.savingInvoice) return;
     const payload = {
-      invoiceNumber: newInvoiceData.Invoice || `INV-${Math.floor(Math.random() * 10000)}`,
       clientId: newInvoiceData.ClientId,
       clientName: newInvoiceData.ClientName,
       projectName: newInvoiceData.Project,
       issueDate: newInvoiceData.Date,
       dueDate: newInvoiceData.Due,
       total: newInvoiceData.Amount || 0,
+      projectId: newInvoiceData.ProjectId,
+      taskId: newInvoiceData.TaskId,
       workOrderId: newInvoiceData.WorkOrderId || '',
-      status: 'Pending',
+      status: 'Draft',
       photos: []
     };
 
+    this.savingInvoice = true;
     this.loading = true;
     this.resource.create('Invoices/create', payload).subscribe({
       next: (created) => {
         const newInvoice: Invoice = {
+          id: created.id,
           selected: false,
-          Invoice: created.id ? `INV-${created.id}` : payload.invoiceNumber,
+          Invoice: created.invoiceNumber || `INV-${created.id}`,
           Client: payload.clientName,
           Project: payload.projectName,
           Date: payload.issueDate,
           Due: created.dueDate || payload.dueDate,
           Amount: created.total || payload.total,
+          Balance: (created.total || payload.total) - (created.paidAmount || 0),
+          PaidAmount: created.paidAmount || 0,
           WorkOrderId: payload.workOrderId,
           Status: created.status || 'Pending',
           photos: []
@@ -89,26 +111,14 @@ export class SharedInvoice {
         this.tasks.unshift(newInvoice);
         this.closeCreate();
         this.loading = false;
+        //-badge الفاتورة الجديدة في الـ header والـ sidebar
+        this.notifications.refreshNow();
       },
       error: (err) => {
         console.error('Failed to create invoice', err);
-        // Fallback
-        const newInvoice: Invoice = {
-          selected: false,
-          Invoice: payload.invoiceNumber,
-          Client: payload.clientName,
-          Project: payload.projectName,
-          Date: payload.issueDate,
-          Due: payload.dueDate,
-          Amount: payload.total,
-          WorkOrderId: payload.workOrderId,
-          Status: 'Pending',
-          photos: []
-        };
-        this.tasks.unshift(newInvoice);
-        this.closeCreate();
         this.loading = false;
-      }
+      },
+      complete: () => { this.savingInvoice = false; }
     });
   }
 
@@ -124,18 +134,28 @@ export class SharedInvoice {
     this.resource.getAll('Invoices', params).subscribe({
       next: (items) => {
         this.tasks = (items || []).map((inv: any) => ({
+          id: inv.id,
           selected: false,
-          Invoice: inv.invoice || inv.id || '',
-          Client: inv.client || '',
-          Project: inv.project || '',
-          Date: inv.date || '',
-          Due: inv.due || '',
-          Amount: inv.amount ?? 0,
-          Status: inv.status || 'Pending',
+          Invoice: `INV-${inv.id}`,
+          Client: inv.clientName || '',
+          Project: inv.projectName || '',
+          ContractTitle: inv.contractTitle || '',
+          UnitNames: inv.unitNames || [],
+          Date: inv.issueDate || '',
+          Due: inv.dueDate || '',
+          Amount: inv.total ?? 0,
+          Balance: inv.balance ?? (inv.total ?? 0) - (inv.paidAmount || 0),
+          PaidAmount: inv.paidAmount || 0,
+          Status: inv.status || 'Draft',
           photos: inv.photos || []
         }));
+        if (this.selectedTask?.id != null) {
+          this.selectedTask = this.tasks.find(task => task.id === this.selectedTask?.id) || null;
+        }
       },
       error: () => {
+        this.tasks = [];
+        /*
         if (this.role === 'admin' || 'manager') {
           this.tasks = [
             {
@@ -220,6 +240,8 @@ export class SharedInvoice {
             }
           ];
         }
+        */
+        this.loading = false;
       },
       complete: () => { this.loading = false; }
     });
@@ -260,20 +282,26 @@ export class SharedInvoice {
 
           // ✅ لو الفلتر تاريخ
           if (f.field === 'Date') {
-            const taskDate = new Date(task.Date);
-            const from = f.dateFrom ? new Date(f.dateFrom) : null;
-            const to = f.dateTo ? new Date(f.dateTo) : null;
-            if (from && taskDate < from) return false;
-            if (to && taskDate > to) return false;
-            return true;
+            if (f.dateFrom || f.dateTo) {
+              const taskDate = new Date(task.Date);
+              const from = f.dateFrom ? new Date(f.dateFrom) : null;
+              const to = f.dateTo ? new Date(f.dateTo) : null;
+              if (from && taskDate < from) return false;
+              if (to && taskDate > to) return false;
+              return true;
+            }
+            return String(v).toLowerCase() === String(f.value).toLowerCase();
           }
           if (f.field === 'Due') {
-            const taskDate = new Date(task.Due);
-            const from = f.dateFrom ? new Date(f.dateFrom) : null;
-            const to = f.dateTo ? new Date(f.dateTo) : null;
-            if (from && taskDate < from) return false;
-            if (to && taskDate > to) return false;
-            return true;
+            if (f.dateFrom || f.dateTo) {
+              const taskDate = new Date(task.Due);
+              const from = f.dateFrom ? new Date(f.dateFrom) : null;
+              const to = f.dateTo ? new Date(f.dateTo) : null;
+              if (from && taskDate < from) return false;
+              if (to && taskDate > to) return false;
+              return true;
+            }
+            return String(v).toLowerCase() === String(f.value).toLowerCase();
           }
 
           // باقي الفلاتر العادية
@@ -285,7 +313,7 @@ export class SharedInvoice {
     // 🔹 فلترة البحث
     if (this.searchText.trim() !== '') {
       const search = this.searchText.toLowerCase();
-      result = result.filter(task => task.Project.toLowerCase().includes(search));
+      result = result.filter(task => (task.Project || '').toLowerCase().includes(search));
     }
 
     return result;
@@ -334,6 +362,20 @@ export class SharedInvoice {
     this.newFilter = { field: '', value: '', dateFrom: '', dateTo: '' };
   }
 
+  applyQuickFilter(field: string, value: string) {
+    if (!value) {
+      this.activeFilters = this.activeFilters.filter(f => f.field !== field);
+    } else {
+      const existingIndex = this.activeFilters.findIndex(f => f.field === field);
+      if (existingIndex > -1) {
+        this.activeFilters[existingIndex].value = value;
+      } else {
+        this.activeFilters.push({ field, value });
+      }
+    }
+    this.page = 1;
+  }
+
   // Realistic filters for invoices
   getFilterValues(field: string): string[] {
     if (!field) return [];
@@ -376,13 +418,30 @@ export class SharedInvoice {
 
 
   removeFilter(idx: number) {
+    const removedFilter = this.activeFilters[idx];
     this.activeFilters.splice(idx, 1);
+    if (removedFilter) {
+      if (removedFilter.field === 'Invoice') this.quickInvoice = '';
+      if (removedFilter.field === 'Client') this.quickClient = '';
+      if (removedFilter.field === 'Project') this.quickProject = '';
+      if (removedFilter.field === 'Date') this.quickDate = '';
+      if (removedFilter.field === 'Due') this.quickDue = '';
+      if (removedFilter.field === 'Amount') this.quickAmount = '';
+      if (removedFilter.field === 'Status') this.quickStatus = '';
+    }
     // keep page valid
     if (this.page > this.totalPages) this.page = this.totalPages;
   }
 
   clearAllFilters() {
     this.activeFilters = [];
+    this.quickInvoice = '';
+    this.quickClient = '';
+    this.quickProject = '';
+    this.quickDate = '';
+    this.quickDue = '';
+    this.quickAmount = '';
+    this.quickStatus = '';
     this.page = 1;
   }
 
@@ -402,7 +461,7 @@ export class SharedInvoice {
     } else if (action === 'pay') {
       if (confirm(`Pay invoice ${task.Invoice} for $${task.Amount}?`)) {
         this.loading = true;
-        this.resource.update('Invoices', task.Invoice, { status: 'Paid' }).subscribe({
+        this.resource.update('Invoices', `${task.id}/status`, { status: 'Paid' }).subscribe({
           next: () => {
             task.Status = 'Paid';
             this.toastService.show('Payment completed successfully', 'success');
@@ -437,7 +496,6 @@ export class SharedInvoice {
     this.showDetails = true;
     // scroll to top so details visible (optional)
     window.scrollTo({ top: 0, behavior: 'smooth' });
-    document.body.style.overflow = 'hidden'; // يمنع scroll الصفحة
 
   }
 
@@ -458,10 +516,12 @@ export class SharedInvoice {
       this.tasks[index].Status = task.Status;
     }
     this.loading = true;
-    this.resource.update('Invoices', task.Invoice, { status: task.Status }).subscribe({
+    this.resource.update('Invoices', `${task.id}/status`, { status: task.Status }).subscribe({
       next: () => {
         this.toastService.show('Invoice status updated', 'success');
-        this.loading = false;
+        this.loadTasks();
+        //مايبقاش تظهر في الـ notifications بعد ما تتدفع
+        this.notifications.refreshNow();
       },
       error: () => {
         this.loading = false;
@@ -496,22 +556,31 @@ export class SharedInvoice {
 
 
   getStatusCount(status: string): number {
-    let count: number = 0;
-    if (status == 'total') {
-      //هنا انا عملتها علي كله بس عايز اظبطها علي تاريخ الشهر الي الحالي فقط 
-      this.tasks.forEach(element => {
-        count += element.Amount;
-      });
-    }
-    else {
-      this.tasks.forEach(element => {
-        if (element.Status === status) {
-          count += element.Amount;
-        }
-      });
-    }
-    return count;
+    const now = new Date();
+    return this.tasks
+      .filter(invoice => status === 'total'
+        ? (() => { const date = new Date(invoice.Date); return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear(); })()
+        : invoice.Status === status)
+      .reduce((total, invoice) => total + invoice.Amount, 0);
   }
 
-  constructor(private resource: ResourceService) { }
+  get totalInvoiceCount(): number {
+    return this.tasks.length;
+  }
+
+  get totalPaidAmount(): number {
+    return this.tasks.reduce((total, invoice) => total + (invoice.PaidAmount || 0), 0);
+  }
+
+  get totalOutstandingAmount(): number {
+    return this.tasks.reduce((total, invoice) => total + (invoice.Balance || 0), 0);
+  }
+
+  get totalOverdueAmount(): number {
+    return this.tasks
+      .filter(invoice => invoice.Status === 'Overdue')
+      .reduce((total, invoice) => total + (invoice.Balance || 0), 0);
+  }
+
+  constructor(private resource: ResourceService, private notifications: SidebarNotificationService) { }
 }

@@ -92,15 +92,15 @@ tbody :hover { background:#f1f1f1;;}
 .sla-overdue { background:#fdeeee; color:#c73a3a; padding:4px 8px; border-radius:12px; font-weight:600; }
 .sla-pending { background:#fff6e6; color:#b97a00; padding:4px 8px; border-radius:12px; font-weight:600; }
 /*  priority */
-.priority-high { background:oklch(92.937% 0.0317 65.821); color:oklch(55.5% 0.163 48.998);; padding:4px 8px; border-radius:12px; font-weight:550; }
-.priority-low { background:oklch(96.7% 0.003 264.542); color:oklch(44.6% 0.03 256.802); padding:4px 8px; border-radius:12px; font-weight:600; }
+.priority-high { background:#fdecec; color:#d23b3b; padding:4px 8px; border-radius:12px; font-weight:550; }
+.priority-low { background:#f3f4f6; color:#6b7280; padding:4px 8px; border-radius:12px; font-weight:600; }
 /* status */
-.status-Scheduled { background:oklch(92.238% 0.01692 271.239); color:oklch(49.381% 0.27247 263.929);; padding:4px 8px; border-radius:12px; font-weight:500; }
-.status-Dispatched { background:oklch(92.892% 0.01942 312.59); color:oklch(49.6% 0.265 301.924);; padding:4px 8px; border-radius:12px; font-weight:500; }
-.status-On-Site { background:oklch(91.225% 0.06554 158.546);; color:oklch(52.7% 0.154 150.069);; padding:4px 8px; border-radius:12px; font-weight:500; }
-.status-Waiting-Parts { background:oklch(93.532% 0.02405 67.431); color:oklch(66.6% 0.179 58.318); padding:4px 8px; border-radius:12px; font-weight:500; }
-.status-Backlog { background:oklch(97.343% 0.00143 285.217); color:oklch(37.3% 0.034 259.733); padding:4px 8px; border-radius:12px; font-weight:500; }
-.status-QA-Review { background:oklch(97.3% 0.071 103.193); color:oklch(60.376% 0.11225 103.782); padding:4px 8px; border-radius:12px; font-weight:500; }
+.status-Scheduled { background:#e4efff; color:#1565c0; padding:4px 8px; border-radius:12px; font-weight:500; }
+.status-Dispatched { background:#efe8fa; color:#8e24aa; padding:4px 8px; border-radius:12px; font-weight:500; }
+.status-On-Site { background:#e6f9ea; color:#1f7a3a; padding:4px 8px; border-radius:12px; font-weight:500; }
+.status-Waiting-Parts { background:#fff3e0; color:#b97a00; padding:4px 8px; border-radius:12px; font-weight:500; }
+.status-Backlog { background:#f0f0f0; color:#4b5563; padding:4px 8px; border-radius:12px; font-weight:500; }
+.status-QA-Review { background:#f1f8e9; color:#558b2f; padding:4px 8px; border-radius:12px; font-weight:500; }
 /* HVAC */
 .visit-tag, .system-tag {
   display: inline-block;
@@ -124,7 +124,7 @@ background:#91f5a7; color:#1f7a3a;
 }
 .HVAC-002{
   /* background-color: #5d66f0; */
-   background:oklch(79.5% 0.08716 269.873); color:oklch(49.381% 0.27247 263.929);
+   background:#c5d1f5; color:#1565c0;
 }
 .HVAC-003{
   background-color: #dcddf0;

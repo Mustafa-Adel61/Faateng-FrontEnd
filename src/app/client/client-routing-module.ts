@@ -8,13 +8,17 @@ import { Contracts } from './pages/contracts/contracts';
 import { ReportsCompliance } from './pages/reports-compliance/reports-compliance';
 import { RequestPreview } from './pages/request-preview/request-preview';
 import { ProfileDetails } from './pages/profile-details/profile-details';
-import { ChecklistFlow } from '../Shared/shared-components/checklist/checklist-flow';
-import { ChecklistList } from '../Shared/shared-components/checklist/checklist-list';
-import { ChecklistDetails } from '../Shared/shared-components/checklist/checklist-details';
+import { ClientOverview } from './pages/overview/client-overview';
+import { Maintenance } from './pages/maintenance/maintenance';
+import { Calendar } from './pages/calendar/calendar';
+import { Documents } from './pages/documents/documents';
 
 export const routes: Routes = [
- 
+  { path: 'overview', component: ClientOverview },
       { path: 'units', component:Units },
+      { path: 'maintenance', component: Maintenance },
+      { path: 'calendar', component: Calendar },
+      { path: 'documents', component: Documents },
       { path: 'service-requests', component: ServiceRequests },
       { path: 'history', component: History },
       { path: 'invoices', component: Invoices },
@@ -22,10 +26,10 @@ export const routes: Routes = [
       { path: 'reports-compliance', component: ReportsCompliance },
       { path: 'profile-details', component: ProfileDetails },
       { path: 'request-preview/:id', component: RequestPreview },
-      { path: 'checklist', component: ChecklistFlow },
-      { path: 'checklist-list', component: ChecklistList },
-      { path: 'checklist-details/:id', component: ChecklistDetails },
-      { path: '', redirectTo: 'units', pathMatch: 'full' }//عشان اول ما يفتح يروح لل component دا 
+      { path: 'checklist', redirectTo: '/dashboard/admin/checklist', pathMatch: 'full' },
+      { path: 'checklist-list', redirectTo: '/dashboard/admin/submissions', pathMatch: 'full' },
+      { path: 'checklist-details/:id', redirectTo: '/dashboard/admin/submissions/:id', pathMatch: 'full' },
+      { path: '', redirectTo: 'overview', pathMatch: 'full' }
       
 ];
 @NgModule({

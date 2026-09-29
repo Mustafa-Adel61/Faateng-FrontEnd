@@ -1,87 +1,63 @@
 <app-loading [loading]="loading"></app-loading>
 <div class="cnv-backdrop">
   <div class="cnv-modal report-modal">
-      <button class="cnv-close" (click)="doClose()">✕</button>
-      
-      <h2>Create Invoice</h2>
+    <button class="cnv-close" (click)="doClose()">✕</button>
 
-      <div class="report-form-grid">
+    <h2>Create Billing Schedule</h2>
+    <p class="form-hint">Define when this project should produce invoices.</p>
+
+    <div class="report-form-grid">
 
       <label class="full-width">Client <span class="required">*</span>
-        <select [(ngModel)]="selectedClientId" name="Client"
-        [ngClass]="{'input-error': submitted && !selectedClientId}"
-        >
+        <select [(ngModel)]="selectedClientId" name="Client" (ngModelChange)="onClientChange()"
+          [ngClass]="{'input-error': submitted && !selectedClientId}">
           <option [ngValue]="null" disabled selected>Select Client</option>
           <option *ngFor="let c of clients" [ngValue]="c.id">{{ c.name }}</option>
         </select>
       </label>
 
       <label class="full-width">Title <span class="required">*</span>
-      <input type="text" [(ngModel)]="form.Title" name="Title"placeholder="What is this for?"
-               [ngClass]="{'input-error': submitted && !form.Title}"
-
-      />
+        <input type="text" [(ngModel)]="form.Title" name="Title" placeholder="What is this for?"
+          [ngClass]="{'input-error': submitted && !form.Title}" />
       </label>
 
-       <label>Issue Date <span class="required">*</span>
-        <input type="Date" 
-               [(ngModel)]="form.IssueDate" 
-               name="IssueDate" 
-               (click)="forceDatePicker($event)" 
-               class="styled-date-input"
-                [ngClass]="{'input-error': submitted && !form.IssueDate}"
-               /> 
-      </label>
-       <label>Due Date <span class="required">*</span>
-        <input type="Date" 
-               [(ngModel)]="form.DueDate" 
-               name="DueDate" 
-               (click)="forceDatePicker($event)" 
-               class="styled-date-input"
-                [ngClass]="{'input-error': submitted && !form.DueDate}"
-               /> 
-      </label>
+      <label>Issue Date <span class="required">*</span>
+        <input type="Date" [(ngModel)]="form.IssueDate" name="IssueDate" (click)="forceDatePicker($event)"
+          class="styled-date-input" [ngClass]="{'input-error': submitted && !form.IssueDate}" />
+              </label>
+      <label>End Date (optional)
+        <input type="date" [(ngModel)]="form.EndDate" name="EndDate" (click)="forceDatePicker($event)"
+          class="styled-date-input" />
+        <small>Leave empty for ongoing billing</small>
+              </label>
 
-      <label>Project (optional)
-          <input type="text" [(ngModel)]="form.Project" name="Project"placeholder="PRJ-####"/>
+      <label class="full-width">Project <span class="required">*</span>
+        <select [(ngModel)]="selectedProjectId" name="ProjectId"
+          [ngClass]="{'input-error': submitted && !selectedProjectId}">
+          <option [ngValue]="null" disabled>Select Project</option>
+          <option *ngFor="let project of projects" [ngValue]="project.id">{{ project.name }}</option>
+        </select>
       </label>
 
       <label>Contract (optional)
-          <input type="text" [(ngModel)]="form.Contract" name="Contract" placeholder="CTR-####"/>
+        <input type="text" [(ngModel)]="form.Contract" name="Contract" placeholder="CTR-####" />
       </label>
-      <label class="full-width" >Line Items
-        <div class="inline3input">
-            <input class="one" type="text" placeholder="Service" [(ngModel)]="form.Contract" name="Contract"/>
-            <input class="two" type="number" [(ngModel)]="form.Contract" name="Contract"/>
-            <input class="three" type="number" [(ngModel)]="form.Contract" name="Contract"/>
-        </div>
+      <label class="full-width">Amount <span class="required">*</span>
+        <input type="number" [(ngModel)]="form.Amount" name="Amount" min="0.01"
+          [ngClass]="{'input-error': submitted && (!form.Amount || form.Amount <= 0)}" />
       </label>
-      <hr class="full-width"/>
+      <hr class="full-width" />
 
       <label class="full-width">Recurring
         <div class="inline3input">
-            <input 
-             class="three"
-             type="checkbox" 
-             (click)="$event.stopPropagation()"
-             [(ngModel)]="form.RecurringEnabled" 
-             >
-            <label class="relativelable" for="checkBox">Enabled</label>
-            <select 
-            [(ngModel)]="form.BillingCycle"
-            name="BillingCycle"
-            [disabled]="!form.RecurringEnabled"
-            >
-                <option *ngFor="let t of BillingCycles" [value]="t">{{t}}</option>
-            </select>
-            <label class="relativelable" >Terms</label>
-            <input 
-            type="number" 
-            name="" 
-            id=""
-            [disabled]="!form.RecurringEnabled"
-            >
-            <label class="relativelable" for="">days</label>
+          <input class="three" type="checkbox" (click)="$event.stopPropagation()" [(ngModel)]="form.RecurringEnabled">
+          <label class="relativelable" for="checkBox">Enabled</label>
+          <select [(ngModel)]="form.BillingCycle" name="BillingCycle" [disabled]="!form.RecurringEnabled">
+            <option *ngFor="let t of BillingCycles" [value]="t">{{t}}</option>
+          </select>
+          <label class="relativelable">Terms</label>
+          <input type="number" name="Terms" [(ngModel)]="form.Terms" min="1" [disabled]="!form.RecurringEnabled">
+          <label class="relativelable" for="">days</label>
         </div>
 
       </label>
@@ -110,7 +86,10 @@
 
     </div>
     <div class="cnv-actions report-actions">
-    <button type="button" class="cancel-button" (click)="doClose()">Cancel</button>
-    <button type="button" class="save-button-large yellow-bg" (click)="doSave()">Save</button>
+      <button type="button" class="cancel-button" (click)="doClose()">Cancel</button>
+      <button type="button" class="save-button-large yellow-bg" (click)="doSave()" [disabled]="saving">
+        <span class="button-loader" *ngIf="saving"></span>
+        {{ saving ? 'Creating...' : 'Save' }}
+      </button>
     </div>
-</div>
+  </div>

@@ -8,6 +8,7 @@ export interface TaskItem {
   unitId: number;
   projectId?: number;
   unit?: any;
+  units?: any[];
   title: string;
   description?: string;
   status: string;
@@ -26,7 +27,8 @@ export interface TaskItem {
 }
 
 export interface CreateTaskDto {
-  unitId: number;
+  unitId?: number;
+  unitIds?: number[];
   projectId?: number;
   title: string;
   description?: string;

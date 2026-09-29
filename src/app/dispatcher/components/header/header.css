@@ -33,7 +33,8 @@
   border: none;
   font-size: 1.8rem;
   cursor: pointer;
-  display: none; /* يظهر بس في الشاشات الصغيرة */
+  display: none;
+  /* يظهر بس في الشاشات الصغيرة */
 }
 
 /* اللوجو */
@@ -72,6 +73,75 @@
 
 .icon:hover {
   color: #ffcc00;
+}
+
+.notification-wrapper {
+  position: relative;
+}
+
+.notification-button {
+  position: relative;
+  display: flex;
+  align-items: center;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.notification-count {
+  position: absolute;
+  top: -9px;
+  right: -10px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: #d92d20;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 18px;
+  text-align: center;
+}
+
+.notification-dropdown {
+  position: absolute;
+  top: calc(100% + 14px);
+  right: -8px;
+  z-index: 1100;
+  width: 280px;
+  padding: 8px;
+  border: 1px solid #e4e4e4;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, .16);
+}
+
+.notification-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 11px 10px;
+  color: #242424;
+  font-size: 13px;
+  text-decoration: none;
+  border-radius: 6px;
+}
+
+.notification-item:hover {
+  background: #f8f5e8;
+}
+
+.notification-item strong {
+  color: #d92d20;
+}
+
+.empty-notifications {
+  margin: 8px 10px;
+  color: #777;
+  font-size: 13px;
 }
 
 .user-img {
@@ -143,7 +213,8 @@ body {
   .sidebar-toggle {
     display: inline-block;
     position: absolute;
-    left: 0;           /* أقصى الشمال */
+    left: 0;
+    /* أقصى الشمال */
     top: 50%;
     transform: translateY(-50%);
   }
@@ -152,11 +223,12 @@ body {
     width: 120px;
     height: auto;
   }
+
   .pointImage {
-  position: absolute;
-  height: 14px;
-  width: 15px;
-  right: 1px;
-  top: 6px;
-}
+    position: absolute;
+    height: 14px;
+    width: 15px;
+    right: 1px;
+    top: 6px;
+  }
 }

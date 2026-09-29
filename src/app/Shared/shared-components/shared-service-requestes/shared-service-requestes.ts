@@ -7,12 +7,13 @@ import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { CreateNewVisit } from '../../../admin/pages/create-new-visit/create-new-visit';
 import { ResourceService } from '../../../core/resource.service';
 import { AuthService } from '../../../core/auth';
+import { SidebarNotificationService } from '../../../core/sidebar-notification.service';
 import { ToastService } from '../../services/toast.service';
 
 interface Task {
   id?: number | string;
   selected: boolean;
-  status?: 'New' | 'Scheduled' | 'Dispatched' | 'On-Site' | 'Waiting-Parts' | 'Backlog' | 'QA-Review' | 'Closed' | 'Done' | string;
+  status?: string;
   name: string;
   units: string;
   address: string;
@@ -21,10 +22,13 @@ interface Task {
   team: string;
   slaDue: string;      // SLA due date string
   slaStatus: 'OK' | 'Overdue' | 'Pending' | string;
-  priority?: 'High' | 'Urgent' | 'Low' | string;
+  priority?: 'Urgent' | 'High' | 'Normal' | 'Low' | string;
   assignee?: string;
   visitType?: string;
   notes?: string;
+  faultCode?: string;
+  dateCreated?: string;
+  images?: string[];
   originalData?: any; // To store the full backend object
 }
 
@@ -36,8 +40,24 @@ interface Task {
 })
 export class SharedServiceRequestes implements OnInit {
   showFilterBuilder = false;
-  newFilter = { field: '', value: '' };
   activeFilters: { field: string; value: string }[] = [];
+
+  // 🔹 Quick Filters Models: كل فلتر في الـ grid بيشتغل أوتوماتيك من غير Apply
+  quickStatus = '';
+  quickPriority = '';
+  quickServiceType = '';
+  quickUnit = '';
+  quickAssignee = '';
+  quickTeam = '';
+  quickSlaStatus = '';
+  quickFaultCode = '';
+  quickAddress = '';
+  quickObjective = '';
+  quickPreferredTime = '';
+  quickDateCreated = '';
+
+  // الحقول النصية: بتتعمل ليها contains بدل equals
+  readonly textFilterFields = ['address', 'objective', 'due', 'dateCreated'];
 
   showCreateRequestModal = false;
   newRequest: {
@@ -48,6 +68,7 @@ export class SharedServiceRequestes implements OnInit {
     faultCode?: string | null;
     preferredTime?: string | null;
     imagesText?: string | null;
+    priority: string;
   } = {
     unitId: null,
     unitName: null,
@@ -55,7 +76,8 @@ export class SharedServiceRequestes implements OnInit {
     description: '',
     faultCode: null,
     preferredTime: null,
-    imagesText: null
+    imagesText: null,
+    priority: 'Normal'
   };
   availableUnits: any[] = [];
   availableProjects: any[] = [];
@@ -64,10 +86,12 @@ export class SharedServiceRequestes implements OnInit {
   // details panel
   showDetails = false;
   selectedTask: Task | null = null;
+  previewPhotoUrl: string | null = null;
   technicians: { id: string, name: string }[] = [];
   selectedTechnicianId: string | null = null;
   selectedTechnicianIds: string[] = [];
   loadingAssign = false;
+  statusUpdating: string | null = null;
   loadingList = false;
   loadingDetails = false;
   loadingCreate = false;
@@ -77,6 +101,7 @@ export class SharedServiceRequestes implements OnInit {
   // Work Order Modal
   showCreateWorkOrderModal = false;
   selectedRequestForWorkOrder: any = null;
+  savingWorkOrder = false;
 
   // Selection
   allSelected = false;
@@ -88,15 +113,15 @@ export class SharedServiceRequestes implements OnInit {
   pageSize = 10;
   statuses = [
     'New',
-    'InProgress',
+    'In Progress',
     'Assigned',
-    'Closed',
+    'Completed',
   ];
 
   @Input() role: 'client' | null = null;
 
   private toastService: ToastService = inject(ToastService);
-  constructor(private resource: ResourceService, private auth: AuthService) { }
+  constructor(private resource: ResourceService, private auth: AuthService, private notifications: SidebarNotificationService) { }
 
   ngOnInit(): void {
     this.loadTask();
@@ -137,17 +162,20 @@ export class SharedServiceRequestes implements OnInit {
           selected: false,
           name: item.serviceType || 'Unknown serviceType',
           units: item.unitName || '',
-          status: item.status || 'New',
+          status: this.statusLabel(item.status),
           assignee: (item.assignees && Array.isArray(item.assignees) && item.assignees.length) ? item.assignees.join(', ') : (item.assignedTaskItem?.assigneeUser?.fullName || 'Unassigned'),
-          address: item.address|| 'Unknown Address',
+          address: item.address || 'Unknown Address',
           due: item.preferredTime || '',
           objective: item.description || '',
           team: item.assignedTaskItem?.team || 'General',
           slaDue: item.assignedTaskItem?.slaDue || '',
           slaStatus: item.assignedTaskItem?.slaStatus || 'Pending',
-          priority: item.assignedTaskItem?.priority || 'Low',
+          priority: item.priority || item.assignedTaskItem?.priority || 'Normal',
           visitType: item.serviceType || 'Maintenance',
           notes: item.notes || '',
+          faultCode: item.faultCode || '',
+          dateCreated: item.createdDate ? new Date(item.createdDate).toLocaleDateString() : '',
+          images: Array.isArray(item.images) ? item.images : [],
           originalData: item
         }));
 
@@ -234,16 +262,17 @@ export class SharedServiceRequestes implements OnInit {
       Description: this.newRequest.description || '',
       FaultCode: this.newRequest.faultCode || undefined,
       PreferredTime: this.newRequest.preferredTime ? new Date(this.newRequest.preferredTime).toISOString() : undefined,
-      Images: this.newRequest.imagesText ? this.newRequest.imagesText.split(',').map(s => s.trim()).filter(Boolean) : []
+      Images: this.newRequest.imagesText ? this.newRequest.imagesText.split(',').map(s => s.trim()).filter(Boolean) : [],
+      Priority: this.newRequest.priority || 'Normal'
     };
     this.resource.create('ServiceRequests', payload).subscribe({
       next: (created: any) => {
         const newTask: Task = {
           id: created?.id,
           selected: false,
-          name: created?.unitName || 'Unknown Unit',
+          name: created?.serviceType || 'Unknown Unit',
           units: created?.unitName || '',
-          status: created?.status || 'New',
+          status: this.statusLabel(created?.status),
           assignee: created?.assigneeUser?.fullName || 'Unassigned',
           address: created?.address || '',
           due: created?.preferredTime || '',
@@ -251,17 +280,19 @@ export class SharedServiceRequestes implements OnInit {
           team: created?.team || 'General',
           slaDue: created?.slaDue || '',
           slaStatus: created?.slaStatus || 'Pending',
-          priority: created?.priority || 'Low',
+          priority: created?.priority || 'Normal',
           visitType: created?.serviceType || 'Maintenance',
           notes: '',
+          faultCode: created?.faultCode || '',
+          dateCreated: created?.createdDate ? new Date(created.createdDate).toLocaleDateString() : '',
+          images: Array.isArray(created?.images) ? created.images : [],
           originalData: created
         };
         this.tasks.unshift(newTask);
         this.toastService.show('تم إنشاء الطلب بنجاح', 'success');
         this.closeCreateRequest();
-        this.loadTask();
         // reset
-        this.newRequest = { unitId: null, unitName: null, serviceType: '', description: '', faultCode: null, preferredTime: null, imagesText: null };
+        this.newRequest = { unitId: null, unitName: null, serviceType: '', description: '', faultCode: null, preferredTime: null, imagesText: null, priority: 'Normal' };
         this.loadingCreate = false;
       },
       error: (err) => {
@@ -283,12 +314,17 @@ export class SharedServiceRequestes implements OnInit {
   }
 
   onWorkOrderCreated(workOrderData: any) {
+    if (this.savingWorkOrder) return;
+    this.savingWorkOrder = true;
     console.log('Creating Work Order:', workOrderData);
 
     // 1. Create Task from visit form
     const techId = (workOrderData.technicians && workOrderData.technicians.length) ? workOrderData.technicians[0]?.id || null : null;
     const taskPayload = {
       unitId: Number(workOrderData.units),
+      unitIds: Array.isArray(workOrderData.unitIds) && workOrderData.unitIds.length
+        ? workOrderData.unitIds.map((x: any) => Number(x))
+        : (workOrderData.units ? [Number(workOrderData.units)] : undefined),
       title: workOrderData.project,
       description: workOrderData.objective,
       scheduledStart: workOrderData.due && workOrderData.time ? `${workOrderData.due}T${workOrderData.time}:00` : undefined,
@@ -317,7 +353,8 @@ export class SharedServiceRequestes implements OnInit {
         console.error('Error creating Task', err);
         this.toastService.show('تم إنشاء المهمة (نموذج)', 'info');
         this.closeCreateWorkOrder();
-      }
+      },
+      complete: () => { this.savingWorkOrder = false; }
     });
   }
 
@@ -326,30 +363,34 @@ export class SharedServiceRequestes implements OnInit {
     this.selectedTask = task;
     this.showDetails = true;
     this.loadingDetails = true;
+    document.body.style.overflow = 'hidden';
     if (this.role !== 'client') {
       this.loadTechnicians();
     }
     if (task?.id) {
       this.resource.getById('ServiceRequests', String(task.id)).subscribe({
-        next: (item: any) => {
-          const mapped: Task = {
-            id: item.id,
-            selected: false,
-            name: item.unitName || task.name,
-            units: item.unitName || task.units,
-            status: item.status || task.status || 'New',
-            assignee: (item.assignees && Array.isArray(item.assignees) && item.assignees.length) ? item.assignees.join(', ') : (item.assignee || task.assignee || 'Unassigned'),
-            address: item.address || task.address || '',
-            due: item.preferredTime || task.due || '',
-            objective: item.description || task.objective || '',
-            team: item.team || task.team || 'General',
-            slaDue: item.slaDue || task.slaDue || '',
-            slaStatus: item.slaStatus || task.slaStatus || 'Pending',
-            priority: item.priority || task.priority || 'Low',
-            visitType: item.serviceType || task.visitType || 'Maintenance',
-            notes: item.notes || task.notes || '',
-            originalData: item
-          };
+next: (item: any) => {
+            const mapped: Task = {
+              id: item.id,
+              selected: false,
+              name: item.serviceType || task.name,
+              units: item.unitName || task.units,
+              status: this.statusLabel(item.status || task.status),
+              assignee: (item.assignees && Array.isArray(item.assignees) && item.assignees.length) ? item.assignees.join(', ') : (item.assigneeUser?.fullName || task.assignee || 'Unassigned'),
+              address: item.address || task.address || '',
+              due: item.preferredTime ? new Date(item.preferredTime).toLocaleString() : (task.due || ''),
+              objective: item.description || task.objective || '',
+              team: item.team || task.team || 'General',
+              slaDue: item.slaDue || task.slaDue || '',
+              slaStatus: item.slaStatus || task.slaStatus || 'Pending',
+              priority: item.priority || task.priority || 'Normal',
+              visitType: item.serviceType || task.visitType || 'Maintenance',
+              notes: item.notes || task.notes || '',
+              faultCode: item.faultCode || task.faultCode || '',
+              dateCreated: item.createdDate ? new Date(item.createdDate).toLocaleDateString() : (task.dateCreated || ''),
+              images: Array.isArray(item.images) ? item.images : [],
+              originalData: item
+            };
           this.selectedTask = mapped;
           if (Array.isArray(item.assignedIds) && item.assignedIds.length) {
             this.selectedTechnicianIds = [...item.assignedIds];
@@ -367,12 +408,28 @@ export class SharedServiceRequestes implements OnInit {
   closeDetails() {
     this.showDetails = false;
     this.selectedTask = null;
+    document.body.style.overflow = 'auto';
   }
 
-  updateTaskStatus(task: Task) {
+  showPhoto(url: string) {
+    this.previewPhotoUrl = url;
+  }
+
+  closePreview() {
+    this.previewPhotoUrl = null;
+  }
+
+  isPdfUrl(url: string): boolean {
+    return url.startsWith('data:application/pdf') || /\.pdf($|\?)/i.test(url);
+  }
+
+  updateTaskStatus(task: Task, targetStatus?: string) {
     if (this.role === 'client') return;
     if (!task.id) return;
-    const backendStatus = task.status || 'New';
+    // منع تكرار الطلب لو الـ user دوس على الزر أكتر من مرة
+    if (this.statusUpdating) return;
+    const backendStatus = this.statusLabel(targetStatus || task.status || 'New');
+    this.statusUpdating = backendStatus;
     this.resource.update('ServiceRequests', task.id, { status: backendStatus }).subscribe({
       next: () => {
         this.toastService.show('تم تغيير الحالة بنجاح', 'success');
@@ -381,16 +438,44 @@ export class SharedServiceRequestes implements OnInit {
         }
         const idx = this.tasks.findIndex(t => t.id === task.id);
         if (idx >= 0) this.tasks[idx].status = backendStatus;
+        this.notifications.refreshNow();
       },
       error: (err) => {
         console.error('Error updating status', err);
         this.toastService.show('فشل تغيير الحالة', 'error');
-      }
+      },
+      complete: () => { this.statusUpdating = null; }
     });
   }
 
   getSortedStatuses(currentStatus: string | undefined): string[] {
     return this.statuses; // Simplification, can be smarter
+  }
+
+  // Normalizes legacy backend status values into the new lifecycle
+  statusLabel(raw: string | undefined): string {
+    const s = (raw || '').trim();
+    if (s === 'InProgress') return 'In Progress';
+    if (s === 'Closed') return 'Completed';
+    return s || 'New';
+  }
+
+  getStatusCount(status: string): number {
+    return this.tasks.filter(t => this.statusLabel(t.status) === status).length;
+  }
+
+  approve(task: Task) {
+    if (this.role === 'client' || !task.id) return;
+    this.updateTaskStatus(task, 'In Progress');
+  }
+
+  complete(task: Task) {
+    if (this.role === 'client' || !task.id) return;
+    this.updateTaskStatus(task, 'Completed');
+  }
+
+  refresh() {
+    this.loadTask();
   }
 
   // constructor: init map url
@@ -422,6 +507,10 @@ export class SharedServiceRequestes implements OnInit {
         this.activeFilters.every(f => {
           const v = (task as any)[f.field];
           if (v == null) return false;
+
+          if (this.textFilterFields.includes(f.field)) {
+            return String(v).toLowerCase().includes(String(f.value).toLowerCase());
+          }
           return String(v).toLowerCase() === String(f.value).toLowerCase();
         })
       );
@@ -472,17 +561,67 @@ export class SharedServiceRequestes implements OnInit {
       .map(t => (t as any)[field])
       .filter(v => v !== undefined && v !== null && v !== '')
       .map(v => String(v));
-    return Array.from(new Set(values));
+    return Array.from(new Set(values)).sort((a, b) => a.localeCompare(b));
   }
 
-  applyFilter() {
-    if (this.newFilter.field && this.newFilter.value) {
-      this.activeFilters.push({ ...this.newFilter });
-      this.newFilter = { field: '', value: '' };
+  // 🔹 تطبيق الفلاتر السريعة تلقائياً (زي suggested-repairs بالظبط)
+  applyQuickFilter(field: string, value: string) {
+    if (!value) {
+      this.activeFilters = this.activeFilters.filter(f => f.field !== field);
+    } else {
+      const existingIndex = this.activeFilters.findIndex(f => f.field === field);
+      if (existingIndex > -1) {
+        this.activeFilters[existingIndex].value = value;
+      } else {
+        this.activeFilters.push({ field, value });
+      }
     }
+    this.page = 1;
   }
-  removeFilter(i: number) { this.activeFilters.splice(i, 1); }
-  clearAllFilters() { this.activeFilters = []; }
+
+  removeFilter(i: number) {
+    const removedFilter = this.activeFilters[i];
+    this.activeFilters.splice(i, 1);
+
+    // إعادة تعيين قيمة المتغير في الشبكة
+    if (removedFilter) {
+      const fieldMap: { [key: string]: string } = {
+        status: 'quickStatus',
+        priority: 'quickPriority',
+        name: 'quickServiceType',
+        units: 'quickUnit',
+        assignee: 'quickAssignee',
+        team: 'quickTeam',
+        slaStatus: 'quickSlaStatus',
+        faultCode: 'quickFaultCode',
+        address: 'quickAddress',
+        objective: 'quickObjective',
+        due: 'quickPreferredTime',
+        dateCreated: 'quickDateCreated'
+      };
+      const prop = fieldMap[removedFilter.field];
+      if (prop) (this as any)[prop] = '';
+    }
+
+    if (this.page > this.totalPages) this.page = this.totalPages;
+  }
+
+  clearAllFilters() {
+    this.activeFilters = [];
+    this.quickStatus = '';
+    this.quickPriority = '';
+    this.quickServiceType = '';
+    this.quickUnit = '';
+    this.quickAssignee = '';
+    this.quickTeam = '';
+    this.quickSlaStatus = '';
+    this.quickFaultCode = '';
+    this.quickAddress = '';
+    this.quickObjective = '';
+    this.quickPreferredTime = '';
+    this.quickDateCreated = '';
+    this.page = 1;
+  }
 
   get totalPages(): number {
     return Math.max(1, Math.ceil(this.filteredTasks.length / this.pageSize));

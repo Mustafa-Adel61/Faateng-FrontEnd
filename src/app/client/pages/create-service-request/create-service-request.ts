@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output, OnInit } from '@angular/core';
+import { Component, ElementRef, EventEmitter, Input, Output, OnInit, ViewChild } from '@angular/core';
 import { CommonModule, NgFor, NgIf } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ResourceService } from '../../../core/resource.service';
@@ -15,12 +15,14 @@ export class CreateServiceRequest implements OnInit {
   @Input() unit: any = null; // Passed from parent
   @Output() close = new EventEmitter<void>();
   @Output() save = new EventEmitter<any>();
+  @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
 
   form = {
     serviceType: '',
     description: '',
     faultCode: '',
     preferredTime: '',
+    priority: 'Normal',
     images: [] as string[]
   };
 
@@ -29,6 +31,7 @@ export class CreateServiceRequest implements OnInit {
 
   submitted = false;
   loading: boolean = false;
+  saving: boolean = false;
 
   constructor(private resource: ResourceService) {}
 
@@ -107,11 +110,28 @@ export class CreateServiceRequest implements OnInit {
     });
   }
 
+  openFilePicker(): void {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.multiple = true;
+    input.accept = 'image/*';
+    input.onchange = (event: Event) => this.onFileSelected(event);
+    input.click();
+  }
+
+  forceDatePicker(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (typeof input.showPicker === 'function') {
+      input.showPicker();
+    }
+  }
+
   removeImage(index: number) {
     this.form.images.splice(index, 1);
   }
 
   doSave() {
+    if (this.saving) return;
     this.submitted = true;
     if (!this.form.serviceType || !this.form.description) {
       return;
@@ -130,21 +150,25 @@ export class CreateServiceRequest implements OnInit {
       ServiceType: this.form.serviceType,
       Description: this.form.description,
       FaultCode: this.form.faultCode || null,
+      Priority: this.form.priority || 'Normal',
       PreferredTime: this.form.preferredTime || null,
       Images: this.form.images
     };
 
+    this.saving = true;
     this.loading = true;
     this.resource.create('ServiceRequests', payload).subscribe({
       next: (res) => {
         this.save.emit(res);
         this.close.emit();
         this.loading = false;
+        this.saving = false;
       },
       error: (err) => {
         this.save.emit(payload);
         this.close.emit();
         this.loading = false;
+        this.saving = false;
       }
     });
   }

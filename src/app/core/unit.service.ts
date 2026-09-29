@@ -8,6 +8,7 @@ export interface Unit {
   serial: string;
   model: string;
   type: string;
+  variant?: string;
   price: number;
   quantity: number;
   photos?: string[]; // array مباشرة
@@ -15,6 +16,30 @@ export interface Unit {
   clientName?: string;
   projectId?: number;
   clientId?: string;
+  // Core Fields
+  installationDate?: string;
+  isModernized?: boolean;
+  modernizationDate?: string;
+  status?: string;
+  // Elevator Fields
+  brand?: string;
+  capacityKg?: number;
+  numberOfStops?: number;
+  machineRoomType?: string;
+  machineType?: string;
+  controllerType?: string;
+  controllerName?: string;
+  servingFloors?: string;
+  // Escalator Fields
+  rise?: number;
+  width?: number;
+  speed?: number;
+  direction?: string;
+  servingLevels?: string;
+  // Chiller Fields
+  coolingCapacity?: number;
+  refrigerantType?: string;
+  compressorType?: string;
 }
 
 @Injectable({
@@ -31,6 +56,10 @@ export class UnitService {
 
   get(id: number): Observable<Unit> {
     return this.http.get<Unit>(`${this.apiUrl}/${id}`);
+  }
+
+  getNextUnitId(projectId: number, type: string): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/next-id?projectId=${projectId}&type=${type}`);
   }
 
   create(unit: any): Observable<Unit> {

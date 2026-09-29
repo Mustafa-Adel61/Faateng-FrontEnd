@@ -1,5 +1,5 @@
 import { NgClass, NgFor, NgIf, CommonModule } from '@angular/common';
-import { Component, EventEmitter, Output, OnInit } from '@angular/core';
+import { Component, EventEmitter, Input, Output, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ResourceService } from '../../../core/resource.service';
 import { Loading } from '../../../Shared/shared-components/loading/loading';
@@ -14,6 +14,10 @@ export class CreateNewContact implements OnInit {
 
    @Output() close = new EventEmitter<void>();
   @Output() save = new EventEmitter<any>();
+  @Input() saving: boolean = false; // Parent-driven: true while the POST is still in flight
+
+  step: number = 1;
+  steps = [1, 2];
 
   clients: { id: string, name: string, email?: string }[] = [];
   selectedClientId: string | null = null;
@@ -27,8 +31,8 @@ export class CreateNewContact implements OnInit {
   maxFileSize = 10;
   allowedFileTypes = ['image/jpeg','image/jpg','image/png','image/gif','image/webp','application/pdf'];
   Types=['Maintenance', 'Turnkey', 'Supply','Service'];
-  // Types=['AMC', 'Warranty', 'OnDemand'];
   BillingCycles=['Weekly','Monthly','Every 2 months', 'Quarterly', 'Annual', 'One-off'];
+  VisitFrequencies=['Weekly','Monthly','Every 2 months', 'Quarterly', 'Annual', 'One-off'];
   form = {
     Title: '',
     Type: '',
@@ -37,12 +41,15 @@ export class CreateNewContact implements OnInit {
     BillingCycle: '',
     AmountperCycle: 0,
     Photos: [] as string[],
-    Files: [] as { name: string; type: string; url: string }[]
+    Files: [] as { name: string; type: string; url: string }[],
+    VisitFrequency: '',
+    VisitStartDate: '',
+    VisitStartTime: '',
+    NumberOfVisits: 0
   };
 
   constructor(private resource: ResourceService) {}
   loading: boolean = false;
-
  ngOnInit() {
     this.loadClients();
  }
@@ -114,7 +121,7 @@ export class CreateNewContact implements OnInit {
     this.close.emit();
   }
 
- submitted = false;
+  submitted = false;
 
   doSave() {
       this.submitted = true;
@@ -124,8 +131,10 @@ export class CreateNewContact implements OnInit {
       !this.form.Start ||
       !this.form.End ||
       !this.form.BillingCycle ||
-      !this.selectedProjectId
-  ) {
+        !this.selectedProjectId ||
+        !this.form.AmountperCycle || this.form.AmountperCycle <= 0 ||
+      this.selectedUnitIds.length <= 0
+      ) {
     return;
   }
 
@@ -194,5 +203,61 @@ export class CreateNewContact implements OnInit {
     const download = `<a href="${url}" download="${name || 'download'}" style="margin:10px 0;display:inline-block;">Download</a>`;
     w.document.write(`<!doctype html><html><head><title>Preview</title></head><body>${content}<div>${download}</div></body></html>`);
     w.document.close();
+  }
+
+  goBack() {
+    if (this.step > 1) this.step--;
+  }
+  
+  goNext() {
+    this.submitted = true;
+    if (this.step === 1) {
+      if (
+        !this.selectedClientId ||
+        !this.form.Type ||
+        !this.form.Start ||
+        !this.form.End ||
+        !this.form.BillingCycle ||
+        !this.form.AmountperCycle || this.form.AmountperCycle <= 0 ||
+        !this.selectedProjectId ||
+        this.selectedUnitIds.length <= 0
+      ) {
+        return;
+      }
+    }
+    
+    if (this.step < 2) {
+      this.step++;
+      this.submitted = false;
+    } else {
+      this.doSaveFinal();
+    }
+  }
+
+  doSaveFinal() {
+    if (this.saving) return;
+    console.log("Saving final contract...");
+    this.submitted = true;
+    if (
+      !this.form.VisitFrequency ||
+      !this.form.VisitStartDate ||
+      !this.form.VisitStartTime 
+      // this.form.NumberOfVisits <= 0
+    ) {
+      return;
+    }
+
+    this.form.Title = this.form.Title || `${this.clients.find(c => c.id === this.selectedClientId)?.name || 'Contract'} - ${this.projects.find(p => p.id === this.selectedProjectId)?.name || ''}`;
+
+    this.loading = true;
+    const payload = {
+      ...this.form,
+      ClientId: this.selectedClientId,
+      ProjectId: this.selectedProjectId,
+      UnitIds: this.selectedUnitIds.length > 0 ? this.selectedUnitIds : [0]
+    };
+    console.log("payload",payload);
+
+    this.save.emit(payload);
   }
 }

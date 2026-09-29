@@ -2,7 +2,7 @@
 <div class="details-overlay">
   <div class="details-panel">
     <button class="close-btn" (click)="doClose()">×</button>
-    <p>{{ project?.client?.fullName || project?.client?.userName || '' }} ·
+    <p>{{ client?.fullName || client?.userName || project?.primeContactName || '' }} ·
       {{ project?.location || project?.siteAddress || '' }}</p>
     <h3>{{ project?.name || taskss?.Project }}</h3>
     <p>Created: {{ project?.startDate | date:'yyyy-MM-dd' }} · Address:
@@ -51,11 +51,12 @@
         </div>
         <div class="detail-group">
           <h4>Client Information</h4>
-          <p><strong>Client Name:</strong> {{ project?.client?.fullName || project?.client?.userName }}</p>
-          <p><strong>Primary Contact:</strong> {{ project?.primeContactName }}</p>
+          <p><strong>Client Name:</strong>
+            {{ client?.fullName || client?.userName || project?.primeContactName || 'N/A' }}</p>
+          <p><strong>Primary Contact:</strong> {{ project?.primeContactName || client?.fullName || 'N/A' }}</p>
           <p><strong>Job Title:</strong> {{ project?.jobTitle }}</p>
-          <p><strong>Phone:</strong> {{ project?.phoneNumber }}</p>
-          <p><strong>Email:</strong> {{ project?.emailAddress }}</p>
+          <p><strong>Phone:</strong> {{ client?.phoneNumber || client?.phone || project?.phoneNumber || 'N/A' }}</p>
+          <p><strong>Email:</strong> {{ client?.email || project?.emailAddress || 'N/A' }}</p>
         </div>
         <div class="detail-group">
           <h4>Site Location</h4>
@@ -102,9 +103,9 @@
           <thead>
             <tr>
               <th>Serial</th>
-              <th>Model</th>
-              <th>Type</th>
-              <th>Price</th>
+              <th>unit Name</th>
+              <th>Unit Type</th>
+              <!-- <th>Price</th> -->
               <!-- <th>Quantity</th> -->
             </tr>
           </thead>
@@ -113,7 +114,7 @@
               <td>{{unit.serial}}</td>
               <td>{{unit.model}}</td>
               <td>{{unit.type}}</td>
-              <td>{{unit.price}}</td>
+              <!-- <td>{{unit.price}}</td> -->
               <!-- <td>{{unit.quantity}}</td> -->
             </tr>
             <tr *ngIf="units.length === 0">
@@ -225,15 +226,16 @@
     <!-- <div class="action-buttons">
         <button class="add-unit-btn" (click)="openCreateUnit()">+ Add Unit</button>
       </div> -->
-    <button class="upload-btn" (click)="openCreateUnit()">Add Unit</button>
-    <button class="upload-btn">Create Work Order</button>
-    <button class="upload-btn">New Invoice</button>
-    <button class="upload-btn">Share</button>
+    <div class="action-buttons">
+      <button class="upload-btn" (click)="openCreateUnit()">Add Unit</button>
+      <button class="upload-btn">Create Work Order</button>
+      <button class="upload-btn">New Invoice</button>
+      <button class="upload-btn">Share</button>
+    </div>
 
   </div>
 </div>
 
 <app-create-new-unit *ngIf="showCreateUnit" [projectId]="project?.id" [clientId]="project?.clientId"
-  [projectName]="project?.name" [clientName]="project?.client?.fullName || project?.client?.userName"
-  (close)="closeCreateUnit()" (save)="saveNewUnit($event)">
+  [projectName]="project?.name" [clientName]="clientName" (close)="closeCreateUnit()" (save)="saveNewUnit($event)">
 </app-create-new-unit>

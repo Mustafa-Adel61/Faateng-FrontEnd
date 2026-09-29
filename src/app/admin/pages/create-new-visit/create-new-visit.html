@@ -2,103 +2,84 @@
 <div class="cnv-backdrop">
   <div class="cnv-modal">
     <button class="cnv-close" (click)="doClose()">✕</button>
-        <div *ngIf="step === 3" class="review-actions">
-      <!--                 <button class="action-icon" (click)="editVisit()">
-  <img src="assets/images/edit.png" alt="">
-</button>
-                <button class="action-icon" (click)="clearVisit()">
-  
-  <img src="assets/images/delete.png" alt="">
-  </button> -->
-      <button class="action-icon" (click)="editVisit()">
-        <img src="assets/images/edit.png" alt="Edit">
-      </button>
-      <button class="action-icon" (click)="clearVisit()">
-        <img src="assets/images/delete.png" alt="Delete">
-      </button>
-         
+
+    <!-- Steps Progress (زي create-new-project) -->
+    <div class="progress-container">
+      <div *ngFor="let stepItem of steps; let i = index" class="progress-segment"
+        [class.active]="i < step"></div>
     </div>
 
-    <!-- STEP 1 (Form 1) -->
-    <div *ngIf="step === 1" class="cnv-step">
-      <!-- <h3>Create New Visit</h3> -->
+    <div *ngIf="step === 3" class="review-actions">
+      <button class="action-icon" (click)="editVisit()" title="Edit">
+        <img src="assets/images/edit.png" alt="Edit">
+      </button>
+      <button class="action-icon" (click)="clearVisit()" title="Reset">
+        <img src="assets/images/delete.png" alt="Delete">
+      </button>
+    </div>
 
+    <!-- STEP 1: Task Info + Units -->
+    <div *ngIf="step === 1" class="cnv-step">
       <label>Project <span class="required">*</span>
         <select [(ngModel)]="form.project" name="project" (ngModelChange)="onProjectChange($event)"
           [ngClass]="{'input-error': submitted && !form.project}">
           <option value="" disabled selected>Select Project</option>
-          <option value="" selected>Not Project</option>
+          <option value="">Not Project</option>
           <option *ngFor="let p of projects" [value]="p.id">{{p?.name}}</option>
         </select>
       </label>
 
-      <label>Units
-        <select [(ngModel)]="form.units" name="units" (ngModelChange)="onUnitChange($event)">
-          <option value="" disabled selected>Select Unit</option>
-          <option *ngFor="let u of units" [value]="u.id">{{u.model}} ({{u.serial}})</option>
-
-        </select>
-      </label>
-      <ng-container *ngIf="useGoogle; else nominatimTpl">
-        <label>Address <span class="required">*</span>
-          <input id="gmap-autocomplete" type="text" [(ngModel)]="form.address" name="address"
-            placeholder="Type address" />
-        </label>
-      </ng-container>
-      <ng-template #nominatimTpl>
-        <label>Address <span class="required">*</span>
-          <input type="text" [(ngModel)]="form.address" name="address"
-            (input)="onAddressInput()"
-            placeholder="Type address" />
-        </label>
-        <div *ngIf="showAddressDropdown && addressSuggestions.length > 0" class="suggestions">
-          <div class="suggestion-item" *ngFor="let s of addressSuggestions" (click)="selectSuggestion(s)">
-            {{ s.display_name }}
+      <!-- اختيار أكتر من Unit -->
+      <label>Select Units
+        <span class="field-hint"> you can select more than one </span>
+        <div *ngIf="availableUnits.length" class="units-list"
+          [ngClass]="{'input-error': submitted && form.project && selectedUnitIds.length === 0}">
+          <div *ngFor="let u of availableUnits" class="unit-item"
+            [class.selected]="isUnitSelected(u)" (click)="toggleUnit(u)">
+            <input type="checkbox" [checked]="isUnitSelected(u)" readonly />
+            <span>{{ u.model }} ({{ u.serial }})</span>
           </div>
         </div>
-      </ng-template>
-
-
+        <div *ngIf="!availableUnits.length && form.project" class="no-units">
+          No units available for this project
+        </div>
+        <div *ngIf="!form.project" class="no-units">
+          Select a project to see its units — or keep "Not Project" for a general task
+        </div>
+      </label>
 
       <label>Visit Objective
-        <input [(ngModel)]="form.objective" name="objective" />
+        <input [(ngModel)]="form.objective" name="objective"
+          [ngClass]="{'input-error': submitted && !form.project && !form.objective}" />
       </label>
-      <!-- <label>Address
-        <input type="text" [(ngModel)]="form.address" name="address" />
-      </label> -->
+
+      <!-- Address + Lat/Lg للقراءة فقط بتتعبى من المشروع -->
+      <label>Address
+        <input type="text" [value]="address" name="address" readonly class="readonly-input"
+          placeholder="Auto-filled from project" />
+      </label>
       <label>Latitude
-        <input type="number" [(ngModel)]="form.lat" name="lat" step="0.000001" />
+        <input type="text" [value]="lat" name="lat" readonly class="readonly-input"
+          placeholder="Auto-filled from project" />
       </label>
       <label>Longitude
-        <input type="number" [(ngModel)]="form.lng" name="lng" step="0.000001" />
+        <input type="text" [value]="lng" name="lng" readonly class="readonly-input"
+          placeholder="Auto-filled from project" />
       </label>
-      <!-- <div id="cnv-map" style="width:100%;height:240px;border-radius:8px;margin-top:8px;"></div> -->
-
-      <!-- بدل ما يكون input عادي، خليه زرار يفتح step2 -->
-      <label>Due Date</label>
-      <div class="fake-input" (click)="openDateForm()">
-        {{ form.due && form.time ? (form.due + ' ' + form.time) : 'Select Date & Time' }}
-      </div>
-
-      <div class="cnv-actions single-button-action">
-        <!-- <button type="button" (click)="doClose()">Cancel</button>
-        <button type="button" (click)="openReview()">Save</button> -->
-        <button type="button" class="save-button-large yellow-bg" (click)="openReview()">Save</button>
-      </div>
     </div>
 
-
+    <!-- STEP 2: Due Date & Technician -->
     <div *ngIf="step === 2" class="cnv-step">
-      <!--       <h3>Select Date & Technician</h3> -->
 
-      <label>Date
+      <label>Date <span class="required">*</span>
         <input type="date" [(ngModel)]="form.due" name="due" (click)="forceDatePicker($event)"
-          class="styled-date-input" />
+          class="styled-date-input" [ngClass]="{'input-error': submitted && !form.due}" />
       </label>
       <label>Time
         <input type="time" [(ngModel)]="form.time" name="time" (click)="forceDatePicker($event)"
           class="styled-time-input" />
       </label>
+
       <label>Technician
         <select [(ngModel)]="selectedTechnicianId" name="technician_select" (change)="addTechnician()">
           <option value="" disabled selected>Select Technician(s)</option>
@@ -109,37 +90,36 @@
           Selected: {{ selectedTechnicianDisplay }}
         </div>
       </label>
-      <div class="selected-technicians-container" *ngIf="form.technicians.length > 0">
-        <div *ngFor="let t of form.technicians" class="technician-chip">
+      <div class="selected-technicians-container" *ngIf="selectedTechnicians.length > 0">
+        <div *ngFor="let t of selectedTechnicians" class="technician-chip">
           <span>{{ t.name || t.id }}</span>
           <button type="button" class="remove-chip-btn" (click)="removeTechnician(t)">✕</button>
         </div>
       </div>
-
-      <div class="cnv-actions ">
-        <!--         <button type="button" (click)="saveDateForm()">OK</button> -->
-        <button type="button" class="save-button-large yellow-bg" (click)="saveDateForm()">OK</button>
-
-      </div>
-
     </div>
 
     <!-- STEP 3 (Review) -->
     <div *ngIf="step === 3" class="cnv-step review-view">
-      <h3>Visit Company 1 for the weekly check</h3>
+      <h3>Review Task</h3>
       <div class="review-row"><strong>Project:</strong> {{form.project}}</div>
-      <div class="review-row"><strong>Units:</strong> {{form.units}}</div>
-      <div class="review-row"><strong>Address:</strong> {{form.address}}</div>
+      <div class="review-row"><strong>Units:</strong> {{ getSelectedUnitsLabel() || 'General Visit' }}</div>
+      <div class="review-row"><strong>Address:</strong> {{address}}</div>
       <div class="review-row"><strong>Due:</strong> {{form.due}}</div>
       <div class="review-row"><strong>Time:</strong> {{form.time}}</div>
       <div class="review-row"><strong>Objective:</strong> {{form.objective}}</div>
       <div class="review-row"><strong>Priority:</strong> {{form.priority}}</div>
       <div class="review-row"><strong>Technicians:</strong> {{ getTechniciansLabel() }}</div>
+    </div>
 
-      <div class="cnv-actions single-button-action">
-        <!-- <button type="button" (click)="step=1">Back</button>
-        <button type="button" (click)="doSaveFinal()">Save</button> -->
-        <button type="button" class="save-button-large yellow-bg" (click)="doSaveFinal($event)">Save</button>
+    <!-- Navigation Actions (زي create-new-project) -->
+    <div class="cnv-actions report-actions">
+      <button type="button" class="cancel-button" (click)="doClose()">Cancel</button>
+      <div class="right-actions">
+        <button type="button" *ngIf="step > 1" class="back-button" (click)="goBack()">Back</button>
+        <button type="button" class="save-button-large yellow-bg next-button" (click)="goNext()" [disabled]="saving">
+          <span class="button-loader" *ngIf="saving"></span>
+          {{ saving ? 'Creating...' : (step === 3 ? 'Create Task' : 'Next') }}
+        </button>
       </div>
     </div>
   </div>

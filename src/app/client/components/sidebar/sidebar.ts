@@ -33,7 +33,10 @@ export class Sidebar {
 
   getChecklistLink(): string {
     const role = this.auth.getRole();
-    return role === 'admin' || role === 'manager' ? '/admin/checklist-list' : '/admin/checklist';
+    if (role === 'admin' || role === 'manager' || role === 'dispatcher') {
+      return '/dashboard/admin/submissions';
+    }
+    return '/dashboard/admin/checklist';
   }
 
   @Output() closeSidebar = new EventEmitter<void>();

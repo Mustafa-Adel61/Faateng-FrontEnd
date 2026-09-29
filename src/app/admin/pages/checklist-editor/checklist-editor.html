@@ -1,0 +1,109 @@
+<div class="checklist-editor-page" [class.loading]="loading" [class.embedded]="embedded">
+  <div class="page-head">
+    <a *ngIf="!embedded" class="back-link" routerLink="/dashboard/admin/checklists">← Back to Checklists</a>
+    <button *ngIf="embedded" type="button" class="back-link embedded-close" (click)="cancel()">× Close</button>
+    <h1>{{ id ? 'Edit Checklist' : 'Create Checklist' }}</h1>
+    <p class="subtitle">Set the checklist details, then add the questions technicians will answer.</p>
+  </div>
+
+  <div class="editor-grid">
+    <div class="card form-card">
+      <div class="card-head">
+        <h2>General Information</h2>
+      </div>
+      <div class="form-grid">
+        <label class="form-label">
+          <span class="label-text">Checklist Name <span class="required">*</span></span>
+          <input type="text" class="form-input" [(ngModel)]="name" placeholder="Example: Elevator Monthly Inspection"
+            [class.input-error]="submitted && !name.trim()">
+        </label>
+
+        <label class="form-label">
+          <span class="label-text">System <span class="required">*</span></span>
+          <select class="form-input" [(ngModel)]="system">
+            <option *ngFor="let s of systems" [value]="s">{{ s }}</option>
+          </select>
+        </label>
+
+        <label class="form-label">
+          <span class="label-text">Category <span class="required">*</span></span>
+          <select class="form-input" [(ngModel)]="category">
+            <option *ngFor="let c of categories" [value]="c">{{ c }}</option>
+          </select>
+        </label>
+
+        <label class="form-label">
+          <span class="label-text">Frequency <span class="required">*</span></span>
+          <select class="form-input" [(ngModel)]="frequency">
+            <option *ngFor="let f of frequencies" [value]="f">{{ f }}</option>
+          </select>
+        </label>
+      </div>
+    </div>
+
+    <div class="card questions-card">
+      <div class="card-head">
+        <div>
+          <h2>Questions</h2>
+          <p class="card-subtitle">Each question belongs to this checklist.</p>
+        </div>
+        <button type="button" class="btn btn-secondary" (click)="addQuestion()">＋ Add Question</button>
+      </div>
+
+      <div class="questions-list">
+        <div *ngFor="let q of questions; let i = index; trackBy: trackByIndex" class="question-row">
+          <div class="question-number">{{ i + 1 }}</div>
+          <div class="question-fields">
+            <input type="text" class="form-input question-text-input" [(ngModel)]="q.text"
+              placeholder="Write the inspection question" [class.input-error]="submitted && !q.text.trim()">
+            <div class="mini-grid">
+              <label class="mini-label">
+                <span class="mini-label-text">Type</span>
+                <select class="form-input mini-input" [(ngModel)]="q.type">
+                  <option *ngFor="let t of questionTypes" [value]="t">{{ t }}</option>
+                </select>
+              </label>
+              <label class="mini-label">
+                <span class="mini-label-text">Section</span>
+                <input type="text" class="form-input mini-input" [(ngModel)]="q.section" placeholder="Section">
+              </label>
+              <label class="checkbox-label" (click)="$event.stopPropagation()">
+                <input type="checkbox" class="checkbox-input" [(ngModel)]="q.photoRequired"
+                  (click)="$event.stopPropagation()">
+                <span>Photo required</span>
+              </label>
+              <label class="checkbox-label" (click)="$event.stopPropagation()">
+                <input type="checkbox" class="checkbox-input" [(ngModel)]="q.notesRequired"
+                  (click)="$event.stopPropagation()">
+                <span>Notes required</span>
+              </label>
+            </div>
+          </div>
+          <button type="button" class="remove-btn" (click)="deleteQuestion(i)" title="Remove question">×</button>
+        </div>
+
+        <div *ngIf="questions.length === 0" class="empty-state">
+          <div class="empty-icon">📋</div>
+          <p>No questions added yet.</p>
+          <p class="empty-hint">Click "＋ Add Question" to start building your checklist.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sticky-actions">
+    <div class="sticky-inner">
+      <button type="button" class="btn btn-ghost" (click)="cancel()" [disabled]="saving">Cancel</button>
+      <button type="button" class="btn btn-secondary" (click)="save('Draft')" [disabled]="saving">
+        <span class="button-loader" *ngIf="saving"></span>
+        <span *ngIf="saving">Saving...</span>
+        <span *ngIf="!saving">Save Draft</span>
+      </button>
+      <button type="button" class="btn btn-primary" (click)="save('Published')" [disabled]="saving">
+        <span class="button-loader" *ngIf="saving"></span>
+        <span *ngIf="saving">Publishing...</span>
+        <span *ngIf="!saving">Publish Checklist</span>
+      </button>
+    </div>
+  </div>
+</div>

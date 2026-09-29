@@ -1,22 +1,37 @@
-
 <header class="app-header">
   <div class="header-left">
-<button class="sidebar-toggle" (click)="sidebarToggleClick()">&#9776;</button>
+    <button class="sidebar-toggle" (click)="sidebarToggleClick()">&#9776;</button>
     <img class="menu-btn" src="/assets/images/Icon.png" alt="">
     <!-- <img class="image" src="/assets/images/MEPSOL.png" alt="Logo">
     <img class="pointImage" src="/assets/images/Ellipse 33.png" alt="Logo"> -->
-  <div class="logo-wrapper">
-  <img class="image" src="/assets/images/MEPSOL.png" alt="Logo">
-  <img class="pointImage" src="/assets/images/Ellipse 33.png" alt="Dot">
+    <div class="logo-wrapper">
+      <img class="image" src="/assets/images/MEPSOL.png" alt="Logo">
+      <img class="pointImage" src="/assets/images/Ellipse 33.png" alt="Dot">
+    </div>
+
   </div>
 
-</div>
-
-<div class="header-right">
-  <!-- <span class="icon headset">🎧</span>
+  <div class="header-right">
+    <!-- <span class="icon headset">🎧</span>
   <span class="icon bell">🔔</span> -->
-  <img class="icon headset" src="/assets/images/Icon2.png" alt="Dot">
-  <img class="icon bell" src="/assets/images/Icon1.png" alt="Dot">
+    <img class="icon headset" src="/assets/images/Icon2.png" alt="Dot">
+    <div class="notification-wrapper">
+      <button class="notification-button" type="button" (click)="toggleNotifications()"
+        [attr.aria-expanded]="notificationsOpen" aria-label="Notifications">
+        <img class="icon bell" src="/assets/images/Icon1.png" alt="Notifications">
+        <span class="notification-count" *ngIf="notifications.totalCount() > 0">{{ notifications.totalCount() }}</span>
+      </button>
+      <div class="notification-dropdown" *ngIf="notificationsOpen">
+        <a class="notification-item" *ngFor="let item of notifications.getNotificationItems('dispatcher')"
+          [routerLink]="item.route" (click)="closeNotifications()">
+          <span>{{ item.label }}</span>
+          <strong>{{ item.count }}</strong>
+        </a>
+        <p class="empty-notifications" *ngIf="notifications.getNotificationItems('dispatcher').length === 0">
+          No new notifications
+        </p>
+      </div>
+    </div>
     <img src="assets/images/Ellipse 34.png" alt="User" class="user-img">
   </div>
 </header>

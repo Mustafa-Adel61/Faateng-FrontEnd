@@ -1,0 +1,239 @@
+<div class="checklist-detail-page" *ngIf="!loading">
+  <ng-container *ngIf="checklist">
+    <div class="page-head">
+      <div class="page-head-left">
+        <a class="back-link" routerLink="/dashboard/admin/checklists">← Back to Checklists</a>
+        <div class="title-row">
+          <h1 class="page-title">{{ checklist.name }}</h1>
+          <span class="status-badge" [ngClass]="checklist.status === 'Published' ? 'status-published' : 'status-draft'">
+            {{ checklist.status }}
+          </span>
+        </div>
+        <p class="page-subtitle">{{ checklist.system }} · {{ checklist.frequency }} · {{ checklist.category }}</p>
+      </div>
+      <div class="page-head-actions">
+        <a class="btn btn-secondary" [routerLink]="['/dashboard/admin/checklists', checklist.id, 'edit']">Edit
+          Checklist</a>
+        <!-- <button class="btn btn-primary" (click)="openAssignModal()">Assign Units</button> -->
+      </div>
+    </div>
+
+    <div class="tabs-nav">
+      <button class="tab-btn" [class.active]="tab === 'overview'" (click)="setTab('overview')">Overview</button>
+      <button class="tab-btn" [class.active]="tab === 'questions'" (click)="setTab('questions')">
+        Questions <span class="tab-badge">{{ checklist.questions?.length || 0 }}</span>
+      </button>
+      <button class="tab-btn" [class.active]="tab === 'units'" (click)="setTab('units')">
+        Linked Units <span class="tab-badge">{{ checklist.units?.length || 0 }}</span>
+      </button>
+      <button class="tab-btn" [class.active]="tab === 'history'" (click)="setTab('history')">History</button>
+    </div>
+
+    <ng-container *ngIf="tab === 'overview'">
+      <div class="stats-grid">
+        <div class="stat-card">
+          <span class="stat-number">{{ checklist.questions?.length || 0 }}</span>
+          <span class="stat-label">Questions</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-number">{{ checklist.units?.length || 0 }}</span>
+          <span class="stat-label">Linked Units</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-number">{{ requiredPhotos() }}</span>
+          <span class="stat-label">Photos Required</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-number">{{ requiredNotes() }}</span>
+          <span class="stat-label">Notes Required</span>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2 class="panel-title">Checklist Setup</h2>
+        <div class="details-grid">
+          <div class="detail-item">
+            <span class="detail-label">System</span>
+            <strong class="detail-value">{{ checklist.system }}</strong>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Category</span>
+            <strong class="detail-value">{{ checklist.category }}</strong>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Frequency</span>
+            <strong class="detail-value">{{ checklist.frequency }}</strong>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Status</span>
+            <strong class="detail-value">{{ checklist.status }}</strong>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Created Date</span>
+            <strong class="detail-value">{{ checklist.createdDate | date:'yyyy-MM-dd' }}</strong>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Last Updated</span>
+            <strong class="detail-value">{{ checklist.updatedDate | date:'yyyy-MM-dd' }}</strong>
+          </div>
+        </div>
+      </div>
+    </ng-container>
+
+    <ng-container *ngIf="tab === 'questions'">
+      <div class="panel">
+        <div class="section-head">
+          <div class="section-head-text">
+            <h2 class="panel-title">Checklist Questions</h2>
+            <p class="section-desc">Review the exact questions technicians receive.</p>
+          </div>
+          <a class="btn btn-secondary" [routerLink]="['/dashboard/admin/checklists', checklist.id, 'edit']">＋ Add / Edit
+            Questions</a>
+        </div>
+        <div class="table-wrapper">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Question</th>
+                <th>Response Type</th>
+                <th>Photo</th>
+                <th>Notes</th>
+                <th>Section</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let q of checklist.questions; let i = index">
+                <td class="col-num">{{ i + 1 }}</td>
+                <td><strong>{{ q.textEn || q.textAr }}</strong></td>
+                <td>{{ getQuestionType(q) }}</td>
+                <td>
+                  <span class="req-badge" [class.req-yes]="q.requirePhoto" [class.req-no]="!q.requirePhoto">
+                    {{ q.requirePhoto ? 'Required' : '—' }}
+                  </span>
+                </td>
+                <td>
+                  <span class="req-badge" [class.req-yes]="q.requireNotes" [class.req-no]="!q.requireNotes">
+                    {{ q.requireNotes ? 'Required' : '—' }}
+                  </span>
+                </td>
+                <td>{{ q.section }}</td>
+              </tr>
+              <tr *ngIf="!checklist.questions?.length">
+                <td colspan="6" class="empty-row">No questions added yet.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </ng-container>
+
+    <ng-container *ngIf="tab === 'units'">
+      <div class="panel">
+        <div class="section-head">
+          <div class="section-head-text">
+            <h2 class="panel-title">Linked Units</h2>
+            <p class="section-desc">Units that will receive this checklist.</p>
+          </div>
+          <!-- <button class="btn btn-primary" (click)="openAssignModal()">＋ Assign Unit</button> -->
+        </div>
+        <div class="table-wrapper">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Project</th>
+                <th>Unit</th>
+                <th>Unit Type</th>
+                <th>Frequency</th>
+                <th>Assigned Date</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let u of checklist.units">
+                <td>{{ u.projectName }}</td>
+                <td><strong>{{ u.unitName }} ({{ u.unitModel }})</strong></td>
+                <td>{{ u.unitType }}</td>
+                <td>{{ u.frequency }}</td>
+                <td>{{ u.assignedDate | date:'yyyy-MM-dd' }}</td>
+                <td>
+                  <button class="link-danger" (click)="removeUnit(u.id)">Remove</button>
+                </td>
+              </tr>
+              <tr *ngIf="!checklist.units?.length">
+                <td colspan="6" class="empty-row">No units linked yet.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </ng-container>
+
+    <ng-container *ngIf="tab === 'history'">
+      <div class="panel timeline-panel">
+        <h2 class="panel-title">Activity History</h2>
+        <div class="timeline">
+          <div class="timeline-item" *ngFor="let h of checklist.history">
+            <div class="timeline-dot"></div>
+            <div class="timeline-content">
+              <strong class="timeline-action">{{ h.action }}</strong>
+              <p class="timeline-meta">{{ h.userName }} · {{ h.date | date:'yyyy-MM-dd HH:mm' }}</p>
+            </div>
+          </div>
+          <div *ngIf="!checklist.history?.length" class="empty-state">
+            No history records yet.
+          </div>
+        </div>
+      </div>
+    </ng-container>
+
+    <div class="modal-backdrop" *ngIf="showAssign" (click)="closeAssignModal()">
+      <div class="modal" (click)="$event.stopPropagation()">
+        <div class="modal-head">
+          <div>
+            <h2 class="modal-title">Assign Checklist to Unit</h2>
+            <p class="modal-desc">Select a client, project, and unit to assign.</p>
+          </div>
+          <button class="modal-close" (click)="closeAssignModal()">×</button>
+        </div>
+        <div class="modal-body">
+          <label class="form-label">
+            Client
+            <select class="form-select" [(ngModel)]="selectedClientId" (ngModelChange)="onClientChange()">
+              <option value="">Select Client</option>
+              <option *ngFor="let c of clients" [ngValue]="c.id">{{ c.fullName || c.userName || c.name || c.id }}
+              </option>
+            </select>
+          </label>
+          <label class="form-label">
+            Project
+            <select class="form-select" [(ngModel)]="selectedProjectId" (ngModelChange)="onProjectChange()"
+              [disabled]="!selectedClientId">
+              <option value="">Select Project</option>
+              <option *ngFor="let p of projects" [ngValue]="p.id">{{ p.name || p.projectName || p.id }}</option>
+            </select>
+          </label>
+          <label class="form-label">
+            Unit
+            <select class="form-select" [(ngModel)]="selectedUnitId" [disabled]="!selectedProjectId">
+              <option value="">Select Unit</option>
+              <option *ngFor="let u of units" [ngValue]="u.id">{{ u.model || u.serial || u.name || u.id }}
+                ({{ u.type }})</option>
+            </select>
+          </label>
+        </div>
+        <div class="modal-actions">
+          <button class="btn btn-ghost" (click)="closeAssignModal()" [disabled]="assignLoading">Cancel</button>
+          <button class="btn btn-primary" (click)="assignUnit()" [disabled]="assignLoading">
+            {{ assignLoading ? 'Assigning...' : 'Assign Unit' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+</div>
+
+<div class="loading-state" *ngIf="loading">
+  <div class="loading-spinner"></div>
+  <p>Loading checklist details...</p>
+</div>

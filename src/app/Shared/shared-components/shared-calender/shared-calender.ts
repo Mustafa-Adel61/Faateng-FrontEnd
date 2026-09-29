@@ -32,7 +32,7 @@ export class SharedCalender implements OnInit {
   hoveredCell: string | null = null;
   showCreateForm = false;
   formData: any = { project: '', assignee: '', time: '', timeEnd: '', date: '' };
-  @Input() role: 'admin' | 'dispatcher' | 'manager' | 'technician' | null = null;
+  @Input() role: 'admin' | 'dispatcher' | 'manager' | 'technician' | 'client' | null = null;
   constructor(private taskService: TaskService, private auth: AuthService) { }
   private draggingTaskId: number | null = null;
   private dragGhost: HTMLElement | null = null;
@@ -56,6 +56,28 @@ export class SharedCalender implements OnInit {
     // };
     this.showCreateForm = true;
   }
+  getStatusColor(status?: string): string {
+  switch ((status || '').toLowerCase()) {
+    case 'draft':
+      return '#ef4444';      // Red
+
+    case 'scheduled':
+      return '#facc15';      // Yellow
+
+    case 'waiting for parts':
+      return '#f97316';      // Orange
+
+    case 'on-site':
+    case 'onsite':
+      return '#22c55e';      // Green
+
+    case 'closed':
+      return '#9ca3af';      // Grey
+
+    default:
+      return '#3b82f6';
+  }
+}
   saveNewVisit(newVisit: any) {
     const colors = ['#dceffd', '#fdeaea', '#fffbe7', '#eafbe7', '#f2d9ff', '#d9f2ff'];
     const randomColor = colors[Math.floor(Math.random() * colors.length)];
@@ -98,10 +120,15 @@ export class SharedCalender implements OnInit {
   }
 
   ngOnInit(): void {
+    this.role = (this.role || this.auth.currentRole()) as typeof this.role;
     this.loadTask();
   }
   tasks: CalendarTask[] = [];
   hours: number[] = Array.from({ length: 24 }, (_, i) => i);
+  // hours = Array.from({ length: 13 }, (_, i) => i + 8);
+  get displayHours(): number[] {
+  return [...this.hours.slice(8), ...this.hours.slice(0, 8)];
+}
   loadTask() {
     let start: Date;
     let end: Date;
@@ -321,14 +348,20 @@ export class SharedCalender implements OnInit {
     return `${String(hour).padStart(2, '0')}:`;
   }
   onDragStart(task: CalendarTask, ev: DragEvent) {
+    if (this.role === 'client') {
+      ev.preventDefault();
+      return;
+    }
     ev.dataTransfer?.setData('text/plain', String(task.id));
   }
   onDragOver(ev: DragEvent) {
+    if (this.role === 'client') return;
     ev.preventDefault();
     const t = ev.currentTarget as HTMLElement;
     if (t) t.classList.add('dragover');
   }
   onDrop(day: Date, hour: number, ev: DragEvent) {
+    if (this.role === 'client') return;
     ev.preventDefault();
     const t = ev.currentTarget as HTMLElement;
     if (t) t.classList.remove('dragover');
@@ -356,6 +389,7 @@ export class SharedCalender implements OnInit {
     });
   }
   onPointerDownTask(task: CalendarTask, ev: PointerEvent) {
+    if (this.role === 'client') return;
     ev.preventDefault();
     this.pointerStartX = ev.clientX;
     this.pointerStartY = ev.clientY;
@@ -496,24 +530,34 @@ export class SharedCalender implements OnInit {
     return typeof id === 'number' ? id : null;
   }
   selectedTaskViewData: any = null;
-  updateSelectedTaskStatus(status: string) {
-    if (!this.selectedTask || this.isUpdatingStatus) return;
-    this.isUpdatingStatus = true;
-    this.selectedTask.status = status || this.selectedTask.status || 'Scheduled';
-    this.taskService.updateStatus(this.selectedTask.id, this.selectedTask.status).subscribe({
-      next: () => {
-        const idx = this.tasks.findIndex(t => t.id === this.selectedTask!.id);
-        if (idx >= 0) this.tasks[idx].status = this.selectedTask!.status;
-        this.isUpdatingStatus = false;
-        this.toast.show('Status updated successfully', 'success');
-      },
-      error: () => {
-        this.isUpdatingStatus = false;
-        this.toast.show('Failed to update status', 'error');
-      }
-    });
-  }
+  // updateSelectedTaskStatus(status: string) {
+  //   if (!this.selectedTask || this.isUpdatingStatus) return;
+  //   this.isUpdatingStatus = true;
+  //   this.selectedTask.status = status || this.selectedTask.status || 'Scheduled';
+  //   this.taskService.updateStatus(this.selectedTask.id, this.selectedTask.status).subscribe({
+  //     next: () => {
+  //       const idx = this.tasks.findIndex(t => t.id === this.selectedTask!.id);
+  //       if (idx >= 0) this.tasks[idx].status = this.selectedTask!.status;
+  //       this.isUpdatingStatus = false;
+  //       this.toast.show('Status updated successfully', 'success');
+  //     },
+  //     error: () => {
+  //       this.isUpdatingStatus = false;
+  //       this.toast.show('Failed to update status', 'error');
+  //     }
+  //   });
+  // }
+updateSelectedTaskStatus(status: string) {
+  if (!this.selectedTask || this.role === 'client') return;
 
+  this.selectedTask.status = status;
+
+  const task = this.tasks.find(t => t.id === this.selectedTask!.id);
+
+  if (task) {
+    task.status = status;
+  }
+}
 
 
 

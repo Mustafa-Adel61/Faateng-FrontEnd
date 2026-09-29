@@ -1,37 +1,36 @@
 .modal-backdrop {
-  position: fixed;
-  top: 0;
-  left: 0;
+  position: absolute;
+  inset: 0;
+  min-height: 100%;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(15, 23, 42, 0.42);
   display: flex;
   align-items: flex-start;
   justify-content: center;
   z-index: 1000;
-  padding-top: 150px;
-  overflow-y: auto;
-  padding-bottom: 50px;
+  padding: 24px;
+  box-sizing: border-box;
 }
 
 .modal-content {
   background: white;
-  width: 500px;
-  max-width: 90%;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  width: 560px;
+  max-width: 100%;
+  border-radius: 10px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
   display: flex;
   flex-direction: column;
-  margin-bottom: 50px;
-  /* max-height: 90vh; */
+  max-height: 92vh;
 }
 
 .modal-header {
-  padding: 16px;
+  padding: 16px 20px;
   border-bottom: 1px solid #eee;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex: 0 0 auto;
 }
 
 .modal-header h2 {
@@ -47,8 +46,9 @@
 }
 
 .modal-body {
-  padding: 16px;
+  padding: 16px 20px;
   overflow-y: auto;
+  flex: 1 1 auto;
 }
 
 .unit-info {
@@ -57,6 +57,12 @@
   border-radius: 4px;
   margin-bottom: 16px;
   border-left: 4px solid #ffe066;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
 }
 
 .form-group {
@@ -81,6 +87,47 @@
   border: 1px solid #ddd;
   border-radius: 4px;
   box-sizing: border-box;
+  font-size: 14px;
+}
+
+.file-input-hidden {
+  height: 1px;
+  opacity: 0;
+  overflow: hidden;
+  position: absolute;
+  width: 1px;
+  z-index: -1;
+}
+
+.custom-file-upload {
+  align-items: center;
+  background: #f8fafc;
+  border: 1px dashed #94a3b8;
+  border-radius: 8px;
+  color: #64748b;
+  cursor: pointer;
+  display: flex;
+  font: inherit;
+  gap: 8px;
+  justify-content: flex-start;
+  margin-top: 8px;
+  padding: 10px 12px;
+  /* width: 100%; */
+}
+
+.custom-file-upload:focus-within,
+.file-input-hidden:focus+.custom-file-upload {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, .12);
+}
+
+.custom-file-upload:hover {
+  background: #f1f5f9;
+}
+
+.custom-file-upload img {
+  height: 18px;
+  width: 18px;
 }
 
 .form-group .error {
@@ -124,11 +171,37 @@
 }
 
 .modal-footer {
-  padding: 16px;
+  padding: 16px 20px;
   border-top: 1px solid #eee;
   display: flex;
   justify-content: flex-end;
   gap: 12px;
+  flex: 0 0 auto;
+}
+
+.service-request-panel {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-sizing: border-box;
+  margin: 0 0 24px;
+  padding: 24px;
+  width: 100%;
+}
+
+.service-request-panel .modal-backdrop {
+  background: transparent;
+  display: block;
+  height: auto;
+  padding: 0;
+  position: static;
+  width: 100%;
+}
+
+.service-request-panel .modal-content {
+  box-shadow: none;
+  max-height: none;
+  width: 100%;
 }
 
 .btn-cancel {
@@ -146,4 +219,79 @@
   border-radius: 4px;
   font-weight: 600;
   cursor: pointer;
+}
+
+.btn-save:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.button-loader {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  margin-right: 7px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: button-spin .7s linear infinite;
+  vertical-align: -2px;
+}
+
+@keyframes button-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Mobile responsiveness */
+@media (max-width: 600px) {
+  .service-request-panel {
+    padding: 16px;
+  }
+
+  .modal-backdrop {
+    padding: 8px;
+  }
+
+  .modal-content {
+    max-height: 96vh;
+    max-width: 100%;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  .modal-header h2 {
+    font-size: 1rem;
+  }
+
+  .modal-footer {
+    flex-direction: column-reverse;
+  }
+
+  .modal-footer button {
+    width: 100%;
+  }
+}
+
+/* Match the in-content popup shell used by Create Suggested Repair. */
+.modal-backdrop {
+  align-items: flex-start;
+  overflow-y: auto;
+}
+
+.modal-content {
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 18px 50px rgba(15, 23, 42, 0.18);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  max-height: calc(100% - 48px);
+  width: min(640px, 100%);
+}
+
+.modal-body {
+  overflow-y: auto;
 }

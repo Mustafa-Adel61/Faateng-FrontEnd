@@ -1,64 +1,54 @@
 <app-loading [loading]="loading"></app-loading>
 <div class="cnv-backdrop">
   <div class="cnv-modal report-modal">
-      <button class="cnv-close" (click)="doClose()">✕</button>
-      
-      <h2>Create Invoice</h2>
+    <button class="cnv-close" (click)="doClose()">✕</button>
 
-      <div class="report-form-grid">
+    <h2>Create Invoice</h2>
+    <p class="form-hint">Issue a charge for completed work or an approved project.</p>
+
+    <div class="report-form-grid">
 
 
-        
+
       <label class="full-width">Client <span class="required">*</span>
-        <select [(ngModel)]="selectedClientId" name="Client"
-          [ngClass]="{'input-error': submitted && !selectedClientId}"
-        >
+        <select [(ngModel)]="selectedClientId" name="Client" (ngModelChange)="onClientChange()"
+          [ngClass]="{'input-error': submitted && !selectedClientId}">
           <option [ngValue]="null" disabled selected>Select Client</option>
           <option *ngFor="let c of clients" [ngValue]="c.id">{{ c.name }}</option>
         </select>
       </label>
       <label class="full-width">Project <span class="required">*</span>
-          <select [(ngModel)]="selectedProjectId" name="Project"
-            [ngClass]="{'input-error': submitted && !selectedProjectId}"
-          >
-             <option [ngValue]="null">Select Project</option>
-             <option *ngFor="let p of projects" [ngValue]="p.id">{{ p.name }}</option>
-          </select>
+        <select [(ngModel)]="selectedProjectId" name="Project"
+          [ngClass]="{'input-error': submitted && !selectedProjectId}">
+          <option [ngValue]="null">Select Project</option>
+          <option *ngFor="let p of projects" [ngValue]="p.id">{{ p.name }}</option>
+        </select>
       </label>
 
-       <label>Date <span class="required">*</span>
-        <input type="date" 
-               [(ngModel)]="form.Date" 
-               name="Date" 
-               (click)="forceDatePicker($event)" 
-               class="styled-date-input"
-               [ngClass]="{'input-error': submitted && !form.Date}"
+      <label>Date <span class="required">*</span>
+        <input type="date" [(ngModel)]="form.Date" name="Date" (click)="forceDatePicker($event)"
+          class="styled-date-input" [ngClass]="{'input-error': submitted && !form.Date}" />
+              </label>
 
-               /> 
-      </label>
-
-       <label>Due <span class="required">*</span>
-        <input type="date" 
-               [(ngModel)]="form.Due" 
-               name="Due" 
-               (click)="forceDatePicker($event)" 
-               class="styled-date-input"
-               [ngClass]="{'input-error': submitted && !form.Due}"
-
-               /> 
-      </label>
+      <label>Due <span class="required">*</span>
+        <input type="date" [(ngModel)]="form.Due" name="Due" (click)="forceDatePicker($event)" class="styled-date-input"
+          [ngClass]="{'input-error': submitted && !form.Due}" />
+              </label>
 
       <label class="full-width">Work Order ID
         <input type="text" [(ngModel)]="form.WorkOrderId" name="WorkOrderId" placeholder="WO-..." />
       </label>
 
       <label class="full-width">Amount ($) <span class="required">*</span>
-        <input type="number" [(ngModel)]="form.Amount" name="Amount" 
-               [ngClass]="{'input-error': submitted && !form.Amount}" />
+        <input type="number" [(ngModel)]="form.Amount" name="Amount" min="0.01"
+          [ngClass]="{'input-error': submitted && (!form.Amount || form.Amount <= 0)}" />
       </label>
     </div>
     <div class="cnv-actions report-actions">
-    <button type="button" class="cancel-button" (click)="doClose()">Cancel</button>
-    <button type="button" class="save-button-large yellow-bg" (click)="doSave()">Save</button>
+      <button type="button" class="cancel-button" (click)="doClose()">Cancel</button>
+      <button type="button" class="save-button-large yellow-bg" (click)="doSave()" [disabled]="saving">
+        <span class="button-loader" *ngIf="saving"></span>
+        {{ saving ? 'Creating...' : 'Save' }}
+      </button>
     </div>
-</div>
+  </div>

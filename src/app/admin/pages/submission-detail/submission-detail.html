@@ -1,0 +1,139 @@
+<div class="submission-detail-page" *ngIf="!isLoading; else loadingState">
+  <ng-container *ngIf="submission; else notFoundState">
+    <div class="page-head">
+      <div class="page-head-left">
+        <a class="back-link" routerLink="/dashboard/admin/submissions">
+          ← Back to Submissions
+        </a>
+        <div class="title-row">
+          <h1 class="page-title">Submission Details</h1>
+          <span class="main-status-badge" [ngClass]="getMainStatusClass(submission.status)">
+            {{ submission.status }}
+          </span>
+        </div>
+        <p class="checklist-name">{{ submission.checklistName }}</p>
+      </div>
+      <div class="head-actions">
+        <button class="btn-secondary" (click)="exportPrint()">
+          Export / Print
+        </button>
+        <button class="btn-primary" (click)="markAsReviewed()"
+          [disabled]="isMarkingReviewed || submission.status === 'Reviewed' || role === 'technician'">
+          {{ submission.status === 'Reviewed' ? 'Already Reviewed' : (isMarkingReviewed ? 'Processing...' : 'Mark as Reviewed') }}
+        </button>
+      </div>
+    </div>
+
+    <div class="meta-panel">
+      <div class="meta-item">
+        <span class="meta-label">Site</span>
+        <strong class="meta-value">{{ submission.site }}</strong>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Unit</span>
+        <strong class="meta-value">{{ submission.unitName }}</strong>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Technician</span>
+        <strong class="meta-value">{{ submission.technicianName }}</strong>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Frequency</span>
+        <strong class="meta-value">{{ submission.frequency }}</strong>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Submitted</span>
+        <strong class="meta-value">{{ formatDate(submission.date) }}</strong>
+      </div>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card stat-passed">
+        <b class="stat-value">{{ countAnswersByStatus('Passed') }}</b>
+        <span class="stat-label">Passed</span>
+      </div>
+      <div class="stat-card stat-failed">
+        <b class="stat-value">{{ countAnswersByStatus('Failed') }}</b>
+        <span class="stat-label">Failed</span>
+      </div>
+      <div class="stat-card stat-na">
+        <b class="stat-value">{{ countAnswersByStatus('N/A') }}</b>
+        <span class="stat-label">N/A</span>
+      </div>
+      <div class="stat-card stat-score">
+        <b class="stat-value">{{ calculateScore() }}%</b>
+        <span class="stat-label">Overall Score</span>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="section-head">
+        <div class="section-head-left">
+          <h2 class="section-title">Inspection Answers</h2>
+          <p class="section-desc">Technician responses, values and notes.</p>
+        </div>
+      </div>
+
+      <div class="table-wrapper">
+        <table class="answers-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Question</th>
+              <th>Section</th>
+              <th>Value</th>
+              <th>Photo</th>
+              <th>Notes</th>
+              <th>Result</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let answer of visibleAnswers; let i = index; trackBy: trackByAnswer"
+              [class.failed-row]="answer.status === 'Failed'">
+              <td class="col-number">{{ i + 1 }}</td>
+              <td class="col-question">
+                <strong class="question-text">{{ getQuestionText(answer) }}</strong>
+              </td>
+              <td class="col-section">{{ answer.section || '—' }}</td>
+              <td class="col-value">{{ getDisplayValue(answer) }}</td>
+              <td class="col-photo">
+                <ng-container *ngIf="answer.photoUrl; else noPhotoCell">
+                  <img [src]="answer.photoUrl" alt="Answer photo"
+                    style="max-width: 140px; max-height: 90px; object-fit: cover; border-radius: 8px;" />
+                </ng-container>
+                <ng-template #noPhotoCell>—</ng-template>
+              </td>
+              <td class="col-notes">{{ getDisplayNotes(answer) }}</td>
+              <td class="col-result">
+                <span class="answer-badge" [ngClass]="getAnswerStatusClass(answer.status)">
+                  {{ answer.status }}
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </ng-container>
+
+  <ng-template #notFoundState>
+    <div class="not-found-state">
+      <div class="not-found-card">
+        <h2 class="not-found-title">Submission Not Found</h2>
+        <p class="not-found-text">The submission you're looking for doesn't exist or has been removed.</p>
+        <a class="btn-primary not-found-btn" routerLink="/dashboard/admin/submissions">Back to Submissions</a>
+      </div>
+    </div>
+  </ng-template>
+
+  <div class="reviewed-toast" *ngIf="showReviewedToast">
+    Submission marked as reviewed successfully.
+  </div>
+</div>
+
+<ng-template #loadingState>
+  <div class="loading-state">
+    <div class="loading-spinner"></div>
+    <p class="loading-text">Loading submission details...</p>
+  </div>
+</ng-template>

@@ -1,12 +1,50 @@
+/* ========================================= */
+/* Details Overlay */
+/* ========================================= */
+
+.details-overlay {
+  margin-top: 40px;
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 1000;
+  padding: 110px 16px 50px;
+  overflow-y: auto;
+  box-sizing: border-box;
+}
+
+.details-panel {
+  background: #fff;
+  padding: 20px;
+  border-radius: 10px;
+  max-width: 800px;
+  width: min(100%, 800px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+  position: relative;
+  margin-bottom: 50px;
+  box-sizing: border-box;
+}
+
+.close-btn {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  border: none;
+  background: #eee;
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
+  cursor: pointer;
+}
 
 
+/* ========================================= */
+/* Details Inputs */
+/* ========================================= */
 
-/* details overlay */
-.details-overlay {margin-top: 40px; position:fixed; inset:0; display:flex; align-items:flex-start; justify-content:center; background:rgba(0,0,0,0.4); z-index:1000; padding-top: 150px; overflow-y: auto; padding-bottom: 50px; }
-.details-panel {margin-top: 0px; background:#fff; padding:20px; border-radius:10px; max-width:800px; width:90%; box-shadow:0 6px 20px rgba(0,0,0,0.2); position:relative; margin-bottom: 50px; }
-.close-btn { position:absolute; top:8px; right:10px; border:none; background:#eee; width:30px; height:30px; border-radius:6px; cursor:pointer; }
-
-/* التغيير في ال deatials */
 .details-panel select {
   padding: 6px 10px;
   border-radius: 6px;
@@ -16,7 +54,8 @@
   background: #f9f9f9;
   cursor: pointer;
 }
-.details-span{
+
+.details-span {
   margin-left: 10px;
 }
 
@@ -24,51 +63,59 @@
   outline: none;
   border-color: #000;
 }
+
 .details-panel p strong {
-  font-family: poppins;
-  /* color: #8a8b8b; */
+  font-family: Poppins;
   opacity: 0.5;
   font-size: 15px;
 }
-/* Details */
+
+
+/* ========================================= */
+/* Details Tabs */
+/* ========================================= */
 
 .details-page-tabs {
   display: flex;
   flex-wrap: wrap;
-  /* justify-content: center; */
-  gap: .5rem;
+  gap: 10px;
   margin-bottom: 1.5rem;
+  width: 100%;
+  box-sizing: border-box;
 }
+
 .details-tab-btn {
   background-color: #d8d5d5;
-  border-radius: 40%;       /* يخليها دايرة كاملة */
   border: none;
-  font-size: .8rem;
+  border-radius: 10px;
+  font-size: 0.8rem;
   font-weight: 300;
-  color: black;
+  color: #000;
   padding: 0.5rem 1.5rem;
-  border-radius: 10px 10px 10px 10px;
   cursor: pointer;
-  /* transition: background 0.2s, color 0.2s, border-bottom 0.2s; */
+  transition: all 0.2s ease-in-out;
+
+  /* Responsive */
+  flex: 0 1 auto;
+  white-space: nowrap;
 }
 
-/* الحالة العادية والهفر */
 .details-tab-btn:hover {
-  /* transform: translateY(-5px); */
-  background-color: #9c9a9a;;
+  background-color: #9c9a9a;
 }
 
-/* الحالة المختارة */
 .details-tab-btn.active {
-  background-color: #000;               
-  color:white;                     /* لون النص */
-  border-bottom: 3px solid #000;   /* خط أسود */
-  box-shadow: none;                /* شيل الظل */
+  background-color: #000;
+  color: #fff;
+  border-bottom: 3px solid #000;
+  box-shadow: none;
 }
-/* الحالة المختارة Overview */
 
 
-/* ✅ الحاوية العامة */
+/* ========================================= */
+/* Status Summary */
+/* ========================================= */
+
 .status-summary {
   display: flex;
   gap: 1rem;
@@ -76,7 +123,11 @@
   flex-wrap: wrap;
 }
 
-/* ✅ الكروت */
+
+/* ========================================= */
+/* Summary Cards */
+/* ========================================= */
+
 .summary-card {
   flex: 1;
   min-width: 115px;
@@ -84,18 +135,19 @@
   border: 1px solid #e5e7eb;
   border-radius: 12px;
   padding: 14px 18px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+
   display: flex;
   flex-direction: column;
   justify-content: center;
+
   transition: all 0.2s ease-in-out;
 }
 
 .summary-card:hover {
-  box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
 }
 
-/* ✅ النصوص */
 .summary-card .label {
   color: #666;
   font-size: 14px;
@@ -107,20 +159,33 @@
   font-weight: 600;
   color: #222;
   margin-top: 4px;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
 }
-/* الاخيارات Scopes / Contracts*/
+
+
+/* ========================================= */
+/* Tables Container */
+/* ========================================= */
 
 .table-container {
   width: 100%;
-  overflow-x: auto; /* يخلي الجدول قابل للتمرير لو الشاشه صغيره */
+  overflow-x: auto;
   background: #fff;
   border-radius: 10px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
   padding: 10px;
   box-sizing: border-box;
 }
 
-/* ✅ تنسيق الجدول */
+
+/* ========================================= */
+/* Responsive Table */
+/* ========================================= */
+
 .responsive-table {
   width: 100%;
   border-collapse: collapse;
@@ -131,7 +196,7 @@
   background-color: #f8f8f8;
 }
 
-.responsive-table th, 
+.responsive-table th,
 .responsive-table td {
   padding: 12px 16px;
   text-align: left;
@@ -153,7 +218,11 @@
   transition: 0.2s;
 }
 
-/* ✅ ألوان الحالة */
+
+/* ========================================= */
+/* Status */
+/* ========================================= */
+
 .status {
   display: inline-block;
   padding: 4px 10px;
@@ -163,82 +232,110 @@
   color: white;
 }
 
-.statusActive { background:oklch(91.225% 0.06554 158.546); color:oklch(52.7% 0.154 150.069); padding:4px 8px; border-radius:12px; font-weight:500; }
-.status-Scheduled{ background:oklch(92.238% 0.01692 271.239); color:oklch(48.8% 0.243 264.376);; padding:4px 8px; border-radius:12px; font-weight:500; }
+.statusActive {
+  background: #e6f9ea;
+  color: #1f7a3a;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-weight: 500;
+}
+
+.status-Scheduled {
+  background: #e4efff;
+  color: #1565c0;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-weight: 500;
+}
 
 .status.pending {
-  background-color: #f5d11c; /* أصفر */
+  background-color: #f5d11c;
   color: #333;
 }
 
 .status.failed {
-  background-color: #e74c3c; /* أحمر */
+  background-color: #e74c3c;
 }
 
-/* لو الاختيار هو File */
-.file-tab{
-  /* display: flex;
-  flex-direction: column;
-  gap: 1rem;*/
+
+/* ========================================= */
+/* File Tab */
+/* ========================================= */
+
+.file-tab {
   gap: 1rem;
-  padding: 1rem; 
-  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  padding: 1rem;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
   border-radius: 10px;
   background: #fff;
-
+  box-sizing: border-box;
 }
+
+
+/* ========================================= */
+/* Upload Button */
+/* ========================================= */
+
 .upload-btn {
-  background-color: #fff;              /* خلفية بيضاء */
-  border: 1px solid #dcdcdc;          /* حدود رمادية خفيفة */
-  color: #1C1C1C;                     /* لون النص */
-  padding: 10px 18px;                  /* مسافة داخلية مريحة */
+  background-color: #fff;
+  border: 1px solid #dcdcdc;
+  color: #1c1c1c;
+
+  padding: 10px 18px;
   margin-top: 15px;
   margin-right: 5px;
-  border-radius: 10px;                /* حواف دائرية */
+
+  border-radius: 10px;
   font-size: 14px;
   font-weight: 500;
+
   cursor: pointer;
   transition: all 0.2s ease-in-out;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
 
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
 .upload-btn:hover {
-  border-color: #bfbfbf;              /* لون حدود أغمق بسيط عند الـ hover */
-  background-color: #f9f9f9;          /* تغير بسيط في الخلفية */
+  border-color: #bfbfbf;
+  background-color: #f9f9f9;
 }
 
 .upload-btn:active {
-  background-color: #f1f1f1;          /* عند الضغط */
+  background-color: #f1f1f1;
   transform: scale(0.98);
 }
 
-@media (max-width: 1200px) {
-  .details-panel{
-    max-width: 500px;
-  }
-}
-@media (max-width: 1000px) {
-  .details-panel{
-    max-width: 400px;
-  }
-}
-/* ✅ استجابة للموبايل */
+
+/* ========================================= */
+/* Overview Details */
+/* ========================================= */
+
 .overview-details {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 20px;
+
   margin-top: 20px;
+
   background: #fdfdfd;
   padding: 15px;
+
   border-radius: 8px;
   border: 1px solid #eee;
+
+  box-sizing: border-box;
+}
+
+.detail-group {
+  min-width: 0;
 }
 
 .detail-group h4 {
   margin-bottom: 10px;
   color: #333;
-  border-bottom: 2px solid #F5D11C;
+
+  border-bottom: 2px solid #f5d11c;
+
   display: inline-block;
   padding-bottom: 2px;
 }
@@ -247,22 +344,38 @@
   margin: 5px 0;
   font-size: 14px;
   color: #555;
+  overflow-wrap: anywhere;
 }
+
+
+/* ========================================= */
+/* Action Buttons */
+/* ========================================= */
 
 .action-buttons {
   margin-top: 20px;
+
   display: flex;
-  justify-content: flex-end;
+  justify-content: center;
+  flex-wrap: wrap;
+
+  gap: 8px;
 }
 
 .add-unit-btn {
   background-color: #000;
   color: #fff;
+
   border: none;
+
   padding: 10px 20px;
+
   border-radius: 8px;
+
   font-weight: 600;
+
   cursor: pointer;
+
   transition: 0.2s;
 }
 
@@ -270,9 +383,330 @@
   background-color: #333;
 }
 
+
+/* ========================================= */
+/* Tablet */
+/* ========================================= */
+
+@media (max-width: 900px) {
+
+  /* Tabs become 3 columns */
+  .details-page-tabs {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .details-tab-btn {
+    width: 100%;
+    min-width: 0;
+
+    padding: 10px 8px;
+
+    font-size: 13px;
+    text-align: center;
+
+    white-space: normal;
+  }
+
+  /* Summary cards */
+  .status-summary {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .summary-card {
+    min-width: 0;
+  }
+
+  /* Overview */
+  .overview-details {
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+}
+
+
+/* ========================================= */
+/* Mobile */
+/* ========================================= */
+
+@media (max-width: 600px) {
+
+  /* Overlay */
+  .details-overlay {
+
+    padding: 12px 8px 24px;
+
+    align-items: flex-start;
+  }
+
+
+  /* Panel */
+  .details-panel {
+    width: 100%;
+    margin-top: 100px;
+
+    max-width: 100%;
+
+    padding: 15px 12px;
+
+    margin-bottom: 0;
+
+    border-radius: 10px;
+  }
+
+
+  /* Close Button */
+  .close-btn {
+    top: 7px;
+    right: 7px;
+
+    width: 28px;
+    height: 28px;
+  }
+
+
+  /* Details text */
+  .details-panel>p {
+    padding-right: 32px;
+    overflow-wrap: anywhere;
+  }
+
+
+  /* ================================= */
+  /* Tabs */
+  /* ================================= */
+
+  .details-page-tabs {
+    display: grid;
+
+    grid-template-columns: 1fr 1fr;
+
+    gap: 8px;
+
+    margin-bottom: 18px;
+
+    width: 100%;
+  }
+
+  .details-tab-btn {
+    width: 100%;
+
+    min-width: 0;
+
+    padding: 10px 6px;
+
+    font-size: 12px;
+
+    border-radius: 8px;
+
+    text-align: center;
+
+    white-space: normal;
+  }
+
+
+  /* ================================= */
+  /* Summary Cards */
+  /* ================================= */
+
+  .status-summary {
+    display: grid;
+
+    grid-template-columns: 1fr 1fr;
+
+    gap: 8px;
+
+    margin: 15px 0;
+  }
+
+  .summary-card {
+    min-width: 0;
+
+    padding: 11px;
+  }
+
+  .summary-card .label {
+    font-size: 12px;
+  }
+
+  .summary-card .count {
+    font-size: 18px;
+  }
+
+
+  /* ================================= */
+  /* Overview */
+  /* ================================= */
+
+  .overview-details {
+    grid-template-columns: 1fr;
+
+    gap: 12px;
+
+    padding: 12px;
+
+    /* margin-top: 15px; */
+  }
+
+  .detail-group h4 {
+    font-size: 15px;
+  }
+
+  .detail-group p {
+    font-size: 13px;
+
+    overflow-wrap: anywhere;
+  }
+
+
+  /* ================================= */
+  /* Tables */
+  /* ================================= */
+
+  .table-container {
+    width: 100%;
+
+    overflow-x: auto;
+
+    padding: 6px;
+
+    border-radius: 8px;
+  }
+
+  .responsive-table {
+    min-width: 650px;
+  }
+
+  .responsive-table th,
+  .responsive-table td {
+    padding: 9px 10px;
+
+    font-size: 12px;
+  }
+
+
+  /* ================================= */
+  /* File Tab */
+  /* ================================= */
+
+  .file-tab {
+    width: 100%;
+
+    padding: 12px;
+
+    box-sizing: border-box;
+  }
+
+
+  /* ================================= */
+  /* Action Buttons */
+  /* ================================= */
+
+  .action-buttons {
+    flex-direction: column;
+
+    justify-content: stretch;
+
+    width: 100%;
+
+    gap: 8px;
+  }
+
+  .action-buttons .upload-btn {
+    width: 100%;
+
+    margin: 0;
+
+    box-sizing: border-box;
+  }
+
+
+  /* ================================= */
+  /* Select */
+  /* ================================= */
+
+  .details-panel select {
+    max-width: 100%;
+
+    font-size: 13px;
+
+    padding: 6px 8px;
+  }
+
+  .details-span {
+    margin-left: 5px;
+
+    overflow-wrap: anywhere;
+  }
+
+
+  /* ================================= */
+  /* Table Labels */
+  /* ================================= */
+
   .responsive-table td::before {
     content: attr(data-label);
+
     font-weight: 600;
+
     color: #555;
+  }
+}
+
+
+/* ========================================= */
+/* Very Small Mobile */
+/* ========================================= */
+
+@media (max-width: 420px) {
+
+  /* Tabs become one column */
+  .details-page-tabs {
+    grid-template-columns: 1fr;
+
+    gap: 7px;
+  }
+
+  .details-tab-btn {
+    width: 100%;
+
+    padding: 10px;
+
+    font-size: 13px;
+  }
+
+
+  /* Summary cards become one column */
+  .status-summary {
+    grid-template-columns: 1fr;
+
+    gap: 8px;
+  }
+
+
+  /* Panel */
+  .details-panel {
+    padding: 12px 10px;
+  }
+
+
+  /* Overview */
+  .overview-details {
+    padding: 10px;
+
+    gap: 10px;
+  }
+
+
+  /* Table */
+  .table-container {
+    padding: 5px;
+  }
+
+  .responsive-table {
+    min-width: 600px;
   }
 }

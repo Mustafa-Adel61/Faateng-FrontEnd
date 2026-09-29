@@ -2,7 +2,7 @@ import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { Archive } from './pages/archive/archive';
 import { Calendar } from './pages/calendar/calendar';
-import { Checklists } from './pages/checklists/checklists';
+// import { Checklists } from './pages/checklists/checklists';
 import { ClientsContacts } from './pages/clients-contacts/clients-contacts';
 import { Contracts } from './pages/contracts/contracts';
 import { Dashboard } from './pages/dashboard/dashboard';
@@ -13,25 +13,31 @@ import { Invoices } from './pages/invoices/invoices';
 import { Projects } from './pages/projects/projects';
 import { ProposalGenerator } from './pages/proposal-generator/proposal-generator';
 import { SuggestedRepairsReview } from './pages/suggested-repairs-review/suggested-repairs-review';
+import { ServiceRequests } from '../admin/pages/service-requests/service-requests';
 import { TaskList } from './pages/task-list/task-list';
 import { Training } from './pages/training/training';
 import { UnitManuals } from './pages/unit-manuals/unit-manuals';
 import { Units } from './pages/units/units';
-import { ChecklistFlow } from '../Shared/shared-components/checklist/checklist-flow';
-import { ChecklistList } from '../Shared/shared-components/checklist/checklist-list';
-import { ChecklistDetails } from '../Shared/shared-components/checklist/checklist-details';
-import { ChecklistAddQuestion } from '../Shared/shared-components/checklist/checklist-add-question';
+import { Submissions } from '../admin/pages/submissions/submissions';
+import { Checklists } from '../admin/pages/checklists/checklists';
+// import { Checklists } from '../admin/pages/Checklists/Checklists';
 
 const routes: Routes = [
    
         { path: '', redirectTo: 'task-list', pathMatch: 'full' },
         { path: 'archive', component: Archive },
         {path:'calendar',component:Calendar},
+        // { path: 'checklists', redirectTo: '/dashboard/manager/checklists', pathMatch: 'full' },
+        // { path: 'checklist', redirectTo: '/dashboard/manager/checklist', pathMatch: 'full' },
+        // { path: 'checklist-list', redirectTo: '/dashboard/manager/submissions', pathMatch: 'full' },
+        // { path: 'checklist-details/:id', redirectTo: '/dashboard/manager/submissions/:id', pathMatch: 'full' },
+        // { path: 'checklist-add', redirectTo: '/dashboard/manager/checklists/new', pathMatch: 'full' },
+          { path: 'submissions', component: Submissions }, // ← جديد
         {path:'checklists',component:Checklists},
-        {path:'checklist',component:ChecklistFlow},
-        {path:'checklist-list',component:ChecklistList},
-        {path:'checklist-details/:id',component:ChecklistDetails},
-        {path:'checklist-add',component:ChecklistAddQuestion},
+        // {path:'checklist',component:Checklists},
+        {path:'checklist-list',component:Checklists},
+        {path:'checklist-details/:id',component:Checklists},
+        {path:'checklist-add',component:Checklists},
         {path:'clients-contacts',component:ClientsContacts},
         {path:'contracts',component:Contracts},
         {path:'dashboard',component:Dashboard},
@@ -42,6 +48,7 @@ const routes: Routes = [
         {path:'projects',component:Projects},
         {path:'proposal-generator',component:ProposalGenerator},
         {path:'suggested-repairs-review',component:SuggestedRepairsReview},
+        {path:'service-requests',component:ServiceRequests},
         {path:'task-list',component:TaskList},
         {path:'training',component:Training},
         {path:'unit-manuals',component:UnitManuals},

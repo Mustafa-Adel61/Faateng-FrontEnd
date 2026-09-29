@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterModule } from '@angular/router';
-import { ChecklistService, ChecklistSubmission } from '../../services/checklist.service';
+import { ChecklistService, ChecklistSubmissionDetail } from '../../services/checklist.service';
 import { AuthService } from '../../../core/auth';
 
 @Component({
@@ -12,7 +12,7 @@ import { AuthService } from '../../../core/auth';
   styleUrls: ['./checklist-details.css']
 })
 export class ChecklistDetails implements OnInit {
-  submission: ChecklistSubmission | null = null;
+  submission: ChecklistSubmissionDetail | null = null;
   isLoading: boolean = true;
   role: string | null = null;
 
@@ -24,6 +24,7 @@ export class ChecklistDetails implements OnInit {
 
   ngOnInit() {
     this.role = this.auth.getRole();
+    console.log('Role:', this.role);
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
       this.loadDetails(Number(id));
@@ -31,7 +32,7 @@ export class ChecklistDetails implements OnInit {
   }
 
   getDashboardPath(): string {
-    return `/dashboard/${this.role}`;
+    return '/dashboard/admin/submissions';
   }
 
   loadDetails(id: number) {

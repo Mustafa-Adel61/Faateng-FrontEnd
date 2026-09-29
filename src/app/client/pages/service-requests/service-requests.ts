@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { FormsModule, NgForm } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { SharedPageHeader } from '../../../Shared/shared-layout/shared-page-header/shared-page-header';
@@ -189,6 +189,8 @@ export class ServiceRequests implements OnInit {
   }
 
   showCreateRequestModal = false;
+  @ViewChild(SharedServiceRequestes) sharedList!: SharedServiceRequestes;
+
   openCreateRequest() {
     this.showCreateRequestModal = true;
     document.body.style.overflow = 'hidden';
@@ -199,5 +201,6 @@ export class ServiceRequests implements OnInit {
   }
   onRequestCreated() {
     this.closeCreateRequest();
+    this.sharedList?.refresh();
   }
 }

@@ -1,0 +1,408 @@
+﻿
+> faateng@0.0.0 build
+> ng build
+
+node.exe : [1m[33m[baseline-browser-mapping] The data in this module is over 
+two months old.  To ensure accurate Baseline data, please update: `npm i 
+baseline-browser-mapping@latest -D`[39m[22m
+At line:1 char:1
++ & "C:\nvm4w\nodejs/node.exe" "C:\nvm4w\nodejs/node_modules/npm/bin/np ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ([1m[33m[basel...t -D`[39m[22m 
+   :String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+[33mΓ¥»[39m Building...
+[32mΓ£ö[39m Building...
+[1mInitial chunk files[22m  [2m | [22m[1mNames[22m            [2m | [22m [1mRaw size[22m[2m | [22m[1mEstimated transfer size[22m
+[32mchunk-CHWZOYZI.js[39m    [2m | [22m[2m-[22m                [2m | [22m[36m350.46 kB[39m[2m | [22m               [36m90.88 kB[39m
+[32mpolyfills-5CFQRCPP.js[39m[2m | [22m[2mpolyfills[22m        [2m | [22m [36m34.59 kB[39m[2m | [22m               [36m11.33 kB[39m
+[32mchunk-RATTVT75.js[39m    [2m | [22m[2m-[22m                [2m | [22m [36m23.42 kB[39m[2m | [22m                [36m4.24 kB[39m
+[32mstyles-TFQ6KK5R.css[39m  [2m | [22m[2mstyles[22m           [2m | [22m [36m20.98 kB[39m[2m | [22m                [36m3.27 kB[39m
+[32mmain-BF3NIJYH.js[39m     [2m | [22m[2mmain[22m             [2m | [22m [36m15.98 kB[39m[2m | [22m                [36m4.20 kB[39m
+
+[1m [22m                    [2m | [22m[1mInitial total[22m    [2m | [22m[1m445.43 kB[22m[2m | [22m              [1m113.93 kB[22m
+
+[1mLazy chunk files[22m     [2m | [22m[1mNames[22m            [2m | [22m [1mRaw size[22m[2m | [22m[1mEstimated transfer size[22m
+[32mchunk-BEVJKVB5.js[39m    [2m | [22m[2madmin-module[22m     [2m | [22m[36m257.42 kB[39m[2m | [22m               [36m40.69 kB[39m
+[32mchunk-6PORRVQF.js[39m    [2m | [22m[2m-[22m                [2m | [22m[36m254.75 kB[39m[2m | [22m               [36m58.73 kB[39m
+[32mchunk-PDR5BF2D.js[39m    [2m | [22m[2m-[22m                [2m | [22m[36m105.58 kB[39m[2m | [22m               [36m19.67 kB[39m
+[32mchunk-H3LKVKJG.js[39m    [2m | [22m[2m-[22m                [2m | [22m [36m77.13 kB[39m[2m | [22m               [36m16.86 kB[39m
+[32mchunk-7KTPIV5Q.js[39m    [2m | [22m[2m-[22m                [2m | [22m [36m73.54 kB[39m[2m | [22m               [36m13.74 kB[39m
+[32mchunk-H2ALI4QX.js[39m    [2m | [22m[2mclient-module[22m    [2m | [22m [36m54.77 kB[39m[2m | [22m                [36m9.36 kB[39m
+[32mchunk-SXUN3B3A.js[39m    [2m | [22m[2m-[22m                [2m | [22m [36m42.12 kB[39m[2m | [22m               [36m10.19 kB[39m
+[32mchunk-NYCWSNCC.js[39m    [2m | [22m[2m-[22m                [2m | [22m [36m35.35 kB[39m[2m | [22m                [36m8.04 kB[39m
+[32mchunk-VBJCHOK4.js[39m    [2m | [22m[2m-[22m                [2m | [22m [36m34.23 kB[39m[2m | [22m                [36m7.76 kB[39m
+[32mchunk-X2FF3JXS.js[39m    [2m | [22m[2mmanager-module[22m   [2m | [22m  [36m5.76 kB[39m[2m | [22m              [36m886 bytes[39m
+[32mchunk-BQJJJURI.js[39m    [2m | [22m[2m-[22m                [2m | [22m  [36m5.00 kB[39m[2m | [22m                [36m1.75 kB[39m
+[32mchunk-TMI2SLM5.js[39m    [2m | [22m[2mdispatcher-module[22m[2m | [22m  [36m4.14 kB[39m[2m | [22m              [36m739 bytes[39m
+[32mchunk-M2QUYUQU.js[39m    [2m | [22m[2mtechnician-module[22m[2m | [22m  [36m3.02 kB[39m[2m | [22m              [36m651 bytes[39m
+[32mchunk-OZLSWZ4T.js[39m    [2m | [22m[2mfinance-module[22m   [2m | [22m  [36m2.73 kB[39m[2m | [22m              [36m684 bytes[39m
+
+Application bundle generation complete. [20.085 seconds] - 2026-08-06T20:19:56.112Z
+
+[1m[33m[33mΓû▓ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8107: The left 
+side of this optional chain operation does not include 'null' or 'undefined' 
+in its type, therefore the '?.' operator can be replaced with the '.' 
+operator.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Shared/shared-components/checklist/checklist-flow.html:159:36:
+[37m      159 Γöé       <h3>{{ paginatedQuestions[0]?.[32mcategory[37m 
+}}</h3>
+          Γò╡                                     [32m~~~~~~~~[0m
+
+  Warning occurs in the template of component ChecklistFlow.
+
+    src/app/Shared/shared-components/checklist/checklist-flow.ts:14:15:
+[37m      14 Γöé   templateUrl: [32m'./checklist-flow.html'[37m,
+         Γò╡                [32m~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[33mΓû▓ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8107: The left side of 
+this optional chain operation does not include 'null' or 'undefined' in its 
+type, therefore the '?.' operator can be replaced with the '.' operator.[0m 
+[1m[35m[plugin angular-compiler][0m
+
+    src/app/Shared/shared-components/shared-service-requestes/shared-service-re
+questes.html:171:57:
+[37m      171 Γöé ...<span *ngIf="role === 'client'">{{ 
+selectedTask?.[32mstatus[37m }}</span>
+          Γò╡                                                     
+[32m~~~~~~[0m
+
+  Warning occurs in the template of component SharedServiceRequestes.
+
+    src/app/Shared/shared-components/shared-service-requestes/shared-service-re
+questes.ts:34:15:
+[37m      34 Γöé   templateUrl: [32m'./shared-service-requestes.html'[37m,
+         Γò╡                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[33mΓû▓ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8113: SharedPageHeader is 
+not used within the template of SharedServiceRequestes[0m [1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/Shared/shared-components/shared-service-requestes/shared-service-re
+questes.ts:33:47:
+[37m      33 Γöé ..., FormsModule, NgClass, [32mSharedPageHeader[37m, 
+CreateNewVisit, Loadi...
+         Γò╡                            [32m~~~~~~~~~~~~~~~~[0m
+
+
+[33mΓû▓ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8107: The left side of 
+this optional chain operation does not include 'null' or 'undefined' in its 
+type, therefore the '?.' operator can be replaced with the '.' operator.[0m 
+[1m[35m[plugin angular-compiler][0m
+
+    src/app/Shared/shared-components/shared-suggested-repairs/shared-suggested-
+repairs.html:169:74:
+[37m      169 Γöé ...]="'status-' + task.Status?.[32mreplace[37m(' ', 
+'-')">{{ task.Status ...
+          Γò╡                                [32m~~~~~~~[0m
+
+  Warning occurs in the template of component SharedSuggestedRepairs.
+
+    src/app/Shared/shared-components/shared-suggested-repairs/shared-suggested-
+repairs.ts:32:15:
+[37m      32 Γöé   templateUrl: [32m'./shared-suggested-repairs.html'[37m,
+         Γò╡                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[33mΓû▓ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8107: The left side of 
+this optional chain operation does not include 'null' or 'undefined' in its 
+type, therefore the '?.' operator can be replaced with the '.' operator.[0m 
+[1m[35m[plugin angular-compiler][0m
+
+    
+src/app/Shared/shared-components/shared-task-list/shared-task-list.html:117:73:
+[37m      117 Γöé ..."'sla-' + task.slaStatus?.[32mtoLowerCase[37m()">{{ 
+task.slaStatus }}<...
+          Γò╡                              [32m~~~~~~~~~~~[0m
+
+  Warning occurs in the template of component SharedTaskList.
+
+    
+src/app/Shared/shared-components/shared-task-list/shared-task-list.ts:43:15:
+[37m      43 Γöé   templateUrl: [32m'./shared-task-list.html'[37m,
+         Γò╡                [32m~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[33mΓû▓ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8107: The left side of 
+this optional chain operation does not include 'null' or 'undefined' in its 
+type, therefore the '?.' operator can be replaced with the '.' operator.[0m 
+[1m[35m[plugin angular-compiler][0m
+
+    src/app/admin/pages/checklist-detail/checklist-detail.html:23:66:
+[37m      23 Γöé ...an class="tab-badge">{{ 
+checklist.questions?.[32mlength[37m || 0 }}</span>
+         Γò╡                                                 [32m~~~~~~[0m
+
+  Warning occurs in the template of component ChecklistDetailPage.
+
+    src/app/admin/pages/checklist-detail/checklist-detail.ts:13:15:
+[37m      13 Γöé   templateUrl: [32m'./checklist-detail.html'[37m,
+         Γò╡                [32m~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[33mΓû▓ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8107: The left side of 
+this optional chain operation does not include 'null' or 'undefined' in its 
+type, therefore the '?.' operator can be replaced with the '.' operator.[0m 
+[1m[35m[plugin angular-compiler][0m
+
+    src/app/admin/pages/checklist-detail/checklist-detail.html:26:65:
+[37m      26 Γöé ... <span class="tab-badge">{{ 
+checklist.units?.[32mlength[37m || 0 }}</span>
+         Γò╡                                                 [32m~~~~~~[0m
+
+  Warning occurs in the template of component ChecklistDetailPage.
+
+    src/app/admin/pages/checklist-detail/checklist-detail.ts:13:15:
+[37m      13 Γöé   templateUrl: [32m'./checklist-detail.html'[37m,
+         Γò╡                [32m~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[33mΓû▓ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8107: The left side of 
+this optional chain operation does not include 'null' or 'undefined' in its 
+type, therefore the '?.' operator can be replaced with the '.' operator.[0m 
+[1m[35m[plugin angular-compiler][0m
+
+    src/app/admin/pages/checklist-detail/checklist-detail.html:34:60:
+[37m      34 Γöé ... class="stat-number">{{ 
+checklist.questions?.[32mlength[37m || 0 }}</span>
+         Γò╡                                                 [32m~~~~~~[0m
+
+  Warning occurs in the template of component ChecklistDetailPage.
+
+    src/app/admin/pages/checklist-detail/checklist-detail.ts:13:15:
+[37m      13 Γöé   templateUrl: [32m'./checklist-detail.html'[37m,
+         Γò╡                [32m~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[33mΓû▓ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8107: The left side of 
+this optional chain operation does not include 'null' or 'undefined' in its 
+type, therefore the '?.' operator can be replaced with the '.' operator.[0m 
+[1m[35m[plugin angular-compiler][0m
+
+    src/app/admin/pages/checklist-detail/checklist-detail.html:38:56:
+[37m      38 Γöé ...span class="stat-number">{{ 
+checklist.units?.[32mlength[37m || 0 }}</span>
+         Γò╡                                                 [32m~~~~~~[0m
+
+  Warning occurs in the template of component ChecklistDetailPage.
+
+    src/app/admin/pages/checklist-detail/checklist-detail.ts:13:15:
+[37m      13 Γöé   templateUrl: [32m'./checklist-detail.html'[37m,
+         Γò╡                [32m~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[33mΓû▓ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8107: The left side of 
+this optional chain operation does not include 'null' or 'undefined' in its 
+type, therefore the '?.' operator can be replaced with the '.' operator.[0m 
+[1m[35m[plugin angular-compiler][0m
+
+    src/app/admin/pages/map/map.ts:44:23:
+[37m      44 Γöé       <h4>{{ selected?.[32mtitle[37m }}</h4>
+         Γò╡                        [32m~~~~~[0m
+
+
+[33mΓû▓ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8107: The left side of 
+this optional chain operation does not include 'null' or 'undefined' in its 
+type, therefore the '?.' operator can be replaced with the '.' operator.[0m 
+[1m[35m[plugin angular-compiler][0m
+
+    src/app/admin/pages/map/map.ts:45:47:
+[37m      45 Γöé ...g>Unit:</strong> {{ selected?.[32munit[37m?.model }} 
+({{ selected?.unit...
+         Γò╡                                  [32m~~~~[0m
+
+
+[33mΓû▓ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8107: The left side of 
+this optional chain operation does not include 'null' or 'undefined' in its 
+type, therefore the '?.' operator can be replaced with the '.' operator.[0m 
+[1m[35m[plugin angular-compiler][0m
+
+    src/app/admin/pages/map/map.ts:45:76:
+[37m      45 Γöé ...> {{ selected?.unit?.model }} ({{ 
+selected?.[32munit[37m?.serial }})</div>
+         Γò╡                                                [32m~~~~[0m
+
+
+[33mΓû▓ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8107: The left side of 
+this optional chain operation does not include 'null' or 'undefined' in its 
+type, therefore the '?.' operator can be replaced with the '.' operator.[0m 
+[1m[35m[plugin angular-compiler][0m
+
+    src/app/admin/pages/map/map.ts:46:50:
+[37m      46 Γöé ...ddress:</strong> {{ 
+selected?.[32munit[37m?.client?.address || '' }}</div>
+         Γò╡                                  [32m~~~~[0m
+
+
+[33mΓû▓ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8107: The left side of 
+this optional chain operation does not include 'null' or 'undefined' in its 
+type, therefore the '?.' operator can be replaced with the '.' operator.[0m 
+[1m[35m[plugin angular-compiler][0m
+
+    src/app/admin/pages/map/map.ts:47:51:
+[37m      47 Γöé ...ee:</strong> {{ 
+selected?.[32massigneeUser[37m?.fullName || selected?.a...
+         Γò╡                              [32m~~~~~~~~~~~~[0m
+
+
+[33mΓû▓ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8107: The left side of 
+this optional chain operation does not include 'null' or 'undefined' in its 
+type, therefore the '?.' operator can be replaced with the '.' operator.[0m 
+[1m[35m[plugin angular-compiler][0m
+
+    src/app/admin/pages/map/map.ts:47:87:
+[37m      47 Γöé ...er?.fullName || selected?.[32massigneeUser[37m?.email 
+|| selected?.assi...
+         Γò╡                              [32m~~~~~~~~~~~~[0m
+
+
+[33mΓû▓ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8107: The left side of 
+this optional chain operation does not include 'null' or 'undefined' in its 
+type, therefore the '?.' operator can be replaced with the '.' operator.[0m 
+[1m[35m[plugin angular-compiler][0m
+
+    src/app/admin/pages/map/map.ts:47:120:
+[37m      47 Γöé ...ed?.assigneeUser?.email || 
+selected?.[32massigneeUserId[37m || '' }}</div>
+         Γò╡                                         [32m~~~~~~~~~~~~~~[0m
+
+
+[33mΓû▓ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8107: The left side of 
+this optional chain operation does not include 'null' or 'undefined' in its 
+type, therefore the '?.' operator can be replaced with the '.' operator.[0m 
+[1m[35m[plugin angular-compiler][0m
+
+    src/app/admin/pages/map/map.ts:48:49:
+[37m      48 Γöé       <div><strong>Status:</strong> {{ 
+selected?.[32mstatus[37m }}</div>
+         Γò╡                                                  [32m~~~~~~[0m
+
+
+[33mΓû▓ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8107: The left side of 
+this optional chain operation does not include 'null' or 'undefined' in its 
+type, therefore the '?.' operator can be replaced with the '.' operator.[0m 
+[1m[35m[plugin angular-compiler][0m
+
+    src/app/admin/pages/map/map.ts:49:51:
+[37m      49 Γöé ...e:</strong> {{ selected?.[32mscheduledStart[37m }} - {{ 
+selected?.sched...
+         Γò╡                             [32m~~~~~~~~~~~~~~[0m
+
+
+[33mΓû▓ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8107: The left side of 
+this optional chain operation does not include 'null' or 'undefined' in its 
+type, therefore the '?.' operator can be replaced with the '.' operator.[0m 
+[1m[35m[plugin angular-compiler][0m
+
+    src/app/admin/pages/map/map.ts:49:84:
+[37m      49 Γöé ...{ selected?.scheduledStart }} - {{ 
+selected?.[32mscheduledEnd[37m }}</div>
+         Γò╡                                                 
+[32m~~~~~~~~~~~~[0m
+
+
+[33mΓû▓ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8107: The left side of 
+this optional chain operation does not include 'null' or 'undefined' in its 
+type, therefore the '?.' operator can be replaced with the '.' operator.[0m 
+[1m[35m[plugin angular-compiler][0m
+
+    src/app/admin/pages/project-details/project-details.html:28:40:
+[37m      28 Γöé           <span class="count">{{ units?.[32mlength[37m || 
+0 }}</span>
+         Γò╡                                         [32m~~~~~~[0m
+
+  Warning occurs in the template of component ProjectDetails.
+
+    src/app/admin/pages/project-details/project-details.ts:12:15:
+[37m      12 Γöé   templateUrl: [32m'./project-details.html'[37m,
+         Γò╡                [32m~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[33mΓû▓ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8107: The left side of 
+this optional chain operation does not include 'null' or 'undefined' in its 
+type, therefore the '?.' operator can be replaced with the '.' operator.[0m 
+[1m[35m[plugin angular-compiler][0m
+
+    src/app/admin/pages/project-details/project-details.html:32:47:
+[37m      32 Γöé           <span class="count">{{ 
+projectTasks?.[32mlength[37m || 0 }}</span>
+         Γò╡                                                [32m~~~~~~[0m
+
+  Warning occurs in the template of component ProjectDetails.
+
+    src/app/admin/pages/project-details/project-details.ts:12:15:
+[37m      12 Γöé   templateUrl: [32m'./project-details.html'[37m,
+         Γò╡                [32m~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[33mΓû▓ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8113: NgIf is not used 
+within the template of Invoices[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/client/pages/invoices/invoices.ts:13:25:
+[37m      13 Γöé   imports: [FormsModule, [32mNgIf[37m, NgFor, 
+SharedInvoice],
+         Γò╡                          [32m~~~~[0m
+
+
+[33mΓû▓ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8113: NgForOf is not used 
+within the template of Invoices[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/client/pages/invoices/invoices.ts:13:31:
+[37m      13 Γöé   imports: [FormsModule, NgIf, [32mNgFor[37m, 
+SharedInvoice],
+         Γò╡                                [32m~~~~~[0m
+
+
+[33mΓû▓ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8113: NgForOf is not used 
+within the template of ProfileDetails[0m [1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/client/pages/profile-details/profile-details.ts:10:25:
+[37m      10 Γöé   imports: [FormsModule, [32mNgFor[37m, NgIf, 
+SharedPageHeader, SharedProf...
+         Γò╡                          [32m~~~~~[0m
+
+
+[33mΓû▓ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8113: NgIf is not used 
+within the template of ProfileDetails[0m [1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/client/pages/profile-details/profile-details.ts:10:32:
+[37m      10 Γöé   imports: [FormsModule, NgFor, [32mNgIf[37m, 
+SharedPageHeader, SharedProf...
+         Γò╡                                 [32m~~~~[0m
+
+
+[33mΓû▓ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8113: SharedPageHeader is 
+not used within the template of ProfileDetails[0m [1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/client/pages/profile-details/profile-details.ts:10:38:
+[37m      10 Γöé ...FormsModule, NgFor, NgIf, [32mSharedPageHeader[37m, 
+SharedProfileDetails],
+         Γò╡                              [32m~~~~~~~~~~~~~~~~[0m
+
+
+[33mΓû▓ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8113: SharedPageHeader is 
+not used within the template of Units[0m [1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/client/pages/units/units.ts:7:12:
+[37m      7 Γöé   imports: [[32mSharedPageHeader[37m, SharedUnits],
+        Γò╡             [32m~~~~~~~~~~~~~~~~[0m
+
+
+[33mΓû▓ [43;33m[[43;30mWARNING[43;33m][0m [1mModule 'leaflet' used by 
+'src/app/admin/pages/map/map.ts' is not ESM[0m
+
+  CommonJS or AMD dependencies can cause optimization bailouts.
+  For more information see: 
+[4mhttps://angular.dev/tools/cli/build#configuring-commonjs-dependencies[0m
+
+[39m[22m
+Output location: C:\Users\Moustafa\OneDrive\Desktop\etsh\6-2\Front\dist\faateng
+

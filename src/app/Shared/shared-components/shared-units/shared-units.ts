@@ -7,6 +7,11 @@ import { SharedPageHeader } from '../../shared-layout/shared-page-header/shared-
 import { UnitService, Unit } from '../../../core/unit.service';
 import { ToastService } from '../../services/toast.service';
 import { Loading } from '../loading/loading';
+import { TaskService } from '../../../core/task.service';
+import { ResourceService } from '../../../core/resource.service';
+import { forkJoin, of } from 'rxjs';
+import { switchMap, catchError } from 'rxjs/operators';
+
 @Component({
   selector: 'app-shared-units',
   standalone: true,
@@ -36,6 +41,8 @@ export class SharedUnits implements OnInit {
   filteredUnits: Unit[] = [];
 
   private toast: ToastService = inject(ToastService);
+  private resource: ResourceService = inject(ResourceService);
+  private taskService: TaskService = inject(TaskService);
   constructor(private unitService: UnitService) {}
   loading: boolean = false;
 
@@ -45,23 +52,63 @@ export class SharedUnits implements OnInit {
 
   loadUnits() {
     this.loading = true;
-    this.unitService.getAll().subscribe({
-      next: (items) => {
-        this.units = items || [];
-        this.filterUnits();
-        this.loading = false;
-      },
-      error: (err) => {
-        console.error(err);
-        this.units = [];
-        this.filteredUnits = [];
-        this.loading = false;
-      }
-    });
+
+    if (this.role === 'technician') {
+      // For technicians, we first get tasks to find assigned unit IDs
+      // and then get all units and filter them.
+      this.taskService.getAll().pipe(
+        switchMap(tasks => {
+          const assignedUnitIds = tasks.map(t => t.unitId).filter(id => !!id);
+          if (assignedUnitIds.length === 0) {
+            return of({ units: [], assignedIds: [] });
+          }
+          return forkJoin({
+            units: this.unitService.getAll(),
+            assignedIds: of(assignedUnitIds)
+          });
+        }),
+        catchError(err => {
+          console.error('Error loading technician data:', err);
+          return of({ units: [], assignedIds: [] });
+        })
+      ).subscribe({
+        next: (result: any) => {
+          const { units, assignedIds } = result;
+          if (assignedIds.length > 0) {
+            this.units = units.filter((u: any) => assignedIds.includes(u.id));
+          } else {
+            this.units = [];
+          }
+          this.filterUnits();
+          this.loading = false;
+        },
+        error: () => {
+          this.loading = false;
+        }
+      });
+    } else {
+      this.unitService.getAll().subscribe({
+        next: (items) => {
+          this.units = items || [];
+          this.filterUnits();
+          this.loading = false;
+        },
+        error: (err) => {
+          console.error(err);
+          this.units = [];
+          this.filteredUnits = [];
+          this.loading = false;
+        }
+      });
+    }
   }
 
   filterUnits() {
-    this.filteredUnits = this.units.filter(u => u.type === this.activeTab);
+    if (this.role === 'client') {
+      this.filteredUnits = this.units;
+    } else {
+      this.filteredUnits = this.units.filter(u => u.type === this.activeTab);
+    }
     this.selectedUnitIndex = null;
   }
 

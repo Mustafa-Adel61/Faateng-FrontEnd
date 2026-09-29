@@ -2,7 +2,7 @@
 <header class="app-header">
   <div class="header-left">
 <button class="sidebar-toggle" (click)="sidebarToggleClick()">&#9776;</button>
-    <img class="menu-btn" src="/assets/images/Icon.png" alt="">
+    <!-- <img class="menu-btn" src="/assets/images/Icon.png" alt=""> -->
     <!-- <img class="image" src="/assets/images/MEPSOL.png" alt="Logo">
     <img class="pointImage" src="/assets/images/Ellipse 33.png" alt="Logo"> -->
   <div class="logo-wrapper">
@@ -16,7 +16,40 @@
   <!-- <span class="icon headset">🎧</span>
   <span class="icon bell">🔔</span> -->
   <img class="icon headset" src="/assets/images/Icon2.png" alt="Dot">
-  <img class="icon bell" src="/assets/images/Icon1.png" alt="Dot">
+  <div class="notification-wrapper" (click)="$event.stopPropagation()">
+    <button class="notification-button" type="button" (click)="toggleNotifications()"
+      [attr.aria-expanded]="notificationsOpen" aria-label="Notifications">
+      <img class="icon bell" src="/assets/images/Icon1.png" alt="Notifications">
+      <span class="notification-count" *ngIf="notifications.totalCount() > 0">
+        {{ notifications.totalCount() > 99 ? '99+' : notifications.totalCount() }}
+      </span>
+    </button>
+    <div class="notification-dropdown" *ngIf="notificationsOpen">
+      <div class="notification-header">
+        <span>Notifications</span>
+        <span class="notification-total" *ngIf="notifications.totalCount() > 0">
+          {{ notifications.totalCount() }}
+        </span>
+      </div>
+      <ng-container *ngFor="let item of notificationItems">
+        <a class="notification-item" [routerLink]="item.route" (click)="closeNotifications()">
+          <span class="notification-item__label">{{ item.label }}</span>
+          <strong>{{ item.count }}</strong>
+        </a>
+        <!-- تفاصيل الفاتورة: من هي، وتستحق إمتى، وبكام -->
+        <div class="notification-details" *ngIf="item.details?.length">
+          <a class="notification-detail" *ngFor="let d of item.details" [routerLink]="item.route"
+            (click)="closeNotifications()">
+            <span class="notification-detail__title">{{ d.title }}</span>
+            <span class="notification-detail__meta" [class.is-overdue]="d.overdue">{{ d.meta }}</span>
+          </a>
+        </div>
+      </ng-container>
+      <p class="empty-notifications" *ngIf="notificationItems.length === 0">
+        {{ notifications.loaded() ? 'No new notifications' : 'Loading...' }}
+      </p>
+    </div>
+  </div>
   <ng-container *ngIf="role === 'client'">
     <a [routerLink]="['profile-details']" routerLinkActive="active" >
       <img src="assets/images/Ellipse 34.png" alt="User" class="user-img">

@@ -5,6 +5,7 @@ import { ResourceService } from '../../../core/resource.service';
 import { SharedPageHeader } from '../../shared-layout/shared-page-header/shared-page-header';
 import { CreateNewContact } from "../../../admin/pages/create-new-contact/create-new-contact";
 import { Loading } from '../loading/loading';
+import { ToastService } from '../../../Shared/services/toast.service';
 
 interface Contract {
   id: number;
@@ -18,11 +19,20 @@ interface Contract {
   Client: string;
   Project: string;
   UnitsCount: number;
+  Units: ContractUnitInfo[];
   DaysLeft: string;
   Cycle: string;
   NextBill: string;
   Terms?: string;
   raw?: any;
+}
+
+interface ContractUnitInfo {
+  id: number;
+  name: string;
+  model: string;
+  serial: string;
+  type?: string;
 }
 
 @Component({
@@ -48,7 +58,11 @@ export class SharedContracts implements OnInit {
   selected: any = null;
   detailsPhotos: string[] = [];
   showFilterBuilder = false;
-  newFilter = { field: '', value: '' };
+  quickClient: string = '';
+  quickProject: string = '';
+  quickType: string = '';
+  quickCycle: string = '';
+  quickStatus: string = '';
   activeFilters: { field: string; value: string }[] = [];
   selectedCount = 0;
   // Pagination
@@ -56,7 +70,7 @@ export class SharedContracts implements OnInit {
   pageSize = 10;
   loading: boolean = false;
 
-  constructor(private resourceService: ResourceService) {}
+  constructor(private resourceService: ResourceService, private toast: ToastService) {}
 
   ngOnInit(): void {
     this.loadContracts();
@@ -67,6 +81,8 @@ export class SharedContracts implements OnInit {
     this.resourceService.getAll('Contracts').subscribe({
       next: (items: any[]) => {
         this.contracts = items.map(c => this.mapContract(c));
+        console.log("this.contracts",items);
+        
         this.totalCount = items.length;
         this.approvedCount = items.filter(c => c.status === 'Approved').length;
         this.rejectedCount = items.filter(c => c.status === 'Rejected').length;
@@ -81,75 +97,6 @@ export class SharedContracts implements OnInit {
     });
   }
 
-  // Realistic filters for contracts
-  getFilterValues(field: string): string[] {
-    if (!field) return [];
-    const values = this.contracts
-      .map(c => (c as any)[field])
-      .filter(v => v !== undefined && v !== null)
-      .map(v => String(v));
-    return Array.from(new Set(values));
-  }
-
-  applyFilter() {
-    if (!this.newFilter.field || !this.newFilter.value) return;
-    this.activeFilters.push({ ...this.newFilter });
-    this.newFilter = { field: '', value: '' };
-    this.showFilterBuilder = false;
-    this.page = 1;
-  }
-
-  removeFilter(idx: number) {
-    this.activeFilters.splice(idx, 1);
-  }
-
-  clearAllFilters() {
-    this.activeFilters = [];
-    this.page = 1;
-  }
-
-  get filteredContracts(): Contract[] {
-    let result = this.contracts;
-    if (this.activeFilters.length) {
-      result = result.filter(c =>
-        this.activeFilters.every(f => {
-          const v = (c as any)[f.field];
-          return String(v).toLowerCase() === String(f.value).toLowerCase();
-        })
-      );
-    }
-    if (this.searchText.trim() !== '') {
-      const s = this.searchText.toLowerCase();
-      result = result.filter(c => 
-        c.Title.toLowerCase().includes(s) || 
-        c.Client.toLowerCase().includes(s) || 
-        c.Project.toLowerCase().includes(s)
-      );
-    }
-    return result;
-  }
-
-  get pagedContracts(): Contract[] {
-    const start = (this.page - 1) * this.pageSize;
-    return this.filteredContracts.slice(start, start + this.pageSize);
-  }
-
-  get totalPages(): number {
-    return Math.ceil(this.filteredContracts.length / this.pageSize);
-  }
-
-  get visiblePages(): number[] {
-    const total = this.totalPages;
-    if (total <= 5) return Array.from({length: total}, (_, i) => i + 1);
-    let start = Math.max(this.page - 2, 1);
-    let end = Math.min(start + 4, total);
-    if (end === total) start = Math.max(end - 4, 1);
-    return Array.from({length: end - start + 1}, (_, i) => start + i);
-  }
-
-  setPage(p: number) {
-    if (p >= 1 && p <= this.totalPages) this.page = p;
-  }
 
   private mapContract(c: any): Contract {
     const end = c.endDate ? new Date(c.endDate) : null;
@@ -171,29 +118,44 @@ export class SharedContracts implements OnInit {
       EndDate: c.endDate ? new Date(c.endDate).toLocaleDateString('en-CA') : '',
       Client: c.clientName || 'Unknown Client',
       Project: c.projectName || 'No Project',
-      UnitsCount: c.units ? c.units.length : 0,
+      Units: this.mapUnits(c.units),
+      UnitsCount: Array.isArray(c.units) ? c.units.length : 0,
       DaysLeft: daysLeft,
       Cycle: c.visitFrequency || 'One-off',
-      NextBill: this.calculateNextBill(c.startDate, c.visitFrequency),
+      // NextBill: this.calculateNextBill(c.startDate, c.visitFrequency),
+      NextBill: c.nextVisit
+  ? new Date(c.nextVisit).toLocaleDateString('en-CA')
+  : '--',
       Terms: c.terms,
       raw: c
     };
   }
 
-  private calculateNextBill(start: string, freq: string): string {
-    if (!start || !freq || freq === 'One-off') return '--';
-    const d = new Date(start);
-    const now = new Date();
-    while (d < now) {
-      if (freq === 'Weekly') d.setDate(d.getDate() + 7);
-      else if (freq === 'Monthly') d.setMonth(d.getMonth() + 1);
-      else if (freq === 'Every 2 months') d.setMonth(d.getMonth() + 2);
-      else if (freq === 'Quarterly') d.setMonth(d.getMonth() + 3);
-      else if (freq === 'Annual') d.setFullYear(d.getFullYear() + 1);
-      else break;
-    }
-    return d.toLocaleDateString('en-CA');
+  private mapUnits(units: any): ContractUnitInfo[] {
+    if (!Array.isArray(units)) return [];
+    return units.map((unit: any) => ({
+      id: Number(unit.id),
+      model: unit.model || unit.name || 'Unnamed unit',
+      serial: unit.serial || '',
+      type: unit.type || '',
+      name: `${unit.model || unit.name || 'Unnamed unit'}${unit.serial ? ` (${unit.serial})` : ''}`
+    }));
   }
+
+  // private calculateNextBill(start: string, freq: string): string {
+  //   if (!start || !freq || freq === 'One-off') return '--';
+  //   const d = new Date(start);
+  //   const now = new Date();
+  //   while (d < now) {
+  //     if (freq === 'Weekly') d.setDate(d.getDate() + 7);
+  //     else if (freq === 'Monthly') d.setMonth(d.getMonth() + 1);
+  //     else if (freq === 'Every 2 months') d.setMonth(d.getMonth() + 2);
+  //     else if (freq === 'Quarterly') d.setMonth(d.getMonth() + 3);
+  //     else if (freq === 'Annual') d.setFullYear(d.getFullYear() + 1);
+  //     else break;
+  //   }
+  //   return d.toLocaleDateString('en-CA');
+  // }
 
   onSelectChange(contract: Contract, event: any) {
     const action = event.target.value;
@@ -233,7 +195,6 @@ export class SharedContracts implements OnInit {
     this.selected = item;
     this.showDetails = true;
     window.scrollTo({ top: 0, behavior: 'smooth' });
-    document.body.style.overflow = 'hidden';
     const c = item?.raw || item;
     if (c) {
       const mapped: Contract = {
@@ -246,13 +207,14 @@ export class SharedContracts implements OnInit {
         StartDate: c.startDate ? new Date(c.startDate).toLocaleDateString() : item?.StartDate || '',
         EndDate: c.endDate ? new Date(c.endDate).toLocaleDateString() : item?.EndDate || '',
         Client: c.clientName || item?.Client || 'Unknown Client',
+        Project: c.projectName || item?.Project || 'No Project',
+        Units: this.mapUnits(c.units || item?.Units),
+        UnitsCount: Array.isArray(c.units) ? c.units.length : (item?.UnitsCount || 0),
+        DaysLeft: item?.DaysLeft || this.calculateDaysLeft(c.endDate),
+        Cycle: c.visitFrequency || item?.Cycle || 'One-off',
+        NextBill: c.nextVisit ? new Date(c.nextVisit).toLocaleDateString('en-CA') : (item?.NextBill || '--'),
         Terms: c.terms ?? item?.Terms,
         raw: c,
-        Project: '',
-        UnitsCount: 0,
-        DaysLeft: '',
-        Cycle: '',
-        NextBill: ''
       };
       this.selected = mapped;
       this.detailsPhotos = [];
@@ -269,6 +231,13 @@ export class SharedContracts implements OnInit {
         }
       }
     }
+  }
+
+  private calculateDaysLeft(endDate: string | null | undefined): string {
+    if (!endDate) return 'Ongoing';
+    const end = new Date(endDate);
+    const diff = Math.ceil((end.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+    return diff > 0 ? `${diff}d` : 'Expired';
   }
   closeDetails() {
     this.selected = null;
@@ -311,35 +280,54 @@ export class SharedContracts implements OnInit {
   }
   toggleFilterBuilder() {
     this.showFilterBuilder = !this.showFilterBuilder;
-    this.newFilter = { field: '', value: '' };
   }
   getFilterValues(field: string): string[] {
     if (!field) return [];
     const values = this.contracts
       .map(c => (c as any)[field])
-      .filter(v => v !== undefined && v !== null)
+      .filter(v => v !== undefined && v !== null && v !== '')
       .map(v => String(v));
     return Array.from(new Set(values));
   }
-  applyFilter() {
-    if (!this.newFilter.field || !this.newFilter.value) return;
-    this.activeFilters.push({ ...this.newFilter });
-    this.newFilter = { field: '', value: '' };
-    this.showFilterBuilder = false;
+  applyQuickFilter(field: string, value: string) {
+    if (!value) {
+      this.activeFilters = this.activeFilters.filter(f => f.field !== field);
+    } else {
+      const existingIndex = this.activeFilters.findIndex(f => f.field === field);
+      if (existingIndex > -1) {
+        this.activeFilters[existingIndex].value = value;
+      } else {
+        this.activeFilters.push({ field, value });
+      }
+    }
     this.page = 1;
   }
   removeFilter(idx: number) {
+    const removedFilter = this.activeFilters[idx];
     this.activeFilters.splice(idx, 1);
+    if (removedFilter) {
+      if (removedFilter.field === 'Client') this.quickClient = '';
+      if (removedFilter.field === 'Project') this.quickProject = '';
+      if (removedFilter.field === 'Type') this.quickType = '';
+      if (removedFilter.field === 'Cycle') this.quickCycle = '';
+      if (removedFilter.field === 'Status') this.quickStatus = '';
+    }
     if (this.page > this.totalPages) this.page = this.totalPages;
   }
   clearAllFilters() {
     this.activeFilters = [];
+    this.quickClient = '';
+    this.quickProject = '';
+    this.quickType = '';
+    this.quickCycle = '';
+    this.quickStatus = '';
     this.page = 1;
   }
   
 //create new visit modal logic
 
  showCreate = false;
+ savingContract: boolean = false;
 
   openCreate() {
     this.showCreate = true;
@@ -365,31 +353,68 @@ export class SharedContracts implements OnInit {
     w.document.close();
   }
  addTask(newVisit: any) {
-    const payload: any = {
-      title: newVisit.Title || `${newVisit.ClientId} Contract`,
-      type: newVisit.Type || 'AMC',
-      projectId: newVisit.ProjectId,
-      clientId: newVisit.ClientId,
-      unitIds: newVisit.UnitIds || [],
-      startDate: newVisit.Start ? new Date(newVisit.Start).toISOString() : new Date().toISOString(),
-      endDate: newVisit.End ? new Date(newVisit.End).toISOString() : new Date().toISOString(),
-      visitFrequency: newVisit.BillingCycle || 'Monthly',
-      value: Number(newVisit.AmountperCycle ?? 0) || 0,
-      terms: newVisit.BillingCycle || '',
-      photos: Array.isArray(newVisit.Photos) ? JSON.stringify(newVisit.Photos) : null
-    };
-    this.resourceService.create('Contracts', payload).subscribe({
-      next: () => {
-        this.loadContracts();
-        this.showCreate = false;
-        document.body.style.overflow = 'auto';
-      },
-      error: () => {
-        this.loadContracts();
-        this.showCreate = false;
-        document.body.style.overflow = 'auto';
-      }
-    });
- }
+  if (this.savingContract) return;
+  this.savingContract = true;
+
+  const payload: any = {
+    title: newVisit.Title || `${newVisit.ClientId} Contract`,
+    type: newVisit.Type || 'AMC',
+    projectId: newVisit.ProjectId,
+    clientId: newVisit.ClientId,
+    unitIds: newVisit.UnitIds || [],
+    startDate: newVisit.Start
+      ? new Date(newVisit.Start).toISOString()
+      : new Date().toISOString(),
+    endDate: newVisit.End
+      ? new Date(newVisit.End).toISOString()
+      : new Date().toISOString(),
+    visitFrequency: newVisit.VisitFrequency || 'Monthly',
+    billingFrequency: newVisit.BillingCycle || 'Monthly',
+    value: Number(newVisit.AmountperCycle ?? 0) || 0,
+    terms: newVisit.BillingCycle || '',
+    photos: Array.isArray(newVisit.Photos)
+      ? JSON.stringify(newVisit.Photos)
+      : null,
+    visitStartDate: newVisit.VisitStartDate
+      ? new Date(newVisit.VisitStartDate).toISOString()
+      : null,
+    visitStartTime: newVisit.VisitStartTime
+      ? newVisit.VisitStartTime + ':00'
+      : null,
+    numberOfVisits: Number(newVisit.NumberOfVisits) || 1
+  };
+
+  this.resourceService.create('Contracts', payload).subscribe({
+    next: (res: any) => {
+
+      this.loadContracts();
+
+      this.toast.show(
+        res?.message || 'Contract created successfully',
+        'success'
+      );
+
+      this.showCreate = false;
+      document.body.style.overflow = 'auto';
+    },
+
+    error: (err: any) => {
+
+      const message =
+        err?.error?.message ||
+        err?.error ||
+        'Failed to create contract';
+
+      console.error(err);
+
+      this.toast.show(message, 'error');
+
+      this.showCreate = false;
+      document.body.style.overflow = 'auto';
+    },
+
+    complete: () => { this.savingContract = false; }
+  });
+}
 
 }

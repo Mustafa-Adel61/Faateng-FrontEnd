@@ -1,0 +1,79 @@
+<div class="submissions-page">
+  <div class="page-head">
+    <div class="page-title-section">
+      <h1 class="page-title">Submissions</h1>
+      <p class="page-subtitle">Review completed technician inspections.</p>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="toolbar">
+      <div class="search-wrapper">
+        <input
+          type="text"
+          class="search-input"
+          [(ngModel)]="searchQuery"
+          (input)="onSearch()"
+          placeholder="Search site, unit, technician or checklist"
+        />
+      </div>
+    </div>
+
+    <div class="table-wrapper" *ngIf="!isLoading; else loadingState">
+      <table class="submissions-table">
+        <thead>
+          <tr>
+            <th>Site / Unit</th>
+            <th>Checklist</th>
+            <th>Technician</th>
+            <th>Frequency</th>
+            <th>Date</th>
+            <th>Status</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr
+            class="table-row clickable-row"
+            *ngFor="let submission of filteredSubmissions; trackBy: trackById"
+            (click)="openSubmission(submission.id)"
+          >
+            <td>
+              <strong class="site-name">{{ submission.site }}</strong>
+              <small class="unit-name">{{ submission.unitName }}</small>
+            </td>
+            <td class="checklist-name">{{ submission.checklistName }}</td>
+            <td class="technician-name">{{ submission.technicianName }}</td>
+            <td class="frequency">{{ submission.frequency }}</td>
+            <td class="submission-date">{{ formatDate(submission.date) }}</td>
+            <td>
+              <span class="status-badge" [ngClass]="getStatusClass(submission.status)">
+                {{ submission.status }}
+              </span>
+            </td>
+            <td>
+              <button class="open-link-btn" (click)="$event.stopPropagation(); openSubmission(submission.id)">
+                Open
+              </button>
+            </td>
+          </tr>
+          <tr class="empty-row" *ngIf="filteredSubmissions.length === 0">
+            <td colspan="7" class="empty-cell">
+              <div class="empty-state">
+                <p class="empty-text">No submissions found</p>
+                <p class="empty-hint">Try adjusting your search criteria</p>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <ng-template #loadingState>
+      <div class="loading-state">
+        <div class="loading-spinner"></div>
+        <p class="loading-text">Loading submissions...</p>
+      </div>
+    </ng-template>
+  </div>
+</div>

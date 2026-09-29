@@ -1,9 +1,10 @@
 import { CommonModule, NgIf } from '@angular/common';
-import { Component, ElementRef, EventEmitter, OnInit, Output, ViewChild } from '@angular/core';
+import { Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ResourceService } from '../../../core/resource.service';
 import { UnitService } from '../../../core/unit.service';
 import { Loading } from '../../../Shared/shared-components/loading/loading';
+import { Subject, catchError, debounceTime, distinctUntilChanged, from, map, of, switchMap, takeUntil, tap } from 'rxjs';
 
 @Component({
   selector: 'app-create-new-project',
@@ -11,7 +12,8 @@ import { Loading } from '../../../Shared/shared-components/loading/loading';
   templateUrl: './create-new-project.html',
   styleUrl: './create-new-project.css'
 })
-export class CreateNewProject implements OnInit {  
+export class CreateNewProject implements OnInit, OnDestroy {  
+  @Input() saving = false;
   @Output() close = new EventEmitter<void>();
   @Output() save = new EventEmitter<any>();
 
@@ -57,17 +59,63 @@ export class CreateNewProject implements OnInit {
 
   ngOnInit(): void {
     this.loadClients();
+
+    this.addressInput$
+      .pipe(
+        map(v => String(v || '').trim()),
+        debounceTime(250),
+        distinctUntilChanged(),
+        switchMap(q => {
+          if (this.useGoogle) return of([]);
+          if (q.length < 3) return of([]);
+          const cached = this.addressCache.get(q);
+          if (cached && Date.now() - cached.ts < 5 * 60 * 1000) return of(cached.data);
+          const url = `https://nominatim.openstreetmap.org/search?format=json&limit=6&countrycodes=${this.allowedCountryCodes}&accept-language=ar&q=${encodeURIComponent(q)}`;
+          return from(fetch(url).then(r => r.json())).pipe(
+            map((res: any) => Array.isArray(res) ? res : []),
+            tap((res: any[]) => this.addressCache.set(q, { ts: Date.now(), data: res as any })),
+            catchError(() => of([]))
+          );
+        }),
+        takeUntil(this.destroy$)
+      )
+      .subscribe((res: any) => {
+        this.addressSuggestions = res || [];
+        this.showAddressDropdown = !this.useGoogle && String(this.addressQuery || '').trim().length >= 3;
+      });
     
     const key = localStorage.getItem('gmaps_api_key');
     if (key) {
       this.loadGoogleMaps().then(() => {
         this.useGoogle = !!((window as any).google && (window as any).google.maps);
-        if (this.useGoogle) this.initGMap(); else this.initLeaflet();
       });
     } else {
       this.useGoogle = false;
-      this.initLeaflet();
     }
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+
+    if (this.autocomplete && (window as any).google?.maps?.event) {
+      (window as any).google.maps.event.clearInstanceListeners(this.autocomplete);
+    }
+    if (this.gmap && (window as any).google?.maps?.event) {
+      (window as any).google.maps.event.clearInstanceListeners(this.gmap);
+    }
+
+    if (this.lmap) {
+      try { this.lmap.off(); } catch {}
+      try { this.lmap.remove(); } catch {}
+    }
+
+    this.gmap = undefined;
+    this.gmarker = undefined;
+    this.autocomplete = undefined;
+    this.autocompleteInput = null;
+    this.lmap = undefined;
+    this.lmarker = undefined;
   }
 
   loadClients() {
@@ -93,6 +141,13 @@ export class CreateNewProject implements OnInit {
  private autocomplete?: any;
  private lmap?: any;
  private lmarker?: any;
+ private autocompleteInput: HTMLInputElement | null = null;
+ private readonly addressInput$ = new Subject<string>();
+ private readonly destroy$ = new Subject<void>();
+ private readonly addressCache = new Map<string, { ts: number; data: { display_name: string; lat: string; lon: string }[] }>();
+  private readonly allowedCountryCodes = 'eg,lb';
+  private readonly defaultCenter = { lat: 33.8938, lng: 35.5018 };
+  private readonly defaultZoom = 8;
 
  toggleNewClient() {
     this.isNewClient = !this.isNewClient;
@@ -124,6 +179,9 @@ export class CreateNewProject implements OnInit {
 
   goBack() {
     if (this.step > 1) this.step--;
+    if (this.step === 2) {
+      setTimeout(() => this.ensureMapReady(), 0);
+    }
   }
   
   submitted = false;
@@ -132,12 +190,19 @@ export class CreateNewProject implements OnInit {
     if (this.step === 1) {
       if (!this.form.projectName || !this.form.ProjectType) return;
     } else if (this.step === 2) {
-      if (!this.form.siteAddress) return;
+      const addr = String(this.form.siteAddress || '').trim();
+      const lat = Number(this.form.siteLat);
+      const lng = Number(this.form.siteLng);
+      if (!addr) return;
+      if (Number.isNaN(lat) || Number.isNaN(lng)) return;
     }
     
     if (this.step < 3) {
       this.step++;
       this.submitted = false;
+      if (this.step === 2) {
+        setTimeout(() => this.ensureMapReady(), 0);
+      }
     } else {
       this.doSaveFinal();
     }
@@ -181,16 +246,14 @@ export class CreateNewProject implements OnInit {
 
  onAddressInput() {
    if (this.useGoogle) return;
-   this.showAddressDropdown = true;
-   const q = (this.addressQuery || '').trim();
+   const q = String(this.addressQuery || '').trim();
    if (q.length < 3) {
      this.addressSuggestions = [];
+     this.showAddressDropdown = false;
      return;
    }
-   const url = `https://nominatim.openstreetmap.org/search?format=json&limit=6&q=${encodeURIComponent(q)}`;
-   fetch(url).then(r => r.json()).then((res: any[]) => {
-     this.addressSuggestions = res || [];
-   });
+   this.showAddressDropdown = true;
+   this.addressInput$.next(q);
  }
 
  selectSuggestion(s: { display_name: string; lat: string; lon: string }) {
@@ -218,32 +281,68 @@ export class CreateNewProject implements OnInit {
    });
  }
 
+ ensureMapReady() {
+   if (this.useGoogle) {
+     this.initGMap();
+     if (this.gmap && (window as any).google?.maps?.event) {
+       (window as any).google.maps.event.trigger(this.gmap, 'resize');
+       this.gmap.setCenter(this.defaultCenter);
+     }
+   } else {
+     this.initLeaflet();
+     if (this.lmap) {
+       this.lmap.invalidateSize();
+       this.lmap.setView([this.defaultCenter.lat, this.defaultCenter.lng], this.defaultZoom);
+     }
+   }
+ }
+
  initGMap() {
    const mapEl = document.getElementById('cnv-map');
    const inputEl = document.getElementById('gmap-autocomplete') as HTMLInputElement | null;
    if (!mapEl) return;
-   this.gmap = (window as any).google ? new (window as any).google.maps.Map(mapEl, {
-     center: { lat: 33.5138, lng: 36.2165 },
-     zoom: 12,
+   const g = (window as any).google;
+   const shouldRecreate = !this.gmap || (this.gmap?.getDiv && this.gmap.getDiv() !== mapEl);
+   if (shouldRecreate) {
+     this.gmap = g ? new g.maps.Map(mapEl, {
+     center: this.defaultCenter,
+     zoom: this.defaultZoom,
      mapTypeId: 'roadmap'
-   }) : null;
-   if (inputEl && (window as any).google) {
-     this.autocomplete = new (window as any).google.maps.places.Autocomplete(inputEl, {
-       fields: ['formatted_address', 'geometry'],
-       types: ['geocode']
-     });
-     this.autocomplete.addListener('place_changed', () => {
-       const place = this.autocomplete.getPlace();
-       if (!place || !place.geometry) return;
-       const loc = place.geometry.location;
-       const lat = loc.lat();
-       const lng = loc.lng();
-       this.form.siteAddress = place.formatted_address || inputEl.value || '';
-       this.form.siteLat = lat;
-       this.form.siteLng = lng;
-       this.form.siteAddressGoogleMapLocation = `${lat},${lng}`;
-       this.updateGMarker(lat, lng, this.form.siteAddress);
-     });
+     }) : null;
+     this.gmarker = undefined;
+     if (this.gmap && g) {
+       this.gmap.addListener('click', (e: any) => {
+       const lat = e?.latLng?.lat?.();
+       const lng = e?.latLng?.lng?.();
+       if (typeof lat !== 'number' || typeof lng !== 'number') return;
+       this.setPinnedLocation(lat, lng);
+       this.reverseGeocodeGoogle(lat, lng);
+       });
+     }
+   }
+
+   if (inputEl && g) {
+     if (this.autocompleteInput !== inputEl) {
+       if (this.autocomplete && g?.maps?.event) {
+         g.maps.event.clearInstanceListeners(this.autocomplete);
+       }
+       this.autocompleteInput = inputEl;
+       this.autocomplete = new g.maps.places.Autocomplete(inputEl, {
+         fields: ['formatted_address', 'geometry'],
+         types: ['geocode'],
+         componentRestrictions: { country: ['eg', 'lb'] }
+       });
+       this.autocomplete.addListener('place_changed', () => {
+         const place = this.autocomplete.getPlace();
+         if (!place || !place.geometry) return;
+         const loc = place.geometry.location;
+         const lat = loc.lat();
+         const lng = loc.lng();
+         const addr = place.formatted_address || inputEl.value || '';
+         this.addressQuery = addr;
+         this.setPinnedLocation(lat, lng, addr);
+       });
+     }
    }
    if (this.form.siteLat && this.form.siteLng) {
      this.updateGMarker(Number(this.form.siteLat), Number(this.form.siteLng), this.form.siteAddress);
@@ -271,17 +370,66 @@ export class CreateNewProject implements OnInit {
  initLeaflet() {
    const el = document.getElementById('cnv-map');
    if (!el) return;
+   if (this.lmap && (this.lmap as any)?.getContainer && (this.lmap as any).getContainer() !== el) {
+     try { this.lmap.off(); } catch {}
+     try { this.lmap.remove(); } catch {}
+     this.lmap = undefined;
+     this.lmarker = undefined;
+   }
    if (this.lmap) return;
    const L = (window as any).L;
    if (!L) return;
-   this.lmap = L.map('cnv-map', { zoomControl: true }).setView([33.5138, 36.2165], 12);
+   this.lmap = L.map('cnv-map', { zoomControl: true }).setView([this.defaultCenter.lat, this.defaultCenter.lng], this.defaultZoom);
    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
      maxZoom: 19,
      attribution: '© OpenStreetMap'
    }).addTo(this.lmap);
+   this.lmap.on('click', (e: any) => {
+     const lat = e?.latlng?.lat;
+     const lng = e?.latlng?.lng;
+     if (typeof lat !== 'number' || typeof lng !== 'number') return;
+     this.setPinnedLocation(lat, lng);
+     this.reverseGeocodeNominatim(lat, lng);
+   });
    if (this.form.siteLat && this.form.siteLng) {
      this.updateLeafletMarker(Number(this.form.siteLat), Number(this.form.siteLng), this.form.siteAddress);
    }
+ }
+
+ private setPinnedLocation(lat: number, lng: number, address?: string) {
+   this.form.siteLat = lat;
+   this.form.siteLng = lng;
+   this.form.siteAddressGoogleMapLocation = `${lat},${lng}`;
+   if (address != null) this.form.siteAddress = address;
+   else this.form.siteAddress = '';
+   if (this.useGoogle) {
+     this.updateGMarker(lat, lng, this.form.siteAddress);
+   } else {
+     this.updateLeafletMarker(lat, lng, this.form.siteAddress);
+   }
+ }
+
+ private reverseGeocodeNominatim(lat: number, lng: number) {
+   const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${encodeURIComponent(String(lat))}&lon=${encodeURIComponent(String(lng))}&accept-language=ar`;
+   fetch(url).then(r => r.json()).then((res: any) => {
+     const addr = String(res?.display_name || '').trim();
+     if (!addr) return;
+     this.addressQuery = addr;
+     this.setPinnedLocation(lat, lng, addr);
+   });
+ }
+
+ private reverseGeocodeGoogle(lat: number, lng: number) {
+   const g = (window as any).google;
+   if (!g?.maps?.Geocoder) return;
+   const geocoder = new g.maps.Geocoder();
+   geocoder.geocode({ location: { lat, lng } }, (results: any[], status: string) => {
+     if (status !== 'OK' || !results?.length) return;
+     const addr = String(results[0]?.formatted_address || '').trim();
+     if (!addr) return;
+     this.addressQuery = addr;
+     this.setPinnedLocation(lat, lng, addr);
+   });
  }
 
  updateLeafletMarker(lat: number, lng: number, label?: string) {

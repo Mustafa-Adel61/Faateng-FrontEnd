@@ -2,7 +2,7 @@
 .cnv-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.4);
+  background: rgba(0, 0, 0, 0.4);
   display: flex;
   align-items: flex-start;
   justify-content: center;
@@ -14,6 +14,14 @@
   padding-bottom: 50px;
 }
 
+.form-hint {
+  margin: -10px 0 18px;
+  color: #777;
+  font-family: Poppins, sans-serif;
+  font-size: 13px;
+  line-height: 20px;
+}
+
 /* صندوق المودال */
 .cnv-modal {
   background: #fff;
@@ -22,7 +30,7 @@
   max-width: 95%;
   padding: 15px 20px;
   position: relative;
-  box-shadow: 0px 8px 20px rgba(0,0,0,0.15);
+  box-shadow: 0px 8px 20px rgba(0, 0, 0, 0.15);
   margin-bottom: 50px;
 }
 
@@ -60,15 +68,18 @@
   color: #1C1C1C;
   font-weight: 600;
   margin-bottom: 4px; */
-  
+
   color: #1C1C1C;
   /* font-family: Poppins; */
-font-weight: 600;
-font-style: SemiBold;
-font-size: 14px;
-line-height: 15px;
-letter-spacing: 0%;
+  font-weight: 600;
+  font-style: SemiBold;
+  font-size: 14px;
+  line-height: 15px;
+  letter-spacing: 0%;
+  font-family: Poppins, sans-serif;
+  line-height: 20px;
 }
+
 .cnv-modal input,
 .cnv-modal select,
 .cnv-modal textarea,
@@ -84,12 +95,13 @@ letter-spacing: 0%;
   background-color: transparent;
 
   /* ✅ نفس الخط */
-  /* font-family: Poppins; */
+  font-family: Poppins, sans-serif;
   font-weight: 400;
-  font-size: 12px;
+  font-size: 13px;
   line-height: 20px;
   letter-spacing: 0;
-  color: #1C1C1C33; /* اللون الأساسي للنص */
+  color: #1a1a1a;
+  opacity: 1;
 
   /* ✅ عشان يدي نفس الإحساس اللي في الصورة */
   outline: none;
@@ -99,13 +111,47 @@ letter-spacing: 0%;
 .cnv-modal input:focus,
 .cnv-modal select:focus,
 .cnv-modal textarea:focus {
-  border-color: #f8c400; /* أصفر أثناء الكتابة */
+  border-color: #f8c400;
+  /* أصفر أثناء الكتابة */
   outline: none;
 }
 
 .cnv-modal textarea {
   min-height: 60px;
   /* resize: none; */
+}
+
+@media (max-width: 600px) {
+  .cnv-backdrop {
+    align-items: flex-start;
+    padding: 72px 8px 16px;
+    overflow-y: auto;
+  }
+
+  .cnv-modal {
+    width: 100%;
+    max-width: none;
+    padding: 20px 12px;
+    box-sizing: border-box;
+    margin-top: 50px;
+  }
+
+  .form-grid,
+  .fields-grid,
+  .report-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .cnv-actions {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .cnv-actions button {
+    width: 100%;
+    min-height: 48px;
+    padding: 12px 18px;
+  }
 }
 
 /* الحقل اللي ياخد العرض كامل */
@@ -120,7 +166,7 @@ letter-spacing: 0%;
   justify-content: space-between;
   align-items: center;
   margin-top: 15px;
-  
+
 }
 
 .cancel-button {
@@ -141,7 +187,7 @@ letter-spacing: 0%;
   font-weight: 600;
   cursor: pointer;
   transition: 0.2s;
-    font-size: 15px;
+  font-size: 15px;
 
 }
 
@@ -166,11 +212,13 @@ letter-spacing: 0%;
 }
 
 .badge.scheduled {
-  background: #7b61ff; /* بنفسجي */
+  background: #7b61ff;
+  /* بنفسجي */
 }
 
 .badge.maintenance {
-  background: #4db5ff; /* أزرق فاتح */
+  background: #4db5ff;
+  /* أزرق فاتح */
 }
 
 
@@ -179,7 +227,8 @@ letter-spacing: 0%;
 .custom-file-upload {
   display: flex;
   align-items: center;
-  gap: 8px; /* مسافة بسيطة بين الأيقونة والنص */
+  gap: 8px;
+  /* مسافة بسيطة بين الأيقونة والنص */
   width: 100%;
   background: #f9f9f9;
   border: 1px solid #ddd;
@@ -189,7 +238,7 @@ letter-spacing: 0%;
   /* transition: background 0.2s ease; */
   box-sizing: border-box;
   margin-top: 6px;
-   /* ✅ خلي الخلفية شفافة */
+  /* ✅ خلي الخلفية شفافة */
   background-color: transparent;
 }
 
@@ -211,15 +260,15 @@ letter-spacing: 0%;
   /* color: #555;
   font-size: 0.9em;
   user-select: none; */
-  
-font-family: Poppins;
-font-weight: 400;
-font-style: Regular;
-font-size: 12px;
-/* leading-trim: NONE; */
-line-height: 20px;
-letter-spacing: 0%;
-color: #1C1C1C33;
+
+  font-family: Poppins;
+  font-weight: 400;
+  font-style: Regular;
+  font-size: 12px;
+  /* leading-trim: NONE; */
+  line-height: 20px;
+  letter-spacing: 0%;
+  color: #1C1C1C33;
 }
 
 /* الصور المختارة */
@@ -238,35 +287,64 @@ color: #1C1C1C33;
   border: 1px solid #ccc;
 }
 
-.inline3input{
+.inline3input {
   display: flex;
   justify-content: space-between;
   gap: 10px;
 }
-.one{
+
+.one {
   flex: 3;
 }
-.two{
+
+.two {
   flex: 1;
 }
-.three{
+
+.three {
   flex: 2;
 }
-.relativelable{
- margin-top: 13px;
+
+.relativelable {
+  margin-top: 13px;
 }
 
 hr {
   /* width: 80%; */
   border: none;
-  border-top: 1px solid rgba(139, 139, 139, 0.2); /* خط رمادي شفاف */
-  margin-left: 10px ; 
-  margin-right: 10px ;
+  border-top: 1px solid rgba(139, 139, 139, 0.2);
+  /* خط رمادي شفاف */
+  margin-left: 10px;
+  margin-right: 10px;
 }
+
 .required {
   color: red;
 }
 
 .input-error {
   border: 1px solid red !important;
+}
+
+.button-loader {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  margin-right: 7px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: button-spin .7s linear infinite;
+  vertical-align: -2px;
+}
+
+@keyframes button-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.save-button-large:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
 }

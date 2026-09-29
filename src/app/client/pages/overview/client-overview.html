@@ -1,0 +1,81 @@
+<main class="overview-page">
+  <app-loading [loading]="loading"></app-loading>
+
+  <app-shared-page-header [showCreateVisitButton]="false" [showSerchBox]="false" [showDropdown]="false">
+    <!-- <span breadcrumb>Dashboard &gt; Overview</span> -->
+  </app-shared-page-header>
+
+  <div *ngIf="!loading && !data" class="state-message">We could not load your overview right now.</div>
+
+  <ng-container *ngIf="data as overview">
+    <section class="metric-grid" aria-label="Maintenance summary">
+      <article class="metric-card urgent">
+        <span class="metric-badge">{{ overview.metrics.urgentTasks }} urgent</span>
+        <strong>{{ overview.metrics.urgentTasks }}</strong>
+        <span>Urgent Tasks</span>
+        <small class="metric-sub" *ngIf="overview.metrics.urgentRequests">+ {{ overview.metrics.urgentRequests }} urgent requests</small>
+      </article>
+      <article class="metric-card attention">
+        <span class="metric-badge">Attention</span>
+        <strong>{{ overview.metrics.assetsWithIssues }}</strong>
+        <span>Assets With Issues</span>
+      </article>
+      <article class="metric-card track">
+        <span class="metric-badge">On track</span>
+        <strong>{{ overview.metrics.pmCompliance }}%</strong>
+        <span>PM Compliance</span>
+      </article>
+      <article class="metric-card invoice">
+        <span class="metric-badge">{{ overview.metrics.invoiceCount }} invoices</span>
+        <strong>{{ formatCurrency(overview.metrics.outstanding) }}</strong>
+        <span>Outstanding</span>
+      </article>
+    </section>
+
+    <section class="content-grid">
+      <article class="panel attention-panel">
+        <h2>Needs Your Attention</h2>
+        <div *ngIf="overview.attention.length === 0" class="empty-message">Nothing needs your attention today.</div>
+        <div *ngFor="let item of overview.attention" class="attention-item">
+          <div>
+            <strong>{{ item.title }}</strong>
+            <p>{{ item.detail }}<span *ngIf="item.projectName"> · {{ item.projectName }}</span></p>
+          </div>
+          <time>{{ formatDate(item.date) }}</time>
+        </div>
+      </article>
+
+      <article class="panel maintenance-panel">
+        <h2>Upcoming Maintenance</h2>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Project</th>
+                <th>Visit</th>
+                <th>Assets</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let item of overview.upcoming">
+                <td>{{ formatDate(item.date) }}</td>
+                <td>{{ item.projectName }}</td>
+                <td>{{ item.visit }}</td>
+                <td>
+                  <div class="units-cell" *ngIf="item.units?.length">
+                    <span class="unit-chip" *ngFor="let u of item.units" [title]="u">{{ u }}</span>
+                  </div>
+                  <span class="text-ellipsis" *ngIf="!item.units?.length">-</span>
+                </td>
+              </tr>
+              <tr *ngIf="overview.upcoming.length === 0">
+                <td colspan="4" class="empty-cell">No upcoming maintenance visits.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </article>
+    </section>
+  </ng-container>
+</main>

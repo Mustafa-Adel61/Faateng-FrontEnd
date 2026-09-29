@@ -71,7 +71,10 @@
       </div>
 
       <p class="msg" *ngIf="error">{{ error }}</p>
-      <button type="submit" class="btn-register">ALL GOOD!</button>
+      <button type="submit" class="btn-register" [disabled]="saving || form.invalid">
+        <span class="button-loader" *ngIf="saving"></span>
+        {{ saving ? 'Creating...' : 'ALL GOOD!' }}
+      </button>
     </form>
   </div>
 </div>

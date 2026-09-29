@@ -22,9 +22,16 @@ export class ChecklistFlow implements OnInit {
   selectedSystem: string = '';
   selectedVariant: string = 'Standard';
   selectedFrequency: string = '';
+
+  // ===== NEW: Checklist selection for Technician =====
+  availableChecklists: any[] = []; // checklists assigned to this unit
+  selectedChecklistId: number | null = null;
+  selectedChecklist: any = null;
+  loadingChecklists: boolean = false;
   
   // Language
   selectedLanguage: string = 'English';
+  autoStartImmediately: boolean = false;
   
   // Questions
   questions: ChecklistQuestion[] = [];
@@ -35,10 +42,13 @@ export class ChecklistFlow implements OnInit {
   // Header data
   site: string = '';
   unitId: string = '';
+  unitName: string = '';
   technician: string = '';
   date: string = new Date().toISOString().split('T')[0];
-  taskId: string | null = null;
+  taskId: number | null = null;
   isReadOnly: boolean = false;
+  isEditMode: boolean = false;
+  existingSubmissionId: number | null = null;
 
   isSubmitting: boolean = false;
 
@@ -114,28 +124,175 @@ export class ChecklistFlow implements OnInit {
     private resource: ResourceService
   ) {}
 
-  ngOnInit() {
-    this.role = this.auth.getRole();
-    this.isAdmin = this.role === 'admin' || this.role === 'manager';
+ngOnInit() {
+  this.role = this.auth.getRole();
+  this.isAdmin = this.role === 'admin' || this.role === 'manager';
 
-    // Handle query params for direct flow from task details
-    this.route.queryParams.subscribe(params => {
-      if (params['site'] && params['unitId']) {
-        this.site = params['site'];
-        this.unitId = params['unitId'];
-        this.technician = params['technician'];
-        this.selectedSystem = params['system'] || 'Elevator';
-        this.selectedVariant = params['variant'] || 'Standard';
-        this.selectedFrequency = params['frequency'] || 'Monthly';
-        this.taskId = params['taskId'] || null;
-        this.isReadOnly = true;
-        
-        // Stay at step 2 (Language Selection) and don't load questions yet
-        // so the user can pick the language first.
-        this.step = 2;
+  this.route.queryParams.subscribe(params => {
+    if (params['taskId']) {
+      this.taskId = Number(params['taskId']);
+    }
+
+    if (params['site'] && params['unitId']) {
+      this.site = params['site'];
+      this.unitId = params['unitId'];
+      this.unitName = params['unitName'] || '';
+      this.technician = params['technician'];
+      this.isReadOnly = true;
+      this.step = 3;
+
+      this.initTechnicianFlow();   // بدل النداء المباشر لـ startChecklist()
+    }
+  });
+}
+
+private initTechnicianFlow() {
+  if (this.taskId) {
+    // بنبعت الـ unitId عشان التاسك الواحدة ممكن يكون فيها أكتر من unit
+    this.checklistService.getSubmissionByTaskId(this.taskId, this.unitId).subscribe({
+      next: (submission) => submission
+        ? this.loadExistingSubmission(submission)
+        : this.loadAssignedChecklists(),
+      error: () => this.loadAssignedChecklists()
+    });
+  } else {
+    this.loadAssignedChecklists();
+  }
+}
+
+private loadExistingSubmission(submission: any) {
+  this.isEditMode = true;
+  this.existingSubmissionId = submission.id;
+  this.selectedLanguage = submission.language;
+  if (submission.checklistId) {
+    this.selectedChecklistId = submission.checklistId;
+    this.selectedChecklist = { id: submission.checklistId, name: submission.checklistName };
+  }
+  this.loadQuestions(submission.answers);
+}
+
+  // ===== NEW: Load checklists assigned to the given unit =====
+  loadAssignedChecklists() {
+    console.log('SASASASAASALoading assigned checklists for unitId:', this.unitId);
+    // If we only have the unitId as a string like "PRJ-ELV-001", we need the numeric DB id.
+    // Try to fetch by unit id - the API expects numeric id.
+    const numericUnitId = parseInt(this.unitId, 10);
+    if (!isNaN(numericUnitId)) {
+      this.loadingChecklists = true;
+      this.checklistService.getChecklistsForUnit(numericUnitId).subscribe({
+        next: (lists) => {
+          this.availableChecklists = lists || [];
+          this.loadingChecklists = false;
+          if (this.availableChecklists.length === 1) {
+            this.selectChecklist(this.availableChecklists[0]);
+            if (this.autoStartImmediately) {
+              this.startChecklist();
+            }
+          }
+        },
+        error: (err) => {
+          console.warn('Could not load assigned checklists for unit, falling back to legacy', err);
+          this.loadingChecklists = false;
+        }
+      });
+    }
+  }
+
+  // ===== NEW: Technician selects a checklist =====
+  selectChecklist(cl: any) {
+    this.selectedChecklist = cl;
+    this.selectedChecklistId = cl.id;
+    // Prefill legacy fields from checklist for backward compat
+    this.selectedSystem = cl.system || this.selectedSystem;
+    this.selectedFrequency = cl.frequency || this.selectedFrequency;
+
+    if (this.isReadOnly) {
+      this.startChecklist();
+    }
+  }
+
+canGoFromChecklistToLanguage() {
+  if (this.availableChecklists.length > 0) {
+    return !!this.selectedChecklistId;
+  }
+  // Legacy admin-only path (لو لسه محتاجينه لإدارة الأسئلة القديمة)
+  return this.selectedSystem && this.selectedFrequency &&
+    (this.selectedSystem !== 'Elevator' || this.selectedVariant);
+}
+
+  checkExistingSubmission() {
+    if (!this.taskId) return;
+    this.checklistService.getSubmissionByTaskId(this.taskId, this.unitId).subscribe({
+      next: (submission) => {
+        if (submission) {
+          this.isEditMode = true;
+          this.existingSubmissionId = submission.id!;
+          this.site = submission.site;
+          this.unitId = submission.unitId;
+          this.unitName = (submission as any).unitName || this.unitName;
+          this.technician = submission.technicianName;
+          this.selectedSystem = submission.systemType;
+          this.selectedFrequency = submission.frequency;
+          this.selectedLanguage = submission.language;
+
+          // If the submission has a checklist id, set it
+          const anySub: any = submission;
+          if (anySub.checklistId) {
+            this.selectedChecklistId = anySub.checklistId;
+            this.selectedChecklist = { id: anySub.checklistId, name: anySub.checklistName };
+          }
+          
+          this.loadQuestions(submission.answers);
+          this.step = 3; // Go straight to questions if editing
+        }
+      },
+      error: () => {
+        // No existing submission, proceed as normal
       }
     });
   }
+
+ loadQuestions(existingAnswers?: any[]) {
+  // ===== الاعتماد بقى على checklistId فقط، مفيش legacy fallback خالص =====
+  if (!this.selectedChecklistId) {
+    console.warn('loadQuestions called without a selectedChecklistId — aborting');
+    return;
+  }
+
+  const params: any = { checklistId: this.selectedChecklistId };
+
+  this.checklistService.getQuestions(params)
+    .subscribe(res => {
+      this.questions = res;
+      if (existingAnswers) {
+        this.answers = res.map(q => {
+          const existing = existingAnswers.find(a => a.questionId === q.id);
+          return {
+            questionId: q.id,
+            status: existing ? existing.status : '',
+            notes: existing ? existing.notes : '',
+            photoUrl: existing ? existing.photoUrl : '',
+            photoFile: null,
+            numericValue: existing ? existing.numericValue : null,
+            textValue: existing ? existing.value : '',
+            isDirty: false
+          };
+        });
+      } else {
+        this.answers = res.map(q => ({
+          questionId: q.id,
+          status: '',
+          notes: '',
+          photoUrl: '',
+          photoFile: null,
+          numericValue: null,
+          textValue: '',
+          isDirty: false
+        }));
+      }
+      this.step = 3;
+    });
+}
 
   selectSystem(system: any) {
     this.selectedSystem = system.name;
@@ -154,25 +311,41 @@ export class ChecklistFlow implements OnInit {
     this.selectedSystem = '';
     this.selectedVariant = 'Standard';
     this.selectedFrequency = '';
+    this.selectedChecklistId = null;
+    this.selectedChecklist = null;
+    this.availableChecklists = [];
     this.step = 1;
   }
 
   goBack() {
-    if (this.taskId && this.isReadOnly) {
-      // Return to task details
+    if (this.step === 3) {
+      // From questions back to step 2
+      this.step = 2;
+      this.currentPage = 0;
+    } else if (this.taskId && this.isReadOnly && this.step <= 2) {
+      // Return to task list without opening details
       const role = this.auth.getRole();
-      this.router.navigate([`/dashboard/${role}/task-list`], { queryParams: { openTaskId: this.taskId } });
+      this.router.navigate([`/dashboard/${role}/task-list`]);
     } else {
       this.step = 1;
     }
   }
 
   canGoToLanguage() {
-    return this.selectedSystem && this.selectedFrequency && (this.selectedSystem !== 'Elevator' || this.selectedVariant);
+    // ===== NEW: delegate to checklist-aware check =====
+    return this.canGoFromChecklistToLanguage();
   }
 
   goToLanguage() {
-    this.step = 2;
+    // In technician mode step 2 is already "checklist selection", so we skip to questions directly
+    // We'll just move to questions directly from here since language is preselected.
+    // But we also need to respect the "change language" option, so go to step 2 if in legacy mode.
+    if (this.isReadOnly && this.availableChecklists.length > 0) {
+      // Technician mode - go directly to start checklist (skip language selection screen)
+      this.startChecklist();
+    } else {
+      this.step = 2;
+    }
   }
 
   selectLanguage(lang: string) {
@@ -181,23 +354,6 @@ export class ChecklistFlow implements OnInit {
 
   startChecklist() {
     this.loadQuestions();
-  }
-
-  loadQuestions() {
-    this.checklistService.getQuestions(this.selectedSystem, this.selectedVariant, this.selectedFrequency)
-      .subscribe(res => {
-        this.questions = res;
-        this.answers = res.map(q => ({
-          questionId: q.id,
-          status: '',
-          notes: '',
-          photoUrl: '',
-          photoFile: null,
-          numericValue: null,
-          isDirty: false // To track validation
-        }));
-        this.step = 3;
-      });
   }
 
   get paginatedQuestions() {
@@ -209,19 +365,33 @@ export class ChecklistFlow implements OnInit {
     return Math.ceil(this.questions.length / this.questionsPerPage);
   }
 
+  private getAnswerValueField(question: ChecklistQuestion): 'status' | 'numericValue' | 'textValue' {
+    if (question.requireNumeric) return 'numericValue';
+    if (question.requireNotes && !question.requireNumeric) return 'textValue';
+    return 'status';
+  }
+
+  isQuestionInvalid(questionIndex: number): boolean {
+  const q = this.questions[questionIndex] as any;
+  const a = this.answers[questionIndex];
+
+  if (!q || !a) return false;
+
+  const missingStatus = !a.status && !q.requireNumeric && !q.requireTextValue;
+  const missingNumeric = q.requireNumeric && (a.numericValue === null || a.numericValue === undefined || a.numericValue === '');
+  const missingText = q.requireTextValue && (!a.textValue || !String(a.textValue).trim());
+  const missingNotes = q.requireNotes && (!a.notes || !String(a.notes).trim());
+  const missingPhoto = q.requirePhoto && !a.photoUrl && !a.photoFile;
+
+  return missingStatus || missingNumeric || missingText || missingNotes || missingPhoto;
+}
+
   isCurrentPageValid() {
     const start = this.currentPage * this.questionsPerPage;
     const end = start + this.questionsPerPage;
-    const pageQuestions = this.questions.slice(start, end);
-    const pageAnswers = this.answers.slice(start, end);
 
-    for (let i = 0; i < pageQuestions.length; i++) {
-      const q = pageQuestions[i];
-      const a = pageAnswers[i];
-
-      if (!a.status) return false;
-      if (q.requireNumeric && (a.numericValue === null || a.numericValue === undefined)) return false;
-      if (a.status === 'Fail' && q.requirePhoto && !a.photoUrl) return false;
+    for (let i = start; i < Math.min(end, this.answers.length); i++) {
+      if (this.isQuestionInvalid(i)) return false;
     }
     return true;
   }
@@ -241,8 +411,6 @@ export class ChecklistFlow implements OnInit {
       } else {
         this.step = 4; // Summary
       }
-    } else {
-      this.toast.show('Please answer all required fields on this page.', 'error');
     }
   }
 
@@ -336,19 +504,25 @@ export class ChecklistFlow implements OnInit {
     if (this.isSubmitting) return;
     this.isSubmitting = true;
 
-    const submission = {
+    const submission: any = {
       site: this.site,
       unitId: this.unitId,
+      unitName: this.unitName || this.unitId,
       technicianName: this.technician,
       systemType: this.selectedSystem,
       frequency: this.selectedFrequency,
       language: this.selectedLanguage,
       taskId: this.taskId,
+      // ===== NEW: include checklist information =====
+      checklistId: this.selectedChecklistId ?? undefined,
+      checklistName: this.selectedChecklist?.name ?? undefined,
       answers: this.answers.map(a => ({
         questionId: a.questionId,
         status: a.status,
         notes: a.notes,
-        photoUrl: a.photoUrl
+        photoUrl: a.photoUrl,
+        value: a.textValue || (a.numericValue != null ? String(a.numericValue) : undefined),
+        numericValue: a.numericValue != null ? Number(a.numericValue) : undefined
       }))
     };
 
@@ -358,10 +532,10 @@ export class ChecklistFlow implements OnInit {
         this.isSubmitting = false;
         
         if (this.taskId && this.isReadOnly) {
-          // Update task notes to mark checklist as done then go back
+          // Update task notes to mark checklist as done then return to technician task list
           this.resource.update('Tasks', this.taskId, { notes: 'CHECKLIST_DONE' }).subscribe({
-            next: () => this.goBack(),
-            error: () => this.goBack()
+            next: () => this.router.navigate(['/dashboard/technician/task-list']),
+            error: () => this.router.navigate(['/dashboard/technician/task-list'])
           });
         } else {
           this.resetSelection();
@@ -378,16 +552,19 @@ export class ChecklistFlow implements OnInit {
   addQuestion() {
     if (!this.newQuestionText) return;
 
-    const newQ: ChecklistQuestion = {
+    const newQ = {
       systemType: this.selectedSystem,
       variant: this.selectedVariant,
       frequency: this.selectedFrequency,
       category: this.newQuestionCategory,
+      section: 'General',
+      order: 0,
       textEn: this.selectedLanguage === 'English' ? this.newQuestionText : '',
       textAr: this.selectedLanguage === 'Arabic' ? this.newQuestionText : '',
       requirePhoto: false,
       requireNotes: true,
-      requireNumeric: false
+      requireNumeric: false,
+     requireTextValue: false   // ← ضيف السطر ده
     };
 
     this.checklistService.createQuestion(newQ).subscribe({
@@ -421,16 +598,19 @@ export class ChecklistFlow implements OnInit {
   updateQuestion() {
     if (!this.editingQuestionId || !this.newQuestionText) return;
 
-    const updatedQ: ChecklistQuestion = {
+    const updatedQ = {
       systemType: this.selectedSystem,
       variant: this.selectedVariant,
       frequency: this.selectedFrequency,
       category: this.newQuestionCategory,
+      section: 'General',
+      order: 0,
       textEn: this.selectedLanguage === 'English' ? this.newQuestionText : '',
       textAr: this.selectedLanguage === 'Arabic' ? this.newQuestionText : '',
-      requirePhoto: false, // Default for now
+      requirePhoto: false,
       requireNotes: true,
-      requireNumeric: false
+      requireNumeric: false,
+      requireTextValue: false
     };
 
     this.checklistService.updateQuestion(this.editingQuestionId, updatedQ).subscribe({

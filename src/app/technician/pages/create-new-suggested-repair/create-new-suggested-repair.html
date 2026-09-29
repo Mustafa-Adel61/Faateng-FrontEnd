@@ -41,7 +41,9 @@
         </select>
       </label>
       <label>Status <span class="required">*</span>
-        <select [(ngModel)]="form.Status" name="Status" [ngClass]="{'input-error': submitted && !form.Status}">
+        <select [(ngModel)]="form.Status" name="Status" [ngClass]="{'input-error': submitted && !form.Status}"
+          [disabled]="isTechnician">
+          <option value="Under Review">Under Review</option>
           <option *ngFor="let t of Status" [value]="t">{{t}}</option>
         </select>
       </label>
@@ -51,11 +53,11 @@
       </label>
       <!-- ✅ الزر الجديد لرفع الصور -->
       <label>Photos
-        <div class="custom-file-upload" (click)="openFilePicker()">
+        <div class="custom-file-upload" (click)="openFilePicker()" [class.is-processing]="processingPhotos">
           <i class="pin-icon">
             <img src="/assets/images/imgIcon.png" alt="">
           </i>
-          <span class="upload-text">Upload File</span>
+          <span class="upload-text">{{ processingPhotos ? 'Processing...' : 'Upload File' }}</span>
         </div>
         <div class="selected-files" *ngIf="form.images.length">
           <div class="selected-file" *ngFor="let p of form.images; let i = index">
@@ -67,6 +69,11 @@
     </div>
     <div class="cnv-actions report-actions">
       <button type="button" class="cancel-button" (click)="doClose()">Cancel</button>
-      <button type="button" class="save-button-large yellow-bg" (click)="doSave()">Save</button>
+      <button type="button" class="save-button-large yellow-bg" (click)="doSave()"
+        [disabled]="saving || processingPhotos">
+        <span class="button-loader" *ngIf="saving"></span>
+        {{ saving ? 'Creating...' : 'Save' }}
+      </button>
     </div>
   </div>
+</div>

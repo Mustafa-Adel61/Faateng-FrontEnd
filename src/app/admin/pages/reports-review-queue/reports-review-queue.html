@@ -1,28 +1,21 @@
-<app-shared-page-header 
-[createButtonLabel]="'CREATE REPRORT'" 
-[showCreateVisitButton]="true"
-(createVisit)="openCreateReport()"
-    >
-  <span breadcrumb>Reports > Reports Review Queue</span>
+<app-shared-page-header [createButtonLabel]="'CREATE REPORT'" [showCreateVisitButton]="true"
+  (createVisit)="openCreateReport()">
+  <!-- <span breadcrumb>Reports > Reports Review Queue</span> -->
 </app-shared-page-header>
 
-<app-create-new-report 
-        *ngIf="showCreateReportModal" 
-        (close)="closeCreateReport()"
-        (save)="saveNewReport($event)"
-        >
+<app-create-new-report *ngIf="showCreateReportModal" [saving]="savingNewReport" (close)="closeCreateReport()"
+  (save)="saveNewReport($event)">
 </app-create-new-report>
 
 <app-loading [loading]="loading"></app-loading>
 
 <div class="task-list">
   <div class="tab-content">
-    <!-- List tab -->
-    <ng-container >
+    <ng-container>
       <div class="task-toolbar">
         <div class="toolbar-left">
-          <button class="icon-btn">+</button>
-          <button class="icon-btn" (click)="toggleFilterBuilder()">
+          <!-- <button class="icon-btn">+</button> -->
+          <button class="icon-btn" [class.active]="showFilterBuilder" (click)="toggleFilterBuilder()">
             <img src="/assets/images/Vector3.png" alt="">
           </button>
           <button class="icon-btn">⇅</button>
@@ -31,136 +24,132 @@
         <div class="toolbar-right">
           <div class="search-input">
             <button><img class="search-icon" src="/assets/images/search.png" alt=""></button>
-            <input type="text"
-             class="forSearch"
-             [(ngModel)]="searchText" 
-             placeholder="Search" />
+            <input type="text" class="forSearch" [(ngModel)]="searchText"
+              placeholder="Search project, report ID, unit..." />
           </div>
         </div>
       </div>
 
-      <!-- Filter Builder -->
-      <div class="filter-builder" *ngIf="showFilterBuilder">
-        <h4>Add filter</h4>     
-    <div class="filter-row">
-    <select [(ngModel)]="newFilter.field">
-    <option value="">Select Field</option>
-    <option value="Report">Report</option>
-    <option value="Visit">Visit</option>
-    <option value="Site_Unit">Site Unit</option>
-    <option value="Template">Template</option>
-    <option value="Tech">Tech</option>
-    <option value="Date">Date</option>
-    <option value="Score">Score</option>
-    <option value="Critical">Critical</option>
-    <option value="Status">Status</option>
-  </select>
+      <!-- Filter Builder Panel — نفس شكل الـ task-list -->
+      <div class="filter-builder-panel" *ngIf="showFilterBuilder">
+        <div class="filter-builder-header">
+          <h4>Filter Options</h4>
+          <button class="close-panel-btn" (click)="showFilterBuilder = false">×</button>
+        </div>
+        <div class="filter-grid">
+          <!-- Project -->
+          <div class="filter-field-group">
+            <label>Project</label>
+            <select [(ngModel)]="quickProject" (change)="applyQuickFilter('ProjectName', quickProject)">
+              <option value="">All Projects</option>
+              <option *ngFor="let p of getFilterValues('ProjectName')" [value]="p">{{ p }}</option>
+            </select>
+          </div>
 
-  <!-- ✅ لو الفيلد Date يظهر اتنين input -->
-<div *ngIf="newFilter.field === 'Date'" class="date-range-inputs">
-  <div class="date-field">
-    <label>From</label>
-    <input type="date" [(ngModel)]="newFilter.dateFrom"  (click)="forceDatePicker($event)" />
-  </div>
-  <div class="date-field">
-    <label>To</label>
-    <input type="date" [(ngModel)]="newFilter.dateTo" (click)="forceDatePicker($event)"  />
-  </div>
-</div>
+          <!-- Report Type -->
+          <div class="filter-field-group">
+            <label>Report Type</label>
+            <select [(ngModel)]="quickType" (change)="applyQuickFilter('Type', quickType)">
+              <option value="">All Types</option>
+              <option *ngFor="let t of getFilterValues('Type')" [value]="t">{{ t }}</option>
+            </select>
+          </div>
 
-  <!-- باقي الفيلدات العادية -->
-  <select *ngIf="newFilter.field !== 'Date' && getFilterValues(newFilter.field).length"
-          [(ngModel)]="newFilter.value">
-    <option *ngFor="let v of getFilterValues(newFilter.field)" [value]="v">{{ v }}</option>
-  </select>
+          <!-- Status -->
+          <div class="filter-field-group">
+            <label>Status</label>
+            <select [(ngModel)]="quickStatus" (change)="applyQuickFilter('Status', quickStatus)">
+              <option value="">All Statuses</option>
+              <option *ngFor="let s of getFilterValues('Status')" [value]="s">{{ s }}</option>
+            </select>
+          </div>
 
-  <button class="add-btn" (click)="applyFilter()">Apply</button>
-  <button class="add-btn" (click)="showFilterBuilder=false" style="background:#ccc;color:#000">Close</button>
-</div>
-
+          <!-- Date Range -->
+          <div class="filter-field-group">
+            <label>Date From</label>
+            <input type="date" [(ngModel)]="newFilter.dateFrom" (click)="forceDatePicker($event)" />
+          </div>
+          <div class="filter-field-group">
+            <label>Date To</label>
+            <input type="date" [(ngModel)]="newFilter.dateTo" (click)="forceDatePicker($event)" />
+          </div>
+        </div>
+        <div class="filter-panel-actions">
+          <button class="clear-btn" *ngIf="activeFilters.length" (click)="clearAllFilters()">Clear All Filters</button>
+          <button class="cancel-btn" (click)="showFilterBuilder = false">Close</button>
+          <button class="apply-btn" (click)="applyDateRange(); showFilterBuilder = false">Apply Date</button>
+        </div>
       </div>
-
 
       <!-- Active filters -->
       <div class="active-filters" *ngIf="activeFilters.length">
-     <span class="filter-chip" *ngFor="let f of activeFilters; let i = index">
-  <ng-container *ngIf="f.field !== 'Date'">
-    {{ f.field }}: <strong>{{ f.value }}</strong>
-  </ng-container>
-  <ng-container *ngIf="f.field === 'Date'">
-    {{ f.field }}: <strong>{{ f.dateFrom || '...' }} → {{ f.dateTo || '...' }}</strong>
-  </ng-container>
-  <button (click)="removeFilter(i)">×</button>
-</span>
-
+        <span class="af-label">Active Filters:</span>
+        <span class="filter-chip" *ngFor="let f of activeFilters; let i = index">
+          <span class="chip-field">{{ getActiveLabel(f) }}:</span>
+          <span class="chip-value">{{ f.value }}</span>
+          <button (click)="removeFilter(i)">×</button>
+        </span>
         <button class="clear-btn" (click)="clearAllFilters()">Clear All</button>
       </div>
-<!-- selected count -->
-<div class="selected-count" *ngIf="selectedCount > 0">
-  {{ selectedCount }} row(s) selected
-</div>
+
+      <!-- selected count -->
+      <div class="selected-count" *ngIf="selectedCount > 0">
+        {{ selectedCount }} row(s) selected
+      </div>
+
       <!-- table -->
-      <table>
-        <thead>
-          <tr>
-            <th>
-            <input 
-               type="checkbox" 
-               [checked]="allSelected" 
-               (change)="allSelected = $event.target.checked; toggleAll()" 
-               (click)="$event.stopPropagation()"/>
-            </th>
-            <th class="faded">Report</th>
-            <th class="faded">Visit</th>
-            <th class="faded">Site / Unit</th>
-            <th class="faded">Template</th>
-            <th class="faded">Tech</th>
-            <th class="faded">Date</th>
-            <th class="faded">Score</th>
-            <th class="faded">Critical</th>
-            <th class="faded">Status</th>
-            <th class="faded">Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          
-          <tr *ngFor="let task of pagedTasks" (click)="openDetails(task)">
-            <td>
-              <!-- <input type="checkbox" [(ngModel)]="task.selected" (change)="updateAllSelected()" /> -->
-              <input 
-      type="checkbox" 
-      [(ngModel)]="task.selected" 
-      (change)="updateAllSelected()" 
-      (click)="$event.stopPropagation()"
-    />
-            </td>
-            <td class="faded">{{ task.Report }}</td>
-            <td class="faded">{{ task.Visit }}</td>
-            <td class="faded">{{ task.Site_Unit }}</td>
-            <td class="faded">{{ task.Template }}</td>
-            <td class="faded">{{ task.Tech }}</td>
-            <td class="faded">{{ task.Date }}</td>
-            <td class="faded">{{ task.Score }}%</td>
-            <td class="faded">{{ task.Critical }}</td>
-            <td class="faded">
-              <span [ngClass]="{
-                'status-Submitted': task.Status === 'Submitted',
-                'status-Approved': task.Status === 'Approved',
-                'status-Returned': task.Status === 'Returned',
-              }">{{ task.Status }}</span>
-            </td>         
-<!-- (click)="$event.stopPropagation()" بيمنع ال click انه ياخد ال action الي فوقيه عشان كدا لو دوست عليها مش هيفتح ال details  -->
-            <td (click)="$event.stopPropagation()">
-                <select class="action-row" (change)="onSelectChange(task, $event)">
-                <option value="">Actions</option>
-                <option value="view">ReView</option>
-                <!-- <option value="edit">Edit</option> -->
-                <option value="delete">Delete</option>
+      <div class="table-container">
+        <table class="custom-table">
+          <thead>
+            <tr>
+              <th class="checkbox-col">
+                <input type="checkbox" [checked]="allSelected"
+                  (change)="allSelected = $event.target.checked; toggleAll()" (click)="$event.stopPropagation()" />
+              </th>
+              <th>PROJECT</th>
+              <th>REPORT TYPE</th>
+              <th>REPORT ID</th>
+              <th>UNITS</th>
+              <th>DATE</th>
+              <th>STATUS</th>
+              <th>ACTION</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let report of pagedReports" (click)="openDetails(report)">
+              <td class="checkbox-col" data-label="Select" (click)="$event.stopPropagation()">
+                <input type="checkbox" [(ngModel)]="report.selected" (change)="updateAllSelected()" />
+              </td>
+              <td data-label="PROJECT">{{ report.ProjectName }}</td>
+              <td data-label="REPORT TYPE">{{ report.Type }}</td>
+              <td data-label="REPORT ID"><span class="report-id-cell">{{ report.ReportId }}</span></td>
+              <td data-label="UNITS">
+                <div class="unit-chips">
+                  <span class="unit-chip" *ngFor="let u of report.Units"
+                    [title]="u.model + ' (' + u.serial + ')'">{{ u.model }}</span>
+                  <span *ngIf="!report.Units.length" class="no-units">—</span>
+                </div>
+              </td>
+              <td data-label="DATE">{{ report.Date }}</td>
+              <td data-label="STATUS">
+                <span [ngClass]="{
+                  'status-Submitted': report.Status === 'Submitted',
+                  'status-Approved': report.Status === 'Approved',
+                  'status-Returned': report.Status === 'Returned',
+                }">{{ report.Status }}</span>
+              </td>
+              <td data-label="ACTION" (click)="$event.stopPropagation()">
+                <select class="action-row" (change)="onSelectChange(report, $event)">
+                  <option value="">Actions</option>
+                  <option value="view">ReView</option>
+                  <option value="delete">Delete</option>
                 </select>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
       <!-- pagination -->
       <div class="pagination" *ngIf="totalPages > 1">
         <button class="page-btn" [disabled]="page === 1" (click)="setPage(page-1)">&lt;</button>
@@ -172,47 +161,77 @@
     </ng-container>
   </div>
 </div>
-<!-- details panel (simple modal-ish) -->
+
+<!-- details panel -->
 <div class="details-overlay" *ngIf="showDetails">
   <div class="details-panel">
     <button class="close-btn" (click)="closeDetails()">×</button>
-    <h3>{{ selectedTask?.Report }}</h3>
-
-              <span class="details-span" [ngClass]="{
-                'status-Submitted': selectedTask?.Status === 'Submitted',
-                'status-Approved': selectedTask?.Status === 'Approved',
-                'status-Returned': selectedTask?.Status === 'Returned',
-                }">{{ selectedTask?.Status }}</span>
-<!-- عملت الشرط دا عشان لو فيها null ميدخلش اصلا  -->
-   <p *ngIf="selectedTask">
-  <strong>Status </strong>
-  <select [(ngModel)]="selectedTask.Status" (change)="updateTaskStatus(selectedTask)">
-    <option *ngFor="let s of getSortedStatuses(selectedTask.Status)" [value]="s">
-      {{ s }}
-    </option>
-  </select>
-</p>
-
-    <p><strong>Visit:</strong> {{ selectedTask?.Visit }}</p>
-    <p><strong>Site_Unit:</strong> {{ selectedTask?.Site_Unit }}</p>
-    <p><strong>Template:</strong> {{ selectedTask?.Template }}</p>
-    <p><strong>Tech:</strong> {{ selectedTask?.Tech }}</p>
-    <p><strong>Date:</strong> {{ selectedTask?.Date }}</p>
-    <p><strong>Score:</strong> {{ selectedTask?.Score }}%</p>
-    <p><strong>Critical:</strong> {{ selectedTask?.Critical }}</p>
-    <p><strong>Photo:</strong></p>
-        <!-- photo -->
-      <div class="thumbnail-row" *ngIf="selectedTask?.images">
-        <img 
-          *ngFor="let photo of selectedTask?.images" 
-          [src]="photo" 
-          alt="Thumbnail" 
-        >
+    <div class="details-heading">
+      <div><span class="details-kicker">Report review</span>
+        <h3>{{ selectedReport?.ReportId }}</h3>
       </div>
-    
+      <span class="detail-chip" [ngClass]="'status-' + selectedReport?.Status">{{ selectedReport?.Status }}</span>
+    </div>
 
-  
+    <p *ngIf="selectedReport">
+      <strong>Status </strong>
+      <select [(ngModel)]="selectedReport.Status" (change)="updateReportStatus(selectedReport)">
+        <option *ngFor="let s of getSortedStatuses(selectedReport.Status)" [value]="s">
+          {{ s }}
+        </option>
+      </select>
+    </p>
 
+    <div class="details-summary">
+      <div><span>Project</span><strong>{{ selectedReport?.ProjectName }}</strong></div>
+      <div><span>Report type</span><strong>{{ selectedReport?.Type }}</strong></div>
+      <div><span>Technician</span><strong>{{ selectedReport?.Tech }}</strong></div>
+    </div>
+    <div class="details-grid">
+      <p><strong>Date</strong><span>{{ selectedReport?.Date }}</span></p>
+      <p><strong>Work performed</strong><span>{{ selectedReport?.WorkPerformed || '—' }}</span></p>
+      <p><strong>Comments</strong><span>{{ selectedReport?.Comments || '—' }}</span></p>
+    </div>
+    <div class="detail-section">
+      <span class="section-label">Linked units</span>
+      <div class="chips-row" *ngIf="selectedReport?.Units?.length">
+        <span class="detail-chip chip-unit" *ngFor="let u of selectedReport?.Units">{{ u.model }}<span *ngIf="u.serial">
+            ({{ u.serial }})</span></span>
+      </div>
+    </div>
+    <div class="detail-section" *ngIf="selectedReport?.Photos?.length">
+      <span class="section-label">Photos</span>
+      <div class="thumbnail-row" *ngIf="selectedReport?.Photos?.length">
+        <img *ngFor="let photo of selectedReport?.Photos" [src]="photo" alt="Thumbnail" (click)="openInNewTab(photo)">
+      </div>
+    </div>
 
+    <!-- زرار عرض الشيك ليست لكل Unit -->
+    <button type="button" class="view-checklist-btn" (click)="viewReportChecklist()" [disabled]="loadingSubs">
+      {{ loadingSubs ? 'LOADING...' : 'VIEW CHECKLIST' }}
+    </button>
+  </div>
+</div>
+
+<!-- Unit Picker Popup — نفس شكل shared-task-details: الضغط على أي unit يفتح صفحة الـ submission بتاعته -->
+<div class="unit-picker-overlay" *ngIf="showUnitPicker">
+  <div class="unit-picker-modal">
+    <div class="unit-picker-header">
+      <h4>Show Checklist for Unit</h4>
+      <button class="close-btn" (click)="closeUnitPicker()">×</button>
+    </div>
+    <p class="unit-picker-hint">Choose which unit checklist to view:</p>
+    <div class="unit-picker-list">
+      <button class="unit-picker-item" *ngFor="let u of pickerUnits" [class.disabled]="!u.done && !u.submissionId"
+        (click)="onPickUnit(u)">
+        <span class="unit-picker-name">{{ u.name }}</span>
+        <span class="unit-picker-type" *ngIf="u.serial">({{ u.serial }})</span>
+        <span class="unit-picker-status done" *ngIf="u.done">✓ Done</span>
+        <span class="unit-picker-status pending" *ngIf="!u.done">Not Submitted</span>
+      </button>
+    </div>
+    <div class="unit-picker-actions">
+      <button class="cancel-btn" (click)="closeUnitPicker()">Cancel</button>
+    </div>
   </div>
 </div>

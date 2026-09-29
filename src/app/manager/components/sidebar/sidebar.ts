@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component,Output,EventEmitter } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/auth';
+import { SidebarNotificationService } from '../../../core/sidebar-notification.service';
 
 @Component({
   selector: 'app-sidebar',
@@ -14,7 +15,11 @@ export class Sidebar {
 tasksOpen = false;
   calendarOpen = false;
   repairsOpen = false;
-  constructor(private auth: AuthService) {}
+  constructor(private auth: AuthService, public notifications: SidebarNotificationService) {}
+
+  ngOnInit(): void {
+    this.notifications.refresh();
+  }
   
     logout() {
        this.auth.logout();

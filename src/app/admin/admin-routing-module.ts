@@ -2,6 +2,7 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { TaskList } from './pages/task-list/task-list';
+import { ServiceRequests } from './pages/service-requests/service-requests';
 import { MapComponent } from './pages/map/map';
 import { Calendar } from './pages/calendar/calendar';
 import { Dispatcher } from './pages/dispatcher/dispatcher';
@@ -29,6 +30,12 @@ import { ChecklistList } from '../Shared/shared-components/checklist/checklist-l
 import { ChecklistDetails } from '../Shared/shared-components/checklist/checklist-details';
 import { ChecklistAddQuestion } from '../Shared/shared-components/checklist/checklist-add-question';
 
+import { Checklists } from './pages/checklists/checklists';
+import { ChecklistDetailPage } from './pages/checklist-detail/checklist-detail';
+import { ChecklistEditor } from './pages/checklist-editor/checklist-editor';
+import { Submissions } from './pages/submissions/submissions';
+import { SubmissionDetail } from './pages/submission-detail/submission-detail';
+
 export const routes: Routes = [
 
   //هنا بقول ان اول ما يدخل علي ال admin module هيروح لل layout عشان هيا الي مقسمه الشغل بتاعي بالترتيب
@@ -39,6 +46,7 @@ export const routes: Routes = [
   { path: '', redirectTo: 'tasks', pathMatch: 'full' },
   { path: 'map', component: MapComponent },
   { path: 'tasks', component: TaskList },
+  { path: 'service-requests', component: ServiceRequests },
   { path: 'calendar', component: Calendar },
   { path: 'dispatcher', component: Dispatcher },
   { path: 'technician', component: Technician },
@@ -56,12 +64,23 @@ export const routes: Routes = [
   { path: 'invoices', component: Invoices },
   { path: 'contracts', component: AdminContracts },
   { path: 'reports-review-queue', component: ReportsReviewQueue },
+  { path: 'register', component: Register },
   { path: 'reports/:id', component: ReportDetails },
   { path: 'suggested-repairs/:Code', component: SuggestedRepairsDetails },
   { path: 'checklist', component: ChecklistFlow },
   { path: 'checklist-list', component: ChecklistList },
   { path: 'checklist-details/:id', component: ChecklistDetails },
   { path: 'checklist-add', component: ChecklistAddQuestion },
+
+  // ======= NEW CHECKLIST MODULE ROUTES =======
+  { path: 'checklists', component: Checklists },
+  { path: 'checklists/new', component: ChecklistEditor },
+  { path: 'checklists/:id', component: ChecklistDetailPage },
+  { path: 'checklists/:id/edit', component: ChecklistEditor },
+
+  // ======= SUBMISSIONS ROUTES =======
+  { path: 'submissions', component: Submissions },
+  { path: 'submissions/:id', component: SubmissionDetail },
 ];
 
 @NgModule({
